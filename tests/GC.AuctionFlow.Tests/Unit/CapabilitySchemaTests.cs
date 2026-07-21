@@ -53,7 +53,7 @@ public sealed class CapabilitySnapshotTests
         var dto = CapabilitySnapshotDto.FromSnapshot(snap);
         var json = CapabilityJson.SerializeSnapshot(dto);
         Assert.Contains("\"schemaVersion\":\"1.0.0\"", json, StringComparison.Ordinal);
-        Assert.Contains("\"probeVersion\":\"0.0.4\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"probeVersion\":\"0.0.5\"", json, StringComparison.Ordinal);
         Assert.Contains("\"noNativeSequence\"", json, StringComparison.Ordinal);
 
         var back = CapabilityJson.DeserializeSnapshot(json);

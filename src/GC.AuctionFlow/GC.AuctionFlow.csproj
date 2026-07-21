@@ -10,10 +10,9 @@
     <RootNamespace>GC.AuctionFlow</RootNamespace>
     <AssemblyName>GC.AuctionFlow</AssemblyName>
     <OutputType>Library</OutputType>
-    <Description>GC AuctionFlow Engine (GCAE) — Phase 0 Trade Stream Probe</Description>
-    <!-- NuGet SemVer: numeric prerelease segments cannot have leading zeros (rejects 0.0.0-p0.02). -->
-    <Version>0.0.4</Version>
-    <InformationalVersion>0.0.4+P0-04</InformationalVersion>
+    <Description>GC AuctionFlow Engine (GCAE) — Phase 0 DOM Semantics Probe</Description>
+    <Version>0.0.5</Version>
+    <InformationalVersion>0.0.5+P0-05</InformationalVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>

@@ -418,12 +418,12 @@ public sealed class TradeStreamProbeTests
     }
 
     [Fact]
-    public void Versions_are_0_0_4_and_schema_1_0_0()
+    public void Trade_probe_versions_remain_0_0_4_schema_1_0_1()
     {
         Assert.Equal("0.0.4", TradeStreamProbeVersions.ProbeVersion);
         Assert.Equal("1.0.1", TradeStreamProbeVersions.TradeStreamProbeSchemaVersion);
-        Assert.Equal("0.0.4", CapabilitySchemaVersions.ProbeVersionPlaceholder);
-        Assert.Equal("P0-04", BuildInfo.Phase);
+        Assert.Equal("0.0.5", CapabilitySchemaVersions.ProbeVersionPlaceholder);
+        Assert.Equal("P0-05", BuildInfo.Phase);
     }
 
     private static void WaitProcessed(TradeStreamProbe probe, long min)

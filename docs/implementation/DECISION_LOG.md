@@ -64,7 +64,24 @@
 
 ## D-P0-04C-001 — cumulativeNewObservationCount / schema 1.0.1
 
-- **Decision:** Rename serialized/runtime counter `newExecutionCount` → `cumulativeNewObservationCount`. Meaning: number of normalized observations from `OnCumulativeTrade` only — **not** unique or total exchange executions. TradeStreamProbeSchemaVersion **1.0.1**. ProbeVersion remains **0.0.4**. P0-04 GCQ6/Rithmic operator verification recorded PASS.
+- **Decision:** Rename serialized/runtime counter `newExecutionCount` → `cumulativeNewObservationCount`. Meaning: number of normalized observations from `OnCumulativeTrade` only — **not** unique or total exchange executions. TradeStreamProbeSchemaVersion **1.0.1**. ProbeVersion was **0.0.4** at that closeout. P0-04 GCQ6/Rithmic operator verification recorded PASS.
+- **Date:** 2026-07-22
+
+## D-P0-05A-001 — DOM API audit PASS
+
+- **Decision:** P0-05A PASS on ATAS 8.0.14.395. Indicator depth surface: `MarketDepthChanged(MarketDataArg)`, `MarketDepthsChanged(IEnumerable<MarketDataArg>)`, `OnBestBidAskChanged(MarketDataArg)`, `GetMarketDepthSnapshot()` / `MarketDepthInfo.GetMarketDepthSnapshot()`. No action/sequence/level-index/reset on MarketDataArg.
+- **Date:** 2026-07-22
+
+## D-P0-05-001 — DOM semantics probe 0.0.5 / schema 1.0.0
+
+- **Decision:** ProbeVersion **0.0.5**; DomSemanticsProbeSchemaVersion **1.0.0**; TradeStreamProbeSchemaVersion remains **1.0.1**. IL confirms `MarketDepthsChanged` foreach → `MarketDepthChanged`; derived override must not call base. DepthUpdateAction=Unknown only. DepthLevelObservationState is diagnostic last-observation (not an order book). Deferred snapshot pull via OnCalculate only. LiveDom/HistoricalDom/ReplayDom claims forced false in artifact.
+- **Date:** 2026-07-22
+
+## D-P0-05B-001 — GCQ6/Rithmic DOM operator evidence PASS
+
+- **Decision:** P0-05 and P0-05 live operator verification = **PASS** on GCQ6 / Rithmic (two sessions). Evidence: `docs/evidence/P0-05B_DomSemantics_GCQ6_Rithmic_OperatorEvidence.md`. Run A SHA-256 `176DC185…C336`; Run B SHA-256 `ED424D7A…F3B539`. Batch/BBA/Snapshot OBSERVED; singular MarketDepthChanged NOT_OBSERVED_IN_TEST_WINDOW.
+- **LiveDom lock:** Availability=Available; Coverage includes Live; Runtime presence=Observed; Fidelity=Partial (not fully Validated); NativeSequence=Absent; StableBookReconstruction=false.
+- **Unchanged:** HistoricalDom=Unknown; ReplayDom=Unknown; VolumeMeaning/ZeroVolumeMeaning/UpdateAction=Unknown; no Delete inference from zero volume.
 - **Date:** 2026-07-22
 
 ## D-P0-04-002 — Base invocation from IL evidence

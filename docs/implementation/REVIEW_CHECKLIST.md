@@ -1,19 +1,24 @@
-# Review Checklist — P0-04C Semantic Closeout
+# Review Checklist — P0-05B Operator Evidence Closeout
 
 ## Prior
 
-- [x] P0-04 live GCQ6/Rithmic operator verification PASS
-- [x] P0-04B callback dispatch + identity bootstrap PASS
+- [x] P0-04 / P0-04B / P0-04C PASS
+- [x] P0-05A DOM API audit PASS
+- [x] P0-05 DOM Event Semantics Probe implementation PASS
+- [x] P0-05 live operator verification PASS (GCQ6 / Rithmic)
 
-## P0-04C must pass
+## P0-05B must pass
 
-- [x] `newExecutionCount` renamed to `cumulativeNewObservationCount`
-- [x] Meaning = normalized OnCumulativeTrade observations only (not unique exchange executions)
-- [x] OnUpdateCumulativeTrade does not increment it
-- [x] TradeStreamProbeSchemaVersion **1.0.1**
-- [x] Artifact has no `newExecutionCount` field
-- [x] No unique/total exchange execution count claim
-- [x] Deterministic serialization stable
-- [x] Existing P0-04 behavior preserved
-- [x] `dotnet clean/restore/build/test -c Release` — 0 errors, 0 warnings
-- [x] P0-05 not started
+- [x] Run A evidence recorded (SessionId, artifact, SHA-256)
+- [x] Run B evidence recorded (SessionId, artifact, SHA-256)
+- [x] Companion hashes independently verified
+- [x] Validated runtime findings recorded
+- [x] LiveDom locked: Available / Live / Observed / Partial / NativeSequence Absent / StableBookReconstruction false
+- [x] LiveDom not marked fully Validated
+- [x] HistoricalDom / ReplayDom remain Unknown
+- [x] Semantic findings locked (side consistency, zero-volume, Kind, threading, ordering)
+- [x] Snapshot findings locked
+- [x] Reset/reconnect status recorded
+- [x] Implementation governance + operator evidence docs only (master spec untouched)
+- [x] P0-05 = PASS; P0-05 live operator verification = PASS; P0-06 = NOT STARTED
+- [x] `dotnet build/test -c Release` — 0 errors, 0 warnings; no runtime expansion

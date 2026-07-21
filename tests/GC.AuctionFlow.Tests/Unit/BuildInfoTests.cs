@@ -13,13 +13,13 @@ public sealed class BuildInfoTests
     }
 
     [Fact]
-    public void Phase_is_P0_04()
+    public void Phase_is_P0_05()
     {
-        Assert.Equal("P0-04", BuildInfo.Phase);
+        Assert.Equal("P0-05", BuildInfo.Phase);
         Assert.Equal("net10.0-windows", BuildInfo.TargetFrameworkMoniker);
         Assert.Equal("GC AuctionFlow Engine", BuildInfo.VisibleIndicatorName);
-        Assert.Equal(CapabilitySchemaVersions.ProbeVersionPlaceholder, "0.0.4");
+        Assert.Equal(CapabilitySchemaVersions.ProbeVersionPlaceholder, "0.0.5");
         Assert.Equal(CapabilitySchemaVersions.SchemaVersion, "1.0.0");
-        Assert.Equal("0.0.4+P0-04", BuildInfo.Version);
+        Assert.Equal("0.0.5+P0-05", BuildInfo.Version);
     }
 }
