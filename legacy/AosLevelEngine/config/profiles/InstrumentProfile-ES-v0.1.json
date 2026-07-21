@@ -1,0 +1,124 @@
+{
+  "SchemaVersion": "0.1.0",
+  "ProfileId": "InstrumentProfile-ES-v0.1",
+  "Mode": "FULL",
+  "AnalysisSymbol": "ES",
+  "AnalysisSymbolNotes": "ES front month",
+  "ExecutionSymbol": "MES",
+  "TickSize": 0.25,
+  "Timezone": "America/New_York",
+  "TradingSessionIdentity": {
+    "TradingSessionRolloverLocalTime": "18:00",
+    "TradingTimeZone": "America/New_York",
+    "RthStartLocalTime": "09:30",
+    "RthEndLocalTime": "16:00",
+    "PartialCoverageMaxMissingMinutes": 30,
+    "Notes": "seed values, subject to sensitivity test. All fields required — FAIL STARTUP if missing."
+  },
+  "HistoryCapabilities": {
+    "PDH_PDL": { "MinCompletedRthSessions": 1, "Required": false },
+    "ONH_ONL": { "MinCompletedOvernightSessions": 1, "Required": false },
+    "WeeklyHL": { "MinCompletedRthSessions": 5, "Required": false },
+    "Composite": { "MinCompletedRthSessions": 5, "Required": false },
+    "nPOC": { "MinCompletedRthSessions": 5, "Required": false },
+    "RotationR": { "RequireChartTimeframeM1": true, "Required": false }
+  },
+  "RollPolicy": {
+    "Type": "FRONT_MONTH"
+  },
+  "Sessions": {
+    "Definitions": [
+      {
+        "Name": "PrimarySession",
+        "Start": "09:30",
+        "End": "16:00",
+        "SessionDefinitionType": "EXCHANGE_SESSION",
+        "WrapsMidnight": false
+      },
+      {
+        "Name": "Overnight",
+        "Start": "18:00",
+        "End": "09:30",
+        "SessionDefinitionType": "EXCHANGE_SESSION",
+        "WrapsMidnight": true
+      },
+      {
+        "Name": "InitialBalance",
+        "Start": "09:30",
+        "End": "10:30",
+        "SessionDefinitionType": "INITIAL_BALANCE",
+        "WrapsMidnight": false
+      }
+    ]
+  },
+  "Rotation": {
+    "VolatilityWindowStart": "06:00",
+    "VolatilityWindowEnd": "09:15",
+    "TrueRangeMultiplier": 3.0,
+    "ClampMinTicks": 6,
+    "ClampMaxTicks": 16,
+    "FreezeTime": "09:15",
+    "MaxWindowTimeMinutes": 15,
+    "TrueRangeTimeframe": "M1",
+    "FormulaNotes": "3.0 × median M1 True Range; clamp [6, 16] ticks; freeze 09:15 ET"
+  },
+  "Acceptance": {
+    "ConsecutiveOutsideM1Closes": 2,
+    "ContinuousMinutes": 3,
+    "RequireRotationWindowPocOutsideZone": true,
+    "OutsideCloseRatio": 0.60,
+    "OutsideCloseRatioRole": "MAINTENANCE"
+  },
+  "Confirmed": {
+    "RequiresProvisional": true,
+    "RetestHoldOrVolumeOutside": true,
+    "VolumeOutsideRatio": 0.65
+  },
+  "RetestHold": {
+    "OnlyAfterProvisional": true,
+    "EngagementCloseBandTicks": 1,
+    "EngagementMinSecondsInBand": 60,
+    "FailOnCloseThroughOppositeEdge": true,
+    "ReconfirmMinTicksBeyondEdge": 2,
+    "ResolutionMaxMinutes": 5
+  },
+  "Interaction": {
+    "ResetTicksFloor": 8,
+    "ResetTicksUsesMaxWithRotationR": true,
+    "ResetTimeMinutes": 5,
+    "MaxInteractionTimeMinutes": 30,
+    "ExitDistanceEqualsRotationR": true
+  },
+  "Zones": {
+    "WidthsAreTotalTicks": true,
+    "ExtremeTicks": 2,
+    "VahValTicks": 4,
+    "PocTicks": 4,
+    "ValueAreaOrPocTicks": null,
+    "CompositeTicks": 4,
+    "ClusterMaxTicks": 8,
+    "ClusterGapTicks": 2,
+    "RoundNumbers": []
+  },
+  "Outcome": {
+    "ReferencePrice": "APPROACH_SIDE_ZONE_EDGE",
+    "RecordExcursionTicks": true,
+    "RecordExcursionR": true,
+    "Horizons": ["5m", "15m", "30m", "next-interaction", "session-end"],
+    "SupportTruncationReason": true
+  },
+  "LevelEngine": {
+    "ValueAreaVolumePercent": 0.70,
+    "ValueAreaAlgorithm": "EXPAND_FROM_POC_V1",
+    "PocTieBreak": "LOWEST_PRICE",
+    "CompositeLookbackSessions": 5,
+    "NPocLookbackSessions": 5,
+    "CompositeBoundaryAlgorithm": "SESSION_HIGH_LOW_EXTREMES_V1",
+    "CompositeBoundaryAlgorithmVersion": "1.0.0",
+    "ExhaustedPolicy": "INACTIVE",
+    "SinglePrintEdgesEnabled": false,
+    "SinglePrintStatus": "CAN_XAC_MINH",
+    "AllowMidSessionLevelCreation": false,
+    "Notes": "All LevelEngine fields are required for startup. Seed values, subject to sensitivity test."
+  }
+}

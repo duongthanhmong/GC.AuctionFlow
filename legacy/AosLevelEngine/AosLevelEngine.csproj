@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Aos.LevelEngine</RootNamespace>
+    <AssemblyName>AosLevelEngine</AssemblyName>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <Compile Remove="atas\**" />
+    <Compile Remove="AosLevelEngine.Atas\**" />
+    <None Remove="tests\**" />
+    <None Remove="AosLevelEngine.Atas\**" />
+    <None Update="config\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <EmbeddedResource Include="config\profiles\InstrumentProfile-ES-v0.1.json"
+                      LogicalName="Aos.LevelEngine.Config.InstrumentProfile-ES-v0.1.json" />
+  </ItemGroup>
+
+</Project>

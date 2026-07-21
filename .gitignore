@@ -1,0 +1,28 @@
+# Build
+bin/
+obj/
+[Bb]uild/
+[Oo]ut/
+artifacts/*
+!artifacts/.gitkeep
+
+# IDE / OS
+.vs/
+.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Logs / local runtime
+*.log
+*.spool
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Secrets
+.env
+*.pfx
+credentials*.json

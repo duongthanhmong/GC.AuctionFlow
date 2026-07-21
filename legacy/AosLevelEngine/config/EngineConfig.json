@@ -1,0 +1,12 @@
+{
+  "SchemaVersion": "1.0.0",
+  "LevelEngineVersion": "0.1.0",
+  "InteractionLoggerVersion": "0.1.0",
+  "InterpretationVersion": "1.0.0",
+  "SpoolDirectory": "%USERPROFILE%\\.aos\\spool",
+  "DeclaredDataSourceMode": "LIVE",
+  "InstrumentProfileFile": "InstrumentProfile-ES-v0.1.json",
+  "SpoolFlushIntervalSeconds": 1,
+  "SpoolRotateMaxHours": 1,
+  "SpoolRotateMaxBytesMb": 256
+}
