@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Minimum Windows Desktop config to resolve WindowsBase via Microsoft.WindowsDesktop.App (P0-02A). -->
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>GC.AuctionFlow</RootNamespace>
+    <AssemblyName>GC.AuctionFlow</AssemblyName>
+    <OutputType>Library</OutputType>
+    <Description>GC AuctionFlow Engine (GCAE) — Phase 0 Trade Stream Probe</Description>
+    <!-- NuGet SemVer: numeric prerelease segments cannot have leading zeros (rejects 0.0.0-p0.02). -->
+    <Version>0.0.4</Version>
+    <InformationalVersion>0.0.4+P0-04</InformationalVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <!--
+    ATAS_HOME: operator environment variable when set; otherwise local default.
+    Do not hardcode HintPath strings elsewhere — always go through $(ATAS_HOME).
+  -->
+  <PropertyGroup>
+    <ATAS_HOME Condition="'$(ATAS_HOME)' == ''">C:\Program Files (x86)\ATAS Platform</ATAS_HOME>
+    <AtasIndicatorsDll>$(ATAS_HOME)\ATAS.Indicators.dll</AtasIndicatorsDll>
+    <AtasDataFeedsDll>$(ATAS_HOME)\ATAS.DataFeedsCore.dll</AtasDataFeedsDll>
+  </PropertyGroup>
+
+  <Target Name="ValidateAtasAssemblies" BeforeTargets="ResolveAssemblyReferences;CoreCompile">
+    <Error
+      Condition="!Exists('$(AtasIndicatorsDll)')"
+      Text="ATAS.Indicators.dll not found at '$(AtasIndicatorsDll)'. Set ATAS_HOME to the ATAS Platform install directory (observed product version 8.0.14.395)." />
+    <Error
+      Condition="!Exists('$(AtasDataFeedsDll)')"
+      Text="ATAS.DataFeedsCore.dll not found at '$(AtasDataFeedsDll)'. Set ATAS_HOME to the ATAS Platform install directory (observed product version 8.0.14.395)." />
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="ATAS.Indicators">
+      <HintPath>$(AtasIndicatorsDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="ATAS.DataFeedsCore">
+      <HintPath>$(AtasDataFeedsDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

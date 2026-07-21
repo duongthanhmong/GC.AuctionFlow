@@ -1,0 +1,99 @@
+# Decision Log
+
+## D-P0-02-001 — Production and test TFM (superseded by D-P0-02A-001)
+
+- **Decision (original):** Both projects target **net10.0**.
+- **Date:** 2026-07-21
+
+## D-P0-02-002 — One DLL / one indicator
+
+- **Decision:** Single deployable `GC.AuctionFlow.dll`; visible name `GC AuctionFlow Engine`.
+- **Basis:** Spec §2.6 / §49.2.
+- **Date:** 2026-07-21
+
+## D-P0-02-003 — ATAS_HOME reference resolution
+
+- **Decision:** Resolve ATAS DLLs through `ATAS_HOME`; fail build if missing.
+- **Date:** 2026-07-21
+
+## D-P0-02-004 — Spool root (constant only)
+
+- **Decision:** Spool root directory name `.gcae` under `%USERPROFILE%`. Writer not in P0-02/P0-03.
+- **Date:** 2026-07-21
+
+## D-P0-02-005 — CapabilityMatrix evidence identity
+
+- **Decision:** Canonical workspace ES CapabilityMatrix SHA-256 is `471BDA044627624546709543740C59CD03EAE271D86ED93A16676F44115CFAC1`. Earlier uploaded ES matrix is a different artifact.
+- **Date:** 2026-07-21
+
+## D-P0-02-006 — Assembly version string
+
+- **Decision:** NuGet `<Version>` uses SemVer without invalid prerelease numeric leading zeros.
+- **Date:** 2026-07-21
+
+## D-P0-02A-001 — TFM net10.0-windows + UseWPF
+
+- **Decision:** Production/test TFM `net10.0-windows`; production `UseWPF=true` clears MSB3277.
+- **Date:** 2026-07-21
+
+## D-P0-02A-002 — Namespace GC.AuctionFlow.Atas
+
+- **Decision:** Folder/namespace `Atas` to avoid shadowing `ATAS.Indicators.Indicator`.
+- **Date:** 2026-07-21
+
+## D-P0-02A-003 — Operator Indicators directory
+
+- **Decision:** Deploy exactly one copy to `C:\Users\LOQ\AppData\Roaming\ATAS\Indicators`. Do not dual-install to Documents.
+- **Smoke:** Operator confirmed P0-02 ATAS smoke PASS.
+- **Date:** 2026-07-21
+
+## D-P0-03-001 — Capability schema 1.0.0
+
+- **Decision:** Capability / evidence contracts use SchemaVersion **1.0.0** and ProbeVersion placeholder **0.0.3** (superseded for probe runtime by D-P0-04-001). Axes kept separate (availability, coverage, computability, fidelity, sequence, MBO lifecycle, provenance). No confidence score. Unknown values remain explicit and serializable. ES evidence cannot be relabeled as GC via InstrumentId rewrite.
+- **Date:** 2026-07-21
+
+## D-P0-04A-001 — Trade Stream API audit PASS
+
+- **Decision:** P0-04A PASS on ATAS **8.0.14.395**. Observed signatures on `ExtendedIndicator`: `OnNewTrade(MarketDataArg)`, `OnNewTrades(IEnumerable<MarketDataArg>)`, `OnCumulativeTrade(CumulativeTrade)`, `OnUpdateCumulativeTrade(CumulativeTrade)`. Payload types under `ATAS.Indicators`. `Lastprice` exact casing. No native trade/cumulative sequence ID.
+- **Date:** 2026-07-21
+
+## D-P0-04-001 — ProbeVersion 0.0.4 / artifact schema 1.0.0
+
+- **Decision:** Runtime Trade Stream Probe uses ProbeVersion **0.0.4** and TradeStreamProbeSchemaVersion **1.0.0** (superseded schema by D-P0-04C-001).
+- **Date:** 2026-07-21
+
+## D-P0-04C-001 — cumulativeNewObservationCount / schema 1.0.1
+
+- **Decision:** Rename serialized/runtime counter `newExecutionCount` → `cumulativeNewObservationCount`. Meaning: number of normalized observations from `OnCumulativeTrade` only — **not** unique or total exchange executions. TradeStreamProbeSchemaVersion **1.0.1**. ProbeVersion remains **0.0.4**. P0-04 GCQ6/Rithmic operator verification recorded PASS.
+- **Date:** 2026-07-22
+
+## D-P0-04-002 — Base invocation from IL evidence
+
+- **Decision (original P0-04):** IL on ATAS.Indicators 8.0.14.395: `OnNewTrade` / `OnCumulativeTrade` / `OnUpdateCumulativeTrade` / `BaseIndicator.OnDispose` = empty `ret`. `OnNewTrades` = non-trivial (foreach → `OnNewTrade`). Originally called `base.OnNewTrades`.
+- **Superseded by D-P0-04B-001.**
+- **Date:** 2026-07-21
+
+## D-P0-04B-001 — Do not call base.OnNewTrades
+
+- **Decision:** Because base `OnNewTrades` invokes virtual `OnNewTrade` per item, the derived override must enumerate the batch as `OnNewTradesBatch` and **must not** call `base.OnNewTrades`. Singular `OnNewTrade` represents only platform-direct singular callbacks. Overlap remains via fingerprint comparison without deduplication. Always `base.OnDispose()` in finally.
+- **Date:** 2026-07-22
+
+## D-P0-04B-002 — Identity bootstrap before ExpectedInstrumentCode gate
+
+- **Decision:** Capture observed instrument snapshot before applying ExpectedInstrumentCode. Missing expected → `ExpectedInstrumentMissing`; mismatch → `InstrumentMismatch`; both increment `RejectedByInstrumentGate`, preserve observed identity, export diagnostic artifact with `CaptureAuthorized=false`. Never a LIVE capability PASS.
+- **Date:** 2026-07-22
+
+## D-P0-04B-003 — Callback observation terminology
+
+- **Decision:** Zero callback count in a run → `NOT_OBSERVED_IN_TEST_WINDOW` (not Unavailable). Nonzero → `OBSERVED`. All four callbacks are not required for a successful operator run.
+- **Date:** 2026-07-22
+
+## D-P0-04-003 — Fingerprints and streams
+
+- **Decision:** Fingerprints are diagnostic overlap evidence only (invariant CultureInfo pipe-joined fields). No fingerprint-based deletion; not trade IDs; not native sequence. No stream authoritative; no merged total volume.
+- **Date:** 2026-07-21
+
+## D-P0-04-004 — Artifact location
+
+- **Decision:** Trade stream probe artifacts under `%USERPROFILE%\.gcae\capability\` with atomic rename + companion `.sha256` (hash not embedded in hashed JSON).
+- **Date:** 2026-07-21

@@ -5,6 +5,8 @@ obj/
 [Oo]ut/
 artifacts/*
 !artifacts/.gitkeep
+!artifacts/build/
+!artifacts/build/**
 
 # IDE / OS
 .vs/
@@ -16,6 +18,7 @@ Thumbs.db
 
 # Logs / local runtime
 *.log
+!artifacts/build/*.log
 *.spool
 *.db
 *.db-journal
