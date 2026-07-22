@@ -4,14 +4,16 @@ using ATAS.Indicators;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Recorder;
+using GC.AuctionFlow.Runtime;
+using GC.AuctionFlow.UI;
+using OFT.Rendering.Context;
 
 namespace GC.AuctionFlow.Atas;
 
 /// <summary>
-/// GC AuctionFlow Engine — Phase 0 probes (trade P0-04, DOM P0-05, MBO P0-06) + P0-07C3BC Trade recorder.
-/// P0-06: SubscribeMarketByOrderData once; OnMarketByOrdersChanged batch only (empty base — do not call).
-/// P0-06C Decision B: OnCalculate must never write this[bar]/DataSeries; no MBO price to chart series.
-/// Always base.OnDispose() in finally. No IOnlineDataProvider.MarketByOrdersChanged; no Unsubscribe.
+/// GC AuctionFlow Engine — Phase 0 probes/recorder + P0-08A Runtime DataGate + Auction GPS Card.
+/// P0-06C Decision B: OnCalculate must never write this[bar]/DataSeries.
+/// Always base.OnDispose() in finally.
 /// </summary>
 [DisplayName(BuildInfo.VisibleIndicatorName)]
 [Category("GC")]
@@ -23,19 +25,30 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private DomSemanticsProbe? _domProbe;
     private MboLifecycleProbe? _mboProbe;
     private TradeRecorderHost? _tradeRecorder;
+    private GcaeRuntimeEngine? _runtime;
+    private AuctionGpsCardRenderer? _gpsRenderer;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
+    private bool _tradeObserved;
+    private DateTime? _lastTradeCallbackUtc;
+    private bool _drawingSubscribed;
 
     public GcAuctionFlowIndicator()
     {
         DenyToChangePanel = true;
-        EnableCustomDrawing = false;
+        EnableCustomDrawing = true;
         EnableTradeStreamProbe = false;
         EnableDomSemanticsProbe = false;
         EnableMboLifecycleProbe = false;
         EnableRawEventRecorder = false;
         EnableTradeRecording = true;
+        EnableAuctionGpsCard = true;
+        ShowAuctionGpsDiagnostics = false;
+        ExpectedTickSize = RuntimeGateConfig.DefaultExpectedTickSize;
+        NearExpirationCalendarDays = RuntimeGateConfig.DefaultNearExpirationCalendarDays;
+        GpsCardMarginX = 12;
+        GpsCardMarginY = 12;
         DeclaredDataSourceMode = DataSourceMode.Unknown;
         DataSourceModeProvenance = DataSourceModeProvenance.Unknown;
         ExpectedInstrumentCode = "";
@@ -54,6 +67,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Category("Shared Gates")]
     [DisplayName("Expected Instrument Code")]
     public string ExpectedInstrumentCode { get; set; }
+
+    [Category("Shared Gates")]
+    [DisplayName("Expected Tick Size")]
+    [Description("GC seed value, subject to sensitivity test. Default 0.1.")]
+    public decimal ExpectedTickSize { get; set; }
+
+    [Category("Shared Gates")]
+    [DisplayName("Near Expiration Calendar Days")]
+    [Description("Seed value, subject to sensitivity test.")]
+    public int NearExpirationCalendarDays { get; set; }
 
     [Category("Trade Stream Probe")]
     [DisplayName("Enable Trade Stream Probe")]
@@ -87,20 +110,56 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Feed Provider Provenance")]
     public FeedProviderProvenance FeedProviderProvenance { get; set; }
 
+    [Category("Auction GPS Card")]
+    [DisplayName("Enable Auction GPS Card")]
+    public bool EnableAuctionGpsCard { get; set; }
+
+    [Category("Auction GPS Card")]
+    [DisplayName("Show Auction GPS Diagnostics")]
+    [Description("When true, shows reserved NOT AVAILABLE rows (Structural/Tactical/Location/Episode/Thesis).")]
+    public bool ShowAuctionGpsDiagnostics { get; set; }
+
+    [Category("Auction GPS Card")]
+    [DisplayName("GPS Card Margin X")]
+    public int GpsCardMarginX { get; set; }
+
+    [Category("Auction GPS Card")]
+    [DisplayName("GPS Card Margin Y")]
+    public int GpsCardMarginY { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
+        EnsureRuntimeStarted();
         TryCaptureInstrument();
         TryCompleteRecorderStartup();
         TrySubscribeMboOnce();
         TryExecuteDeferredSnapshotPull();
+        PublishRuntimeSnapshot();
+    }
+
+    protected override void OnRender(RenderContext context, DrawingLayouts drawingLayouts)
+    {
+        if (!EnableAuctionGpsCard)
+            return;
+        try
+        {
+            _gpsRenderer?.SetMargins(GpsCardMarginX, GpsCardMarginY);
+            _gpsRenderer?.Render(context, drawingLayouts);
+        }
+        catch
+        {
+            // Contained.
+        }
     }
 
     protected override void OnNewTrade(MarketDataArg trade)
     {
         EnsureProbesStarted();
+        EnsureRuntimeStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
+        NoteTradeCallback();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -112,13 +171,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
             TryRecordNewTrade(trade, RecorderCallbackSource.OnNewTrade);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
+        PublishRuntimeSnapshot();
     }
 
     protected override void OnNewTrades(IEnumerable<MarketDataArg> trades)
     {
         EnsureProbesStarted();
+        EnsureRuntimeStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
+        NoteTradeCallback();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trades is null) return;
@@ -177,13 +239,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
         catch { probe.Counters.IncNormalizationFailures(); }
         // P0-04B: do not call base.OnNewTrades
+        PublishRuntimeSnapshot();
     }
 
     protected override void OnCumulativeTrade(CumulativeTrade trade)
     {
         EnsureProbesStarted();
+        EnsureRuntimeStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
+        NoteTradeCallback();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -195,13 +260,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
             TryRecordCumulative(trade, RecorderCallbackSource.OnCumulativeTrade, assignInstanceId: true, isUpdate: false);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
+        PublishRuntimeSnapshot();
     }
 
     protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
     {
         EnsureProbesStarted();
+        EnsureRuntimeStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
+        NoteTradeCallback();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -213,6 +281,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             TryRecordCumulative(trade, RecorderCallbackSource.OnUpdateCumulativeTrade, assignInstanceId: false, isUpdate: true);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
+        PublishRuntimeSnapshot();
     }
 
     protected override void MarketDepthChanged(MarketDataArg depth)
@@ -378,24 +447,36 @@ public sealed class GcAuctionFlowIndicator : Indicator
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
                 return;
 
+            // Final Invalid snapshot, then stop publication / release render before recorder/probes.
+            try { PublishRuntimeSnapshot(); } catch { /* contained */ }
+
             TradeStreamProbe? trade;
             DomSemanticsProbe? dom;
             MboLifecycleProbe? mbo;
             TradeRecorderHost? recorder;
+            GcaeRuntimeEngine? runtime;
+            AuctionGpsCardRenderer? gps;
             lock (_lifecycleGate)
             {
                 trade = _tradeProbe;
                 dom = _domProbe;
                 mbo = _mboProbe;
                 recorder = _tradeRecorder;
+                runtime = _runtime;
+                gps = _gpsRenderer;
                 _tradeProbe = null;
                 _tradeMapper = null;
                 _domProbe = null;
                 _mboProbe = null;
                 _tradeRecorder = null;
+                _runtime = null;
+                _gpsRenderer = null;
             }
 
-            // Recorder first: stop accepting → drain → finalize → dispose
+            try { runtime?.Stop(); } catch { /* contained */ }
+            try { gps?.Dispose(); } catch { /* contained */ }
+
+            // Recorder first: stop accepting → drain → finalize → dispose (locked Trade Recorder order)
             try { recorder?.StopAndDispose(); } catch { /* contained */ }
             DisposeTrade(trade);
             DisposeDom(dom);
@@ -508,6 +589,111 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_tradeRecorder is null)
                 _tradeRecorder = new TradeRecorderHost();
+        }
+    }
+
+    private void EnsureRuntimeStarted()
+    {
+        if (Volatile.Read(ref _disposed) != 0)
+            return;
+
+        if (_runtime is not null && _gpsRenderer is not null)
+        {
+            EnsureDrawingSubscription();
+            return;
+        }
+
+        lock (_lifecycleGate)
+        {
+            if (Volatile.Read(ref _disposed) != 0)
+                return;
+
+            _runtime ??= new GcaeRuntimeEngine(new RuntimeGateConfig(
+                expectedTickSize: ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize,
+                nearExpirationCalendarDays: NearExpirationCalendarDays >= 0
+                    ? NearExpirationCalendarDays
+                    : RuntimeGateConfig.DefaultNearExpirationCalendarDays));
+
+            _gpsRenderer ??= new AuctionGpsCardRenderer();
+            _gpsRenderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
+        }
+
+        EnsureDrawingSubscription();
+    }
+
+    private void EnsureDrawingSubscription()
+    {
+        if (!EnableAuctionGpsCard || _drawingSubscribed)
+            return;
+        try
+        {
+            EnableCustomDrawing = true;
+            // Final + LatestBar — CẦN XÁC MINH TRÊN ATAS THẬT that both fire for overlay cards.
+            SubscribeToDrawingEvents(DrawingLayouts.Final | DrawingLayouts.LatestBar);
+            _drawingSubscribed = true;
+        }
+        catch
+        {
+            // Contained — card may still receive OnRender if platform invokes by default.
+        }
+    }
+
+    private void NoteTradeCallback()
+    {
+        _tradeObserved = true;
+        _lastTradeCallbackUtc = DateTime.UtcNow;
+    }
+
+    private void PublishRuntimeSnapshot()
+    {
+        if (!EnableAuctionGpsCard && _runtime is null)
+            return;
+
+        try
+        {
+            EnsureRuntimeStarted();
+            var runtime = _runtime;
+            var renderer = _gpsRenderer;
+            if (runtime is null)
+                return;
+
+            var probe = _tradeProbe;
+            var recorder = _tradeRecorder;
+            var disposed = Volatile.Read(ref _disposed) != 0;
+            var startupFailures = recorder is null
+                ? 0L
+                : Interlocked.Read(ref recorder.Counters.RecorderStartupFailures);
+
+            var snapshot = runtime.Publish(
+                observed: probe?.GetObservedInstrument(),
+                expectedInstrumentCode: ExpectedInstrumentCode ?? "",
+                mode: DeclaredDataSourceMode,
+                modeProvenance: DataSourceModeProvenance,
+                provider: DeclaredFeedProvider,
+                providerProvenance: FeedProviderProvenance,
+                tradeObserved: _tradeObserved,
+                lastTradeCallbackUtc: _lastTradeCallbackUtc,
+                rawRecorderMasterEnabled: EnableRawEventRecorder,
+                tradeRecordingEnabled: EnableTradeRecording,
+                recorderAccepting: recorder?.IsAccepting == true,
+                recorderFaulted: startupFailures > 0,
+                recorderSessionPresent: recorder?.Session is not null,
+                indicatorDisposed: disposed);
+
+            if (EnableAuctionGpsCard && renderer is not null)
+            {
+                var vm = AuctionGpsCardMapper.FromSnapshot(snapshot, ShowAuctionGpsDiagnostics);
+                renderer.Update(vm, ShowAuctionGpsDiagnostics);
+                renderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
+            }
+            else
+            {
+                renderer?.Update(null, false);
+            }
+        }
+        catch
+        {
+            // Contained — never escape into ATAS.
         }
     }
 

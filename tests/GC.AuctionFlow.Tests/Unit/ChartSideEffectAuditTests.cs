@@ -23,9 +23,11 @@ public sealed class ChartSideEffectAuditTests
         Assert.DoesNotContain("ValueDataSeries", src, StringComparison.Ordinal);
         Assert.DoesNotContain("CandleDataSeries", src, StringComparison.Ordinal);
         Assert.DoesNotContain("AddSeries", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("OnRender", src, StringComparison.Ordinal);
-        Assert.Contains("EnableCustomDrawing = false", src, StringComparison.Ordinal);
+        // P0-08A: OnRender + EnableCustomDrawing allowed for Auction GPS Card overlay only.
+        Assert.Contains("OnRender", src, StringComparison.Ordinal);
+        Assert.Contains("EnableCustomDrawing = true", src, StringComparison.Ordinal);
         Assert.Contains("DenyToChangePanel = true", src, StringComparison.Ordinal);
+        Assert.DoesNotMatch(new Regex(@"^\s*this\s*\[\s*bar\s*\]\s*=", RegexOptions.Multiline), src);
     }
 
     [Fact]

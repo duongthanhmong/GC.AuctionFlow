@@ -44,3 +44,13 @@
 
 21. Trade fingerprints diagnostic only; continuity â‰  exchange-feed completeness.
 22. cumulativeNewObservationCount is observation count, not unique exchange executions.
+
+## P0-08A Runtime Data Gate / Auction GPS Card
+
+23. Profile / TPO / Volume Profile / Composite Profile not implemented — DataState is expected **Degraded** with **PROFILE_NOT_READY** when identity is otherwise valid.
+24. RollState remains **Unknown** without next-contract volume or external roll-calendar evidence; ActiveRoll is never inferred in this slice.
+25. Bid/Ask classification is **Unknown** (not validated fidelity); DOM capability shown Unavailable; MBO remains **Blocked** / isolated-environment-only.
+26. Live Trade Recorder success is not promoted to exchange-feed completeness, historical fidelity, replay fidelity, or validated Bid/Ask/DOM fidelity.
+27. Auction GPS Card reserved rows (Structural/Tactical/Location/Episode/Thesis) are NOT AVAILABLE and hidden unless ShowAuctionGpsDiagnostics is enabled.
+28. No Production Thesis, FAR/AAC, Entry/Target, CFD mapping, Telegram, or trading/order execution in P0-08A.
+29. OnRender overlay uses OFT.Rendering; Exact Final vs LatestBar draw cadence is operator-confirmed on live ATAS (C?N XÁC MINH TRÊN ATAS TH?T).

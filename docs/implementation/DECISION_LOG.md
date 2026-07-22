@@ -192,3 +192,8 @@
 
 - **Decision:** Trade stream probe artifacts under `%USERPROFILE%\.gcae\capability\` with atomic rename + companion `.sha256` (hash not embedded in hashed JSON).
 - **Date:** 2026-07-21
+
+## D-P0-08A-001 — Runtime Data Gate + Auction GPS Card foundation
+
+- **Decision:** P0-08A adds ContractSnapshot, RuntimeCapabilitySnapshot, deterministic DataGateEngine, immutable GcaeRuntimeSnapshot publication, AuctionGpsCardViewModel, and ATAS OnRender overlay. Profile remains NotReady ? DataState Degraded with primary reason PROFILE_NOT_READY is correct until a Profile slice exists. Roll stays Unknown without roll evidence (no invented next-contract volume / calendars). MBO displays BLOCKED and stays disabled in the primary ATAS process. Trade Recorder remains locked; UI never reaches mutable recorder/probe objects. EnableCustomDrawing=true is authorized only for the GPS card overlay (no DataSeries mutation).
+- **Date:** 2026-07-22

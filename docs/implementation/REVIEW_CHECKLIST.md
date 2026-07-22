@@ -1,27 +1,35 @@
-# Review Checklist — P0-07C3D Controlled Live Trade Recorder Verification
+# Review Checklist — P0-08A Runtime Data Gate + Auction GPS Card
 
-## Prior
+## Prior baseline
 
-- [x] P0-07C3BC PASS / tag `gcae-p0-07c3bc-trade-recorder-pass` @ `25bf03c`
+- [x] P0-07C3D PASS + locked (`gcae-p0-07c3d-live-trade-recorder-pass` @ `4543a79`)
+- [x] Trade Recorder not reopened / redesigned
+- [x] Master spec v1.2 untouched
 
-## Precheck / deploy / metadata
+## Implementation
 
-- [x] Release build/test 0/0 (218 tests at closeout)
-- [x] Single Indicators DLL deploy (SHA `FADF6D55…838CD`)
-- [x] EnabledStreams Trade-only
-- [x] Successful IndicatorDispose → normal termination
-- [x] Callback counters wired
-- [x] Verifier GCAR UInt16 version/flags
+- [x] ContractSnapshot + InstrumentMatch / Expiration / Roll states (evidence-gated)
+- [x] RuntimeCapabilitySnapshot (conservative; MBO BLOCKED)
+- [x] DataGateEngine Invalid / Degraded / Ready with stable reason codes
+- [x] Immutable GcaeRuntimeSnapshot + thread-safe publisher
+- [x] AuctionGpsCardViewModel separated from ATAS renderer
+- [x] Visible Auction GPS Card via EnableCustomDrawing + OnRender
+- [x] Transition ledger (change-only, bounded, in-memory)
+- [x] Lifecycle: stop snapshot → release render → recorder → probes → base.OnDispose finally
 
-## Live verification
+## Explicitly not in this slice
 
-- [x] Fresh ATAS + GCQ6 / Rithmic / recorder settings
-- [x] Session `01f6650494194d3bacbe00062dede326` (~6 min)
-- [x] Clean shutdown; no `.seg.tmp`
-- [x] GCAR=1 / schema 1.2.0 / SHA sidecars
-- [x] WriterDequeuedTotal + InvocationResult + callback accounting
-- [x] No DOM/BBA/MBO records
+- [x] No Classic TPO / Volume Profile / Composite Profile
+- [x] No Structural Reference / Episode / Acceptance / FAR / AAC
+- [x] No Entry / invalidation / targets / CFD / Telegram
+- [x] No DOM/BBA/MBO recording; no MBO subscribe for GPS card
+- [x] No Production Thesis or trading logic
+
+## Verify
+
+- [x] `dotnet clean/restore/build/test -c Release` (see report)
+- [ ] Operator live acceptance on GCQ6/Rithmic (not auto-claimed)
 
 ## Recommendation
 
-- [x] **PASS** — tag `gcae-p0-07c3d-live-trade-recorder-pass`
+- [ ] Pending review + controlled live chart run → then tag if PASS

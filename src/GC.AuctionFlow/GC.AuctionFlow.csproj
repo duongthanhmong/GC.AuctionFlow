@@ -25,6 +25,7 @@
     <ATAS_HOME Condition="'$(ATAS_HOME)' == ''">C:\Program Files (x86)\ATAS Platform</ATAS_HOME>
     <AtasIndicatorsDll>$(ATAS_HOME)\ATAS.Indicators.dll</AtasIndicatorsDll>
     <AtasDataFeedsDll>$(ATAS_HOME)\ATAS.DataFeedsCore.dll</AtasDataFeedsDll>
+    <OftRenderingDll>$(ATAS_HOME)\OFT.Rendering.dll</OftRenderingDll>
   </PropertyGroup>
 
   <Target Name="ValidateAtasAssemblies" BeforeTargets="ResolveAssemblyReferences;CoreCompile">
@@ -34,6 +35,9 @@
     <Error
       Condition="!Exists('$(AtasDataFeedsDll)')"
       Text="ATAS.DataFeedsCore.dll not found at '$(AtasDataFeedsDll)'. Set ATAS_HOME to the ATAS Platform install directory (observed product version 8.0.14.395)." />
+    <Error
+      Condition="!Exists('$(OftRenderingDll)')"
+      Text="OFT.Rendering.dll not found at '$(OftRenderingDll)'. Required for Auction GPS Card OnRender (P0-08A)." />
   </Target>
 
   <ItemGroup>
@@ -43,6 +47,10 @@
     </Reference>
     <Reference Include="ATAS.DataFeedsCore">
       <HintPath>$(AtasDataFeedsDll)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="OFT.Rendering">
+      <HintPath>$(OftRenderingDll)</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
