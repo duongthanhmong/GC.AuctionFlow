@@ -66,7 +66,9 @@ public enum RecorderSinkOutcome
     Accepted = 4,
     QueueFull = 5,
     StoppedAccepting = 6,
-    Faulted = 7
+    Faulted = 7,
+    /// <summary>Trade/recorder gate rejected (instrument/mode/provider). Not a startup-pending state.</summary>
+    RejectedByGate = 8
 }
 
 public interface ICapabilityFanOutSink

@@ -572,6 +572,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
             return null;
         }
 
+        if (outcome == Recorder.FanOut.RecorderSinkOutcome.RejectedByGate)
+        {
+            host.NoteRejectedByGate();
+            return null;
+        }
+
         if (outcome == Recorder.FanOut.RecorderSinkOutcome.Faulted
             || outcome == Recorder.FanOut.RecorderSinkOutcome.StoppedAccepting)
         {

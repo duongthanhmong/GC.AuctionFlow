@@ -240,7 +240,7 @@ public static class RecoveryScanner
             declaredProvider,
             providerProvenance,
             lastInstrument,
-            new[] { "Trade", "Dom" },
+            new[] { "Trade" },
             new[]
             {
                 new DisabledStreamRecord("Mbo", MboOperationalLock.MboOperationalBlockReason)

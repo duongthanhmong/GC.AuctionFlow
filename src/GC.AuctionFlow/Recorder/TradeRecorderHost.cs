@@ -34,6 +34,7 @@ public sealed class TradeRecorderHost : IDisposable
         public required Guid SessionId { get; init; }
         public required TradeStreamAtasMapper TradeMapper { get; init; }
         public string? UserProfileOverride { get; init; }
+        public required bool EnableTradeRecording { get; init; }
     }
 
     public RecorderCounters Counters { get; } = new();
@@ -83,13 +84,13 @@ public sealed class TradeRecorderHost : IDisposable
             expectedInstrumentCode,
             observed);
         if (!tradeGate.Accepted)
-            return FanOut.RecorderSinkOutcome.SessionNotStarted;
+            return FanOut.RecorderSinkOutcome.RejectedByGate;
 
         if (declaredProvider == DeclaredFeedProvider.Unknown || providerProvenance == FeedProviderProvenance.Unknown)
-            return FanOut.RecorderSinkOutcome.SessionNotStarted;
+            return FanOut.RecorderSinkOutcome.RejectedByGate;
 
         if (observed is null || string.Equals(observed.IdentityKey, "Unknown", StringComparison.Ordinal))
-            return FanOut.RecorderSinkOutcome.SessionNotStarted;
+            return FanOut.RecorderSinkOutcome.RejectedByGate;
 
         // Queue non-blocking startup request for OnCalculate lifecycle — no I/O here.
         lock (_gate)
@@ -113,7 +114,8 @@ public sealed class TradeRecorderHost : IDisposable
                 ProviderProvenance = providerProvenance,
                 SessionId = sessionId,
                 TradeMapper = tradeMapper,
-                UserProfileOverride = userProfileOverride
+                UserProfileOverride = userProfileOverride,
+                EnableTradeRecording = enableTradeRecording
             };
         }
 
@@ -139,6 +141,9 @@ public sealed class TradeRecorderHost : IDisposable
         {
             var cfg = new RecorderConfig();
             _ = ObservedInstrumentIdentityMapper.FromSnapshot(pending.Observed);
+            var enabledStreams = pending.EnableTradeRecording
+                ? new[] { "Trade" }
+                : Array.Empty<string>();
             var adapter = new TradeToRawEventAdapter(pending.TradeMapper);
             var session = new RawEventRecorderSession(
                 pending.SessionId,
@@ -149,7 +154,8 @@ public sealed class TradeRecorderHost : IDisposable
                 pending.ProviderProvenance.ToString(),
                 cfg,
                 counters: Counters,
-                userProfileOverride: pending.UserProfileOverride);
+                userProfileOverride: pending.UserProfileOverride,
+                enabledStreams: enabledStreams);
 
             lock (_gate)
             {
@@ -178,11 +184,29 @@ public sealed class TradeRecorderHost : IDisposable
         }
     }
 
-    public void NoteCallbackBeforeStart() =>
+    public void NoteCallbackBeforeStart()
+    {
+        Interlocked.Increment(ref Counters.CallbackInvocations);
         Interlocked.Increment(ref Counters.RecorderCallbacksBeforeStart);
+    }
 
-    public void NoteCallbackAfterStop() =>
+    public void NoteCallbackAfterStop()
+    {
+        Interlocked.Increment(ref Counters.CallbackInvocations);
         Interlocked.Increment(ref Counters.RecorderCallbacksAfterStop);
+    }
+
+    public void NoteRejectedByGate()
+    {
+        Interlocked.Increment(ref Counters.CallbackInvocations);
+        Interlocked.Increment(ref Counters.RejectedCallbackInvocationsByGate);
+    }
+
+    private void NoteAuthorizedCallbackInvocation()
+    {
+        Interlocked.Increment(ref Counters.CallbackInvocations);
+        Interlocked.Increment(ref Counters.AuthorizedCallbackInvocations);
+    }
 
     public CallbackCaptureContext Capture(RecorderCallbackSource source) =>
         CallbackCaptureContext.CaptureNow(source, _sequences);
@@ -204,6 +228,8 @@ public sealed class TradeRecorderHost : IDisposable
             NoteCallbackAfterStop();
             return;
         }
+
+        NoteAuthorizedCallbackInvocation();
 
         long enumerated = 0;
         long nulls = 0;
@@ -285,6 +311,8 @@ public sealed class TradeRecorderHost : IDisposable
             NoteCallbackAfterStop();
             return;
         }
+
+        NoteAuthorizedCallbackInvocation();
 
         long enumerated = 0;
         long nulls = 0;
@@ -415,6 +443,8 @@ public sealed class TradeRecorderHost : IDisposable
             NoteCallbackAfterStop();
             return;
         }
+
+        NoteAuthorizedCallbackInvocation();
 
         long enumerated = 0;
         long nulls = 0;
@@ -560,4 +590,58 @@ public sealed class TradeRecorderHost : IDisposable
     }
 
     public void Dispose() => StopAndDispose();
+
+    /// <summary>
+    /// Test helper: one authorized batch invocation with N null items (avoids ATAS types in unit tests).
+    /// </summary>
+    public void ProcessSyntheticNullItemBatchForTests(
+        CallbackCaptureContext context,
+        ObservedInstrumentIdentity instrument,
+        string declaredMode,
+        string modeProvenance,
+        string declaredProvider,
+        string providerProvenance,
+        int nullItemCount)
+    {
+        if (_session is null || _adapter is null || !_session.IsAccepting)
+        {
+            NoteCallbackAfterStop();
+            return;
+        }
+
+        NoteAuthorizedCallbackInvocation();
+        for (var i = 0; i < nullItemCount; i++)
+        {
+            Interlocked.Increment(ref Counters.PayloadItemsEnumerated);
+            Interlocked.Increment(ref Counters.NullItemObservations);
+        }
+
+        EmitInvocationResult(
+            context, true, true, nullItemCount, nullItemCount, 0, 0, 0, true, null,
+            instrument, declaredMode, modeProvenance, declaredProvider, providerProvenance);
+    }
+
+    /// <summary>
+    /// Test helper: authorized invocation with enumeration failure result (no ATAS types).
+    /// </summary>
+    public void ProcessSyntheticEnumerationFailureForTests(
+        CallbackCaptureContext context,
+        ObservedInstrumentIdentity instrument,
+        string declaredMode,
+        string modeProvenance,
+        string declaredProvider,
+        string providerProvenance)
+    {
+        if (_session is null || _adapter is null || !_session.IsAccepting)
+        {
+            NoteCallbackAfterStop();
+            return;
+        }
+
+        NoteAuthorizedCallbackInvocation();
+        Interlocked.Increment(ref Counters.BatchEnumerationFailures);
+        EmitInvocationResult(
+            context, true, false, 0, 0, 0, 0, 0, false, "GetEnumerator:InvalidOperationException",
+            instrument, declaredMode, modeProvenance, declaredProvider, providerProvenance);
+    }
 }

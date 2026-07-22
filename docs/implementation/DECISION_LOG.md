@@ -147,7 +147,19 @@
 
 ## D-P0-07C3BC-001 — Trade recorder accounting + callback integration
 
-- **Decision:** Implement P0-07C3BC. RawEventRecorderSchemaVersion **1.2.0**. Footer/manifest category counts + InvocationResult* counters. TradeToRawEventAdapter + TradeRecorderHost wired into OnNewTrade/OnNewTrades/OnCumulativeTrade/OnUpdateCumulativeTrade. Dispose: recorder then probes then base.OnDispose. No DOM/BBA/MBO recorder work. No CumulativeTrade.Ticks access. P0-07C3D not started.
+- **Decision:** Implement P0-07C3BC. RawEventRecorderSchemaVersion **1.2.0**. Footer/manifest category counts + InvocationResult* counters. TradeToRawEventAdapter + TradeRecorderHost wired into OnNewTrade/OnNewTrades/OnCumulativeTrade/OnUpdateCumulativeTrade. Dispose: recorder then probes then base.OnDispose. No DOM/BBA/MBO recorder work. No CumulativeTrade.Ticks access. Tagged `gcae-p0-07c3bc-trade-recorder-pass` @ `25bf03c`.
+- **Date:** 2026-07-22
+
+## D-P0-07C3D-001 — Live verification interim (precheck/deploy only)
+
+- **Decision:** P0-07C3D precheck + single Indicators DLL deploy PASS on baseline `25bf03c` / tag `gcae-p0-07c3bc-trade-recorder-pass`. Controlled live GCQ6/Rithmic session **not executed** in agent turn (no recorder artifacts). Overall recommendation **FAIL — LIVE SESSION NOT EXECUTED**. Evidence: `docs/evidence/P0-07C3D_GCQ6_Rithmic_TradeRecorder_LiveVerification.md`. Fresh ATAS restart required before any live claim. No commit/tag for C3D.
+- **Date:** 2026-07-22
+- **Superseded by D-P0-07C3D-002.**
+
+## D-P0-07C3D-002 — Live Trade recorder verification PASS + metadata closeout
+
+- **Decision:** P0-07C3D **PASS**. Metadata closeout (EnabledStreams Trade-only; normal IndicatorDispose termination; callback counters; GCAR UInt16 verifier). Validated live session `01f6650494194d3bacbe00062dede326` (GCQ6/Rithmic, ~6 min, schema 1.2.0, GCAR v1, 5390 raw events, CallbackInvocations=InvocationResultEmissionAttempts=2695, AbnormalTermination=false). Tagged `gcae-p0-07c3d-live-trade-recorder-pass`. DOM/BBA/MBO recorder still deferred.
+- **Evidence:** `docs/evidence/P0-07C3D_GCQ6_Rithmic_TradeRecorder_LiveVerification.md`
 - **Date:** 2026-07-22
 
 ## D-P0-04-002 — Base invocation from IL evidence

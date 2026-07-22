@@ -1,21 +1,27 @@
-# Review Checklist — P0-07C3BC Trade Recorder Accounting + Integration
+# Review Checklist — P0-07C3D Controlled Live Trade Recorder Verification
 
 ## Prior
 
-- [x] P0-07C2 PASS / tag `gcae-p0-07c2-callback-grouping-pass`
-- [x] P0-07C3A PASS
+- [x] P0-07C3BC PASS / tag `gcae-p0-07c3bc-trade-recorder-pass` @ `25bf03c`
 
-## P0-07C3BC must pass
+## Precheck / deploy / metadata
 
-- [x] RawEventRecorderSchemaVersion = 1.2.0; container version 1 unchanged
-- [x] Probe schemas / ProbeVersion 0.0.6 unchanged
-- [x] Footer/manifest category counts + recovery equation
-- [x] InvocationResult* same-queue counters
-- [x] TradeToRawEventAdapter with DirectionRaw/DataTypeRaw; no Ticks access
-- [x] Trade callbacks dual-map; no base.OnNewTrades
-- [x] Settings EnableRawEventRecorder / EnableTradeRecording only
-- [x] Startup gate + diagnostics; master disabled = NotConfigured
-- [x] Dispose: recorder → Trade → DOM → MBO → base.OnDispose finally
-- [x] No DOM/BBA/MBO recorder / no master-spec changes
-- [x] `dotnet clean/restore/build/test -c Release` — 0 errors, 0 warnings
-- [x] P0-07C3D not started
+- [x] Release build/test 0/0 (218 tests at closeout)
+- [x] Single Indicators DLL deploy (SHA `FADF6D55…838CD`)
+- [x] EnabledStreams Trade-only
+- [x] Successful IndicatorDispose → normal termination
+- [x] Callback counters wired
+- [x] Verifier GCAR UInt16 version/flags
+
+## Live verification
+
+- [x] Fresh ATAS + GCQ6 / Rithmic / recorder settings
+- [x] Session `01f6650494194d3bacbe00062dede326` (~6 min)
+- [x] Clean shutdown; no `.seg.tmp`
+- [x] GCAR=1 / schema 1.2.0 / SHA sidecars
+- [x] WriterDequeuedTotal + InvocationResult + callback accounting
+- [x] No DOM/BBA/MBO records
+
+## Recommendation
+
+- [x] **PASS** — tag `gcae-p0-07c3d-live-trade-recorder-pass`

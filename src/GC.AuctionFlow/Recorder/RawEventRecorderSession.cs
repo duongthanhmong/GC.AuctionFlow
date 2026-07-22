@@ -29,6 +29,7 @@ public sealed class RawEventRecorderSession : IDisposable
     private readonly string _declaredProvider;
     private readonly string _providerProvenance;
     private readonly string? _userProfileOverride;
+    private readonly IReadOnlyList<string> _enabledStreams;
 
     private SegmentWriter? _writer;
     private ObservedInstrumentIdentity? _currentIdentity;
@@ -39,6 +40,8 @@ public sealed class RawEventRecorderSession : IDisposable
     private bool _accepting = true;
     private bool _fatal;
     private bool _disposed;
+    private bool _drainTimedOut;
+    private bool _finalizationFailed;
     private string? _stopReason;
     private DateTime? _stopUtc;
 
@@ -52,7 +55,8 @@ public sealed class RawEventRecorderSession : IDisposable
         RecorderConfig? config = null,
         IDiskSpaceProbe? diskSpaceProbe = null,
         string? userProfileOverride = null,
-        RecorderCounters? counters = null)
+        RecorderCounters? counters = null,
+        IReadOnlyList<string>? enabledStreams = null)
     {
         _sessionId = sessionId;
         _processId = processInstanceId;
@@ -64,6 +68,10 @@ public sealed class RawEventRecorderSession : IDisposable
         _disk = diskSpaceProbe ?? new DriveInfoDiskSpaceProbe();
         _counters = counters ?? new RecorderCounters();
         _userProfileOverride = userProfileOverride;
+        // C3 Trade-only default: Dom/BBA/MBO are not recorder-enabled streams.
+        _enabledStreams = enabledStreams is { Count: > 0 }
+            ? enabledStreams.ToArray()
+            : new[] { "Trade" };
         _startUtc = DateTime.UtcNow;
 
         RecorderStoragePaths.EnsureSessionLayout(sessionId, userProfileOverride);
@@ -166,7 +174,70 @@ public sealed class RawEventRecorderSession : IDisposable
     public ReconciliationResult DisposeAndReconcile()
     {
         Dispose();
-        return RecorderReconciliation.Evaluate(_counters.Snapshot(), cleanShutdown: _stopReason is null && !_fatal);
+        var abnormal = EvaluateAbnormalTermination(out _);
+        return RecorderReconciliation.Evaluate(_counters.Snapshot(), cleanShutdown: !abnormal);
+    }
+
+    /// <summary>
+    /// True when session ended with incomplete/fault conditions.
+    /// Successful IndicatorDispose (drain+finalize OK) is normal termination.
+    /// </summary>
+    public bool EvaluateAbnormalTermination(out string? reason)
+    {
+        if (_fatal)
+        {
+            reason = string.IsNullOrWhiteSpace(_stopReason) ? "FatalWriterFault" : _stopReason;
+            return true;
+        }
+
+        if (_drainTimedOut)
+        {
+            reason = "DrainTimeout";
+            return true;
+        }
+
+        if (Volatile.Read(ref _counters.UndrainedAtShutdown) > 0)
+        {
+            reason = "UndrainedAtShutdown";
+            return true;
+        }
+
+        if (Volatile.Read(ref _counters.WriterDiscardedAfterFatalFault) > 0)
+        {
+            reason = string.IsNullOrWhiteSpace(_stopReason) ? "WriterFatalDiscard" : _stopReason;
+            return true;
+        }
+
+        if (_finalizationFailed
+            || Volatile.Read(ref _counters.SegmentsIncomplete) > 0
+            || Volatile.Read(ref _counters.ManifestFailures) > 0)
+        {
+            reason = _finalizationFailed
+                ? "SegmentOrManifestFinalizationFailure"
+                : Volatile.Read(ref _counters.SegmentsIncomplete) > 0
+                    ? "SegmentFinalizationFailure"
+                    : "ManifestFinalizationFailure";
+            return true;
+        }
+
+        if (_stopReason is "DiskSpaceStop" or "MaxSessionBytes" or "DiskProbeFault")
+        {
+            reason = _stopReason;
+            return true;
+        }
+
+        if (_stopReason is not null
+            && (_stopReason.StartsWith("WorkerFault", StringComparison.Ordinal)
+                || _stopReason.StartsWith("WriteFault", StringComparison.Ordinal)
+                || _stopReason.StartsWith("IdentityLifecycleWriteFault", StringComparison.Ordinal)))
+        {
+            reason = _stopReason;
+            return true;
+        }
+
+        // IndicatorDispose / clean StopAccepting with successful finalize → normal.
+        reason = null;
+        return false;
     }
 
     public void Dispose()
@@ -179,29 +250,20 @@ public sealed class RawEventRecorderSession : IDisposable
         try
         {
             if (!_worker.Wait(_config.ShutdownDrainTimeoutMilliseconds))
+                _drainTimedOut = true;
+
+            while (_channel.Reader.TryRead(out var leftover))
             {
-                while (_channel.Reader.TryRead(out var leftover))
-                {
-                    if (leftover.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult)
-                        ProcessInvocationResultDraft(leftover);
-                    else
-                        Interlocked.Increment(ref _counters.UndrainedAtShutdown);
-                }
-            }
-            else
-            {
-                while (_channel.Reader.TryRead(out var leftover))
-                {
-                    if (leftover.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult)
-                        ProcessInvocationResultDraft(leftover);
-                    else
-                        Interlocked.Increment(ref _counters.UndrainedAtShutdown);
-                }
+                if (leftover.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult)
+                    ProcessInvocationResultDraft(leftover);
+                else
+                    Interlocked.Increment(ref _counters.UndrainedAtShutdown);
             }
         }
         catch
         {
             Interlocked.Increment(ref _counters.WorkerFaults);
+            _finalizationFailed = true;
         }
 
         try
@@ -210,7 +272,7 @@ public sealed class RawEventRecorderSession : IDisposable
         }
         catch
         {
-            // never escape
+            _finalizationFailed = true;
         }
 
         try { _cts.Cancel(); } catch { /* ignore */ }
@@ -614,10 +676,12 @@ public sealed class RawEventRecorderSession : IDisposable
         {
             try { _writer?.AbandonIncomplete(); } catch { /* preserve */ }
             Interlocked.Increment(ref _counters.SegmentsIncomplete);
+            _finalizationFailed = true;
         }
 
         _stopUtc = DateTime.UtcNow;
-        WriteManifest_NoThrow(_stopUtc, abnormal: _fatal || _stopReason is not null, reason: _stopReason);
+        var abnormal = EvaluateAbnormalTermination(out var reason);
+        WriteManifest_NoThrow(_stopUtc, abnormal, reason);
     }
 
     private void WriteManifest_NoThrow(DateTime? stopUtc, bool abnormal, string? reason)
@@ -657,7 +721,7 @@ public sealed class RawEventRecorderSession : IDisposable
                 _declaredProvider,
                 _providerProvenance,
                 _currentIdentity,
-                new[] { "Trade", "Dom" },
+                _enabledStreams,
                 new[] { new DisabledStreamRecord("Mbo", MboOperationalLock.MboOperationalBlockReason) },
                 MboOperationalLock.MboSchemaSupported,
                 MboOperationalLock.MboRecordingEnabled,
