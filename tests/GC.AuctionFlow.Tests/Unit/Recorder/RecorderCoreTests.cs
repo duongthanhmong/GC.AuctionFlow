@@ -437,7 +437,7 @@ public sealed class MboLockAndHygieneTests
     [Fact]
     public void Versions_locked_and_probe_versions_unchanged()
     {
-        Assert.Equal("1.0.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
+        Assert.Equal("1.1.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
         Assert.Equal(1, RawEventRecorderVersions.RawEventContainerVersion);
         Assert.Equal("1.0.1", GC.AuctionFlow.Probe.TradeStreamProbeVersions.TradeStreamProbeSchemaVersion);
         Assert.Equal("0.0.6", GC.AuctionFlow.Core.CapabilitySchemaVersions.ProbeVersionPlaceholder);
@@ -492,7 +492,9 @@ internal static class TestFixtures
     public static RawEventDraft Draft(
         ObservedInstrumentIdentity? instrument = null,
         long streamLocal = 1,
-        RecorderCallbackSource source = RecorderCallbackSource.OnNewTrade) =>
+        RecorderCallbackSource source = RecorderCallbackSource.OnNewTrade,
+        long invocationSequence = 1,
+        int itemOrdinal = 0) =>
         new(
             RawEventRecorderVersions.RawEventRecorderSchemaVersion,
             Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -500,6 +502,8 @@ internal static class TestFixtures
             RecorderStreamKind.Trade,
             source,
             streamLocal,
+            invocationSequence,
+            itemOrdinal,
             subscriptionOrCaptureEpoch: null,
             contractEpoch: 1,
             instrument: instrument ?? Instrument(),
@@ -509,15 +513,14 @@ internal static class TestFixtures
             providerProvenance: "OperatorDeclared",
             sourceTimeTicks: 638000000000000000,
             sourceDateTimeKind: DateTimeKind.Unspecified,
-            receiveUtc: DateTime.Parse("2026-07-22T12:00:00Z").ToUniversalTime(),
-            receiveStopwatchTimestamp: 123,
+            callbackReceiveUtc: DateTime.Parse("2026-07-22T12:00:00Z").ToUniversalTime(),
+            callbackReceiveStopwatchTimestamp: 123,
             callbackManagedThreadId: 1,
             payloadDiscriminator: RawEventPayloadKind.NewTrade,
             payload: new NewTradePayload(2400.1m, 1m, 2400.1m, "Buy", "Trade", true, false, null, null, null),
             integrityFlags: RecorderIntegrityFlags.NativeSequenceAbsent | RecorderIntegrityFlags.SourceTimeKindUnspecified,
             nativeSequenceAvailable: false);
 }
-
 internal sealed class TempProfile : IDisposable
 {
     public TempProfile()

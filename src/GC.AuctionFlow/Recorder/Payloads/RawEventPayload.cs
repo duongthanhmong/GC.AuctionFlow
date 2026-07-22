@@ -18,6 +18,7 @@ namespace GC.AuctionFlow.Recorder.Payloads;
 [JsonDerivedType(typeof(MboPayload), "Mbo")]
 [JsonDerivedType(typeof(RecorderLifecyclePayload), "RecorderLifecycle")]
 [JsonDerivedType(typeof(RecorderIntegrityPayload), "RecorderIntegrity")]
+[JsonDerivedType(typeof(CallbackInvocationResultPayload), "CallbackInvocationResult")]
 public abstract class RawEventPayload
 {
     [JsonIgnore]
@@ -361,4 +362,61 @@ public sealed class RecorderIntegrityPayload : RawEventPayload
     public RecorderIntegrityEventKind EventKind { get; }
     public string Detail { get; }
     public string? RecoveryClassification { get; }
+}
+
+/// <summary>
+/// Local recorder metadata after a callback enumeration attempt — not a market event.
+/// Absence of this record means callback completion is unknown.
+/// </summary>
+public sealed class CallbackInvocationResultPayload : RawEventPayload
+{
+    public CallbackInvocationResultPayload(
+        RecorderCallbackSource callbackSource,
+        long callbackInvocationSequence,
+        DateTime callbackReceiveUtc,
+        long callbackReceiveStopwatchTimestamp,
+        int callbackManagedThreadId,
+        bool isBatch,
+        bool enumerationCompleted,
+        long payloadItemsEnumerated,
+        long nullItemObservations,
+        long normalizationFailures,
+        long fanOutItemRejections,
+        long fanOutItemFaults,
+        bool finalItemCountKnown,
+        string? enumerationFailureTypeSanitized)
+    {
+        CallbackSource = callbackSource;
+        CallbackInvocationSequence = callbackInvocationSequence;
+        CallbackReceiveUtc = callbackReceiveUtc;
+        CallbackReceiveStopwatchTimestamp = callbackReceiveStopwatchTimestamp;
+        CallbackManagedThreadId = callbackManagedThreadId;
+        IsBatch = isBatch;
+        EnumerationCompleted = enumerationCompleted;
+        PayloadItemsEnumerated = payloadItemsEnumerated;
+        NullItemObservations = nullItemObservations;
+        NormalizationFailures = normalizationFailures;
+        FanOutItemRejections = fanOutItemRejections;
+        FanOutItemFaults = fanOutItemFaults;
+        FinalItemCountKnown = finalItemCountKnown;
+        EnumerationFailureTypeSanitized = enumerationFailureTypeSanitized;
+    }
+
+    public override RawEventPayloadKind PayloadKind => RawEventPayloadKind.CallbackInvocationResult;
+    public RecorderCallbackSource CallbackSource { get; }
+    public long CallbackInvocationSequence { get; }
+    public DateTime CallbackReceiveUtc { get; }
+    public long CallbackReceiveStopwatchTimestamp { get; }
+    public int CallbackManagedThreadId { get; }
+    public bool IsBatch { get; }
+    public bool EnumerationCompleted { get; }
+    public long PayloadItemsEnumerated { get; }
+    public long NullItemObservations { get; }
+    public long NormalizationFailures { get; }
+    /// <summary>Sink returned false/rejected — not a mapper failure.</summary>
+    public long FanOutItemRejections { get; }
+    /// <summary>Sink threw — not a mapper failure.</summary>
+    public long FanOutItemFaults { get; }
+    public bool FinalItemCountKnown { get; }
+    public string? EnumerationFailureTypeSanitized { get; }
 }

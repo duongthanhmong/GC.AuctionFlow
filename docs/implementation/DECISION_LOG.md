@@ -125,6 +125,21 @@
 - **Decision:** P0-07B closeout audit fixed proven defects only: footer byte reservation in rotation; RawEventRecordCount / BytesBeforeFooter footer fields; RecordsWritten excludes header/footer; identity lifecycle carries previous/new identity tuples and is first RawEvent of new epoch segment; write-fault outcome accounting; recovery continues after valid-CRC malformed JSON but does not trust; CRC/length faults stop; quarantine copy failure reported; companion SHA uses uppercase hex + LF; invalid MaxSegmentBytes fails before recording.
 - **Date:** 2026-07-22
 
+## D-P0-07C1-001 — Integration audit Decision B
+
+- **Decision:** P0-07C1 PASS / **Decision B**. Current P0-07B contracts lack honest callback batch grouping (`CallbackInvocationSequence`, `CallbackItemOrdinal`, shared per-callback receive stamps). Do not overload `StreamLocalCaptureSequence`. Narrow amendment required before Trade/DOM callback integration. BBA dual-sided `MarketDataArg` shape remains UNKNOWN pending P0-07C4A.
+- **Date:** 2026-07-22
+
+## D-P0-07C2-001 — Schema 1.1.0 callback grouping + fan-out foundation
+
+- **Decision:** RawEventRecorderSchemaVersion **1.1.0**. Add callback grouping fields; `ReceiveUtc` compatibility alias equals `CallbackReceiveUtc`. Add `CallbackInvocationResultPayload`. Null raw items consume ordinals. `PrimitiveFanOutCoordinator` + `SinglePassEnumerationHelper` are callback-neutral test/infra only — **not** wired to indicator. No live recorder settings, no Trade/DOM adapters, no BBA mapping, no MBO enablement. Schema 1.0.0 classified unsupported for live trust (no live 1.0.0 evidence produced).
+- **Date:** 2026-07-22
+
+## D-P0-07C2-002 — Closeout audit corrections + C3 queue/taxonomy policy
+
+- **Decision:** P0-07C2 closeout audit fixed proven defects only: CallbackInvocationSequence overflow does not wrap; single-pass uses explicit GetEnumerator/MoveNext/Current with stage-sanitized failures; sink rejection/fault separated from NormalizationFailures (`FanOutItemRejections`/`FanOutItemFaults`); ordinal exhaustion guarded. Approved for P0-07C3 (governance only, not implemented in C2): invocation-result records share the market draft queue/writer order (no control channel); separate InvocationResult* counters with Attempts = Accepted + QueueFull + Faults; footer/manifest must gain Market/InvocationResult/LifecycleIntegrity split counts (narrow amendment — no segment-frame redesign). BBA remains UNKNOWN until P0-07C4A. P0-07C3 not started.
+- **Date:** 2026-07-22
+
 ## D-P0-04-002 — Base invocation from IL evidence
 
 - **Decision (original P0-04):** IL on ATAS.Indicators 8.0.14.395: `OnNewTrade` / `OnCumulativeTrade` / `OnUpdateCumulativeTrade` / `BaseIndicator.OnDispose` = empty `ret`. `OnNewTrades` = non-trivial (foreach → `OnNewTrade`). Originally called `base.OnNewTrades`.

@@ -1,8 +1,8 @@
 # Known Limitations
 
-## P0-07B Raw Event Recorder
+## P0-07B / P0-07C2 Raw Event Recorder
 
-1. P0-07B has no ATAS callback adapters; live capture wiring is P0-07C.
+1. P0-07C2 has no ATAS callback adapters and no indicator recorder settings; Trade/DOM wiring is P0-07C3/C4.
 2. Cumulative tick constituents are not recorded (`CumulativeTickConstituentsRecorded = false`).
 3. Provider snapshot completion remains unknown (`ProviderSnapshotCompletionKnown = false`).
 4. Writer-global sequence is process-local dequeue order only — not exchange causality.
@@ -10,8 +10,14 @@
 6. MBO payload schema exists but primary-process recording is blocked (P0-06D lock).
 7. Segments are authoritative evidence; manifest is a recoverable index only.
 8. Footer `BytesBeforeFooter` excludes the footer frame itself; final `.seg` length is `CompletedSegmentInfo.ByteLength` / `BytesWritten`.
-9. Periodic mid-segment `Flush(true)` during long open segments is not yet performed (completion flush only); subject to sensitivity test in P0-07C.
+9. Periodic mid-segment `Flush(true)` during long open segments is not yet performed (completion flush only); subject to sensitivity test in later operator runs.
 10. Shutdown-timeout undrained counting does not reclaim an in-flight draft already dequeued by a blocked worker (counted via later discard/fault paths).
+11. **CallbackInvocationResultPayload** absence means callback completion is unknown; it is local metadata, not a market event.
+12. **OnBestBidAskChanged** dual-sided payload shape remains **UNKNOWN**; no BestBidAsk recorder mapping in P0-07C2 (defer P0-07C4A).
+13. Schema **1.0.0** is unsupported for live trust; use **1.1.0+**.
+14. **Record-count taxonomy gap (P0-07C3 required amendment):** segment footer/manifest expose only `RawEventRecordCount`. Preferred invariant RawEventRecordCount = MarketEventRecordCount + InvocationResultRecordCount + LifecycleIntegrityRecordCount is not yet representable in footer fields. PayloadKind / `RawEventRecordCategory` discriminate in JSON only. Do not redesign GCAR/GCF1 framing to close this gap.
+15. **Invocation-result queue policy (approved for P0-07C3, not wired in C2):** same recorder queue as market drafts; separate InvocationResult* accounting; not counted as NormalizedObservations.
+16. CallbackInvocationSequence exhausted at `long.MaxValue` throws (no wrap). CallbackItemOrdinal exhausted at `int.MaxValue` stops enumeration with `CallbackItemOrdinalExhausted`.
 
 ## P0-06 / P0-06B / P0-06C / P0-06D
 

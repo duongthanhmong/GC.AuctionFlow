@@ -36,7 +36,32 @@ public enum RawEventPayloadKind
     DomSnapshotLocalEnumerationResult = 8,
     Mbo = 9,
     RecorderLifecycle = 10,
-    RecorderIntegrity = 11
+    RecorderIntegrity = 11,
+    CallbackInvocationResult = 12
+}
+
+/// <summary>
+/// Record-category discriminator for future footer/manifest accounting (P0-07C3 amendment).
+/// PayloadKind already distinguishes categories in JSON; segment footer currently exposes only RawEventRecordCount.
+/// Preferred future invariant:
+/// RawEventRecordCount = MarketEventRecordCount + InvocationResultRecordCount + LifecycleIntegrityRecordCount.
+/// </summary>
+public enum RawEventRecordCategory
+{
+    MarketEvent = 1,
+    CallbackInvocationResult = 2,
+    LifecycleIntegrity = 3
+}
+
+public static class RawEventRecordCategoryClassifier
+{
+    public static RawEventRecordCategory Classify(RawEventPayloadKind kind) => kind switch
+    {
+        RawEventPayloadKind.CallbackInvocationResult => RawEventRecordCategory.CallbackInvocationResult,
+        RawEventPayloadKind.RecorderLifecycle => RawEventRecordCategory.LifecycleIntegrity,
+        RawEventPayloadKind.RecorderIntegrity => RawEventRecordCategory.LifecycleIntegrity,
+        _ => RawEventRecordCategory.MarketEvent
+    };
 }
 
 public enum RecorderFrameType : ushort

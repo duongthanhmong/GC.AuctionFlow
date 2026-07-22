@@ -1,24 +1,26 @@
-# Review Checklist — P0-07B Closeout Audit
+# Review Checklist — P0-07C2 Callback Grouping Amendment
 
 ## Prior
 
-- [x] P0-06 PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION
-- [x] Tag `gcae-p0-06-mbo-lifecycle-pass` at clean baseline
-- [x] P0-07A PASS WITH LOCKED AMENDMENTS
-- [x] P0-07B implementation present (uncommitted)
+- [x] P0-07B PASS / tag `gcae-p0-07b-recorder-core-pass`
+- [x] P0-07C1 PASS / Decision B
 
-## Closeout audit must pass
+## P0-07C2 must pass
 
-- [x] Diff scope: recorder + recorder tests + governance only
-- [x] Versions locked (recorder 1.0.0 / container 1; probes unchanged)
-- [x] Draft vs envelope separation; writer sequence = dequeue only
-- [x] Closed payloads; constituents/provider completion false
-- [x] Frame layout + mandatory CRC32C coverage documented/tested
-- [x] Footer reserved in byte rotation; RecordsWritten = RawEvent only
-- [x] Durable flush(true) before rename; hash then manifest
-- [x] Accounting equations + terminal outcomes
-- [x] Identity lifecycle first event of new epoch segment
-- [x] Recovery stop/continue rules + quarantine failure reported
-- [x] MBO lock; no subscribe; no adapters; no P0-07C
+- [x] RawEventRecorderSchemaVersion = 1.1.0; container version 1 unchanged
+- [x] Probe schemas / ProbeVersion 0.0.6 unchanged
+- [x] CallbackCaptureContext + per-source Interlocked sequences; first value 1; overflow no wrap
+- [x] Draft/Envelope grouping fields; StreamLocal vs writer dequeue distinct
+- [x] CallbackInvocationResultPayload semantics; FanOutItemRejections/Faults ≠ NormalizationFailures
+- [x] Null raw items consume ordinals; null singular accounting
+- [x] ReceiveUtc alias exactly CallbackReceiveUtc; aliases JsonIgnore / absent from JSON
+- [x] PrimitiveFanOutCoordinator independent sink outcomes; capability-then-recorder order documented
+- [x] SinglePassEnumerationHelper single-pass; stage-distinguished GetEnumerator/MoveNext/Current; no Count/ToList/ToArray
+- [x] Same-queue invocation-result policy + separate counters recorded for P0-07C3 (not wired)
+- [x] Record-count taxonomy gap documented as required C3 amendment
+- [x] No GcAuctionFlowIndicator changes
+- [x] No recorder operator settings / Trade/DOM adapters / live enablement
+- [x] BBA UNKNOWN lock recorded; no MBO recording enablement / no recorder SubscribeMarketByOrderData
 - [x] Master specification untouched
 - [x] `dotnet clean/restore/build/test -c Release` — 0 errors, 0 warnings
+- [x] P0-07C3 / P0-07C4 not started

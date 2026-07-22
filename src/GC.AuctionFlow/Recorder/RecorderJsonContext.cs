@@ -28,8 +28,10 @@ namespace GC.AuctionFlow.Recorder;
 [JsonSerializable(typeof(DomSnapshotItemPayload))]
 [JsonSerializable(typeof(DomSnapshotLocalEnumerationResultPayload))]
 [JsonSerializable(typeof(MboPayload))]
+[JsonSerializable(typeof(CallbackInvocationResultPayload))]
 [JsonSerializable(typeof(RecorderLifecyclePayload))]
 [JsonSerializable(typeof(RecorderIntegrityPayload))]
+[JsonSerializable(typeof(RawEventRecordCategory))]
 internal partial class RecorderJsonContext : JsonSerializerContext
 {
 }

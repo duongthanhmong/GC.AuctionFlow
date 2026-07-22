@@ -297,6 +297,8 @@ public sealed class RawEventRecorderSession : IDisposable
             d.StreamKind,
             d.CallbackSource,
             d.StreamLocalCaptureSequence,
+            d.CallbackInvocationSequence,
+            d.CallbackItemOrdinal,
             d.SubscriptionOrCaptureEpoch,
             epoch,
             d.Instrument,
@@ -306,8 +308,8 @@ public sealed class RawEventRecorderSession : IDisposable
             d.ProviderProvenance,
             d.SourceTimeTicks,
             d.SourceDateTimeKind,
-            d.ReceiveUtc,
-            d.ReceiveStopwatchTimestamp,
+            d.CallbackReceiveUtc,
+            d.CallbackReceiveStopwatchTimestamp,
             d.CallbackManagedThreadId,
             d.PayloadDiscriminator,
             d.Payload,
@@ -335,6 +337,8 @@ public sealed class RawEventRecorderSession : IDisposable
         _contractEpochs.Add(_contractEpoch);
         _currentIdentity = draft.Instrument;
 
+        var receiveUtc = DateTime.UtcNow;
+        var sw = Stopwatch.GetTimestamp();
         var lifecycle = new RawEventDraft(
             RawEventRecorderVersions.RawEventRecorderSchemaVersion,
             _sessionId,
@@ -342,6 +346,8 @@ public sealed class RawEventRecorderSession : IDisposable
             RecorderStreamKind.Lifecycle,
             RecorderCallbackSource.RecorderWorker,
             streamLocalCaptureSequence: previous,
+            callbackInvocationSequence: 0,
+            callbackItemOrdinal: 0,
             subscriptionOrCaptureEpoch: null,
             contractEpoch: _contractEpoch,
             instrument: draft.Instrument,
@@ -349,10 +355,10 @@ public sealed class RawEventRecorderSession : IDisposable
             modeProvenance: _modeProvenance,
             declaredProvider: _declaredProvider,
             providerProvenance: _providerProvenance,
-            sourceTimeTicks: DateTime.UtcNow.Ticks,
+            sourceTimeTicks: receiveUtc.Ticks,
             sourceDateTimeKind: DateTimeKind.Utc,
-            receiveUtc: DateTime.UtcNow,
-            receiveStopwatchTimestamp: Stopwatch.GetTimestamp(),
+            callbackReceiveUtc: receiveUtc,
+            callbackReceiveStopwatchTimestamp: sw,
             callbackManagedThreadId: Environment.CurrentManagedThreadId,
             payloadDiscriminator: RawEventPayloadKind.RecorderLifecycle,
             payload: new RecorderLifecyclePayload(
