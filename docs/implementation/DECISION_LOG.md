@@ -140,6 +140,16 @@
 - **Decision:** P0-07C2 closeout audit fixed proven defects only: CallbackInvocationSequence overflow does not wrap; single-pass uses explicit GetEnumerator/MoveNext/Current with stage-sanitized failures; sink rejection/fault separated from NormalizationFailures (`FanOutItemRejections`/`FanOutItemFaults`); ordinal exhaustion guarded. Approved for P0-07C3 (governance only, not implemented in C2): invocation-result records share the market draft queue/writer order (no control channel); separate InvocationResult* counters with Attempts = Accepted + QueueFull + Faults; footer/manifest must gain Market/InvocationResult/LifecycleIntegrity split counts (narrow amendment — no segment-frame redesign). BBA remains UNKNOWN until P0-07C4A. P0-07C3 not started.
 - **Date:** 2026-07-22
 
+## D-P0-07C3A-001 — Trade integration architecture PASS
+
+- **Decision:** P0-07C3A PASS. Dual-map within single enumeration; schema 1.2.0 for category counts; same-queue invocation results; no CumulativeTrade.Ticks on recorder path; DirectionRaw/DataTypeRaw required; decompose as C3BC (accounting+Trade wire) then C3D live.
+- **Date:** 2026-07-22
+
+## D-P0-07C3BC-001 — Trade recorder accounting + callback integration
+
+- **Decision:** Implement P0-07C3BC. RawEventRecorderSchemaVersion **1.2.0**. Footer/manifest category counts + InvocationResult* counters. TradeToRawEventAdapter + TradeRecorderHost wired into OnNewTrade/OnNewTrades/OnCumulativeTrade/OnUpdateCumulativeTrade. Dispose: recorder then probes then base.OnDispose. No DOM/BBA/MBO recorder work. No CumulativeTrade.Ticks access. P0-07C3D not started.
+- **Date:** 2026-07-22
+
 ## D-P0-04-002 — Base invocation from IL evidence
 
 - **Decision (original P0-04):** IL on ATAS.Indicators 8.0.14.395: `OnNewTrade` / `OnCumulativeTrade` / `OnUpdateCumulativeTrade` / `BaseIndicator.OnDispose` = empty `ret`. `OnNewTrades` = non-trivial (foreach → `OnNewTrade`). Originally called `base.OnNewTrades`.

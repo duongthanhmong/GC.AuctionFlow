@@ -43,10 +43,14 @@ public sealed class PayloadTaxonomyTests
     [Fact]
     public void Cumulative_payloads_do_not_claim_constituent_ticks()
     {
-        var neu = new CumulativeTradeNewPayload(1, 2, 3, "Buy", 5, null, false);
-        var upd = new CumulativeTradeUpdatePayload(1, 2, 3, "Buy", 5, null, false);
+        var neu = new CumulativeTradeNewPayload(1, 2, 3, 1, "Buy", false, null, null, false);
+        var upd = new CumulativeTradeUpdatePayload(1, 2, 3, 1, "Buy", false, null, null, false);
         Assert.False(neu.CumulativeTickConstituentsRecorded);
         Assert.False(upd.CumulativeTickConstituentsRecorded);
+        Assert.False(neu.ReportedTickCountAvailable);
+        Assert.Null(neu.ReportedTickCount);
+        Assert.False(upd.ReportedTickCountAvailable);
+        Assert.Null(upd.ReportedTickCount);
     }
 
     [Fact]
@@ -61,7 +65,7 @@ public sealed class PayloadTaxonomyTests
     [Fact]
     public void Closed_discriminator_kinds_are_exact()
     {
-        Assert.Equal(RawEventPayloadKind.NewTrade, new NewTradePayload(1, 1, 1, "Buy", "Trade", true, false, null, null, null).PayloadKind);
+        Assert.Equal(RawEventPayloadKind.NewTrade, new NewTradePayload(1, 1, 1, 1, "Buy", 2, "Trade", true, false, null, null, null).PayloadKind);
         Assert.Equal(RawEventPayloadKind.Mbo, new MboPayload("Snapshot", 0, true, "Bid", 1, "Bid", 1, 1, 1, 1).PayloadKind);
         Assert.Equal(RawEventPayloadKind.RecorderLifecycle, new RecorderLifecyclePayload(RecorderLifecycleEventKind.SessionStarted, "x", null, null, null).PayloadKind);
     }
@@ -127,7 +131,7 @@ public sealed class FramingAndCrcTests
     [Fact]
     public void Footer_is_framed_record()
     {
-        var footer = new SegmentFooterRecord(Guid.NewGuid(), 1, DateTime.UtcNow, 1, 0, 0, 0, 0, true);
+        var footer = new SegmentFooterRecord(Guid.NewGuid(), 1, DateTime.UtcNow, 1, 0, 0, 0, 0, 0, 0, 0, true);
         var bytes = RecorderJson.SerializeFooter(footer);
         var frame = FrameCodec.EncodeFrame(RecorderFrameType.SegmentFooter, bytes);
         Assert.Equal(FrameDecodeStatus.Ok, FrameCodec.TryDecodeFrame(frame, 1024 * 1024, out var decoded, out _, out _));
@@ -437,7 +441,7 @@ public sealed class MboLockAndHygieneTests
     [Fact]
     public void Versions_locked_and_probe_versions_unchanged()
     {
-        Assert.Equal("1.1.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
+        Assert.Equal("1.2.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
         Assert.Equal(1, RawEventRecorderVersions.RawEventContainerVersion);
         Assert.Equal("1.0.1", GC.AuctionFlow.Probe.TradeStreamProbeVersions.TradeStreamProbeSchemaVersion);
         Assert.Equal("0.0.6", GC.AuctionFlow.Core.CapabilitySchemaVersions.ProbeVersionPlaceholder);
@@ -447,7 +451,10 @@ public sealed class MboLockAndHygieneTests
     [Fact]
     public void Reconciliation_does_not_throw_on_mismatch()
     {
-        var bad = new RecorderCountersSnapshot(0, 0, 0, 0, 0, 0, 0, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        var bad = new RecorderCountersSnapshot(
+            0, 0, 0, 0, 0, 0, 0, 5, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         var result = RecorderReconciliation.Evaluate(bad, cleanShutdown: true);
         Assert.False(result.Ok);
         Assert.NotEmpty(result.Mismatches);
@@ -517,7 +524,7 @@ internal static class TestFixtures
             callbackReceiveStopwatchTimestamp: 123,
             callbackManagedThreadId: 1,
             payloadDiscriminator: RawEventPayloadKind.NewTrade,
-            payload: new NewTradePayload(2400.1m, 1m, 2400.1m, "Buy", "Trade", true, false, null, null, null),
+            payload: new NewTradePayload(2400.1m, 1m, 2400.1m, 1, "Buy", 2, "Trade", true, false, null, null, null),
             integrityFlags: RecorderIntegrityFlags.NativeSequenceAbsent | RecorderIntegrityFlags.SourceTimeKindUnspecified,
             nativeSequenceAvailable: false);
 }

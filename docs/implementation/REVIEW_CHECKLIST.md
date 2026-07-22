@@ -1,26 +1,21 @@
-# Review Checklist — P0-07C2 Callback Grouping Amendment
+# Review Checklist — P0-07C3BC Trade Recorder Accounting + Integration
 
 ## Prior
 
-- [x] P0-07B PASS / tag `gcae-p0-07b-recorder-core-pass`
-- [x] P0-07C1 PASS / Decision B
+- [x] P0-07C2 PASS / tag `gcae-p0-07c2-callback-grouping-pass`
+- [x] P0-07C3A PASS
 
-## P0-07C2 must pass
+## P0-07C3BC must pass
 
-- [x] RawEventRecorderSchemaVersion = 1.1.0; container version 1 unchanged
+- [x] RawEventRecorderSchemaVersion = 1.2.0; container version 1 unchanged
 - [x] Probe schemas / ProbeVersion 0.0.6 unchanged
-- [x] CallbackCaptureContext + per-source Interlocked sequences; first value 1; overflow no wrap
-- [x] Draft/Envelope grouping fields; StreamLocal vs writer dequeue distinct
-- [x] CallbackInvocationResultPayload semantics; FanOutItemRejections/Faults ≠ NormalizationFailures
-- [x] Null raw items consume ordinals; null singular accounting
-- [x] ReceiveUtc alias exactly CallbackReceiveUtc; aliases JsonIgnore / absent from JSON
-- [x] PrimitiveFanOutCoordinator independent sink outcomes; capability-then-recorder order documented
-- [x] SinglePassEnumerationHelper single-pass; stage-distinguished GetEnumerator/MoveNext/Current; no Count/ToList/ToArray
-- [x] Same-queue invocation-result policy + separate counters recorded for P0-07C3 (not wired)
-- [x] Record-count taxonomy gap documented as required C3 amendment
-- [x] No GcAuctionFlowIndicator changes
-- [x] No recorder operator settings / Trade/DOM adapters / live enablement
-- [x] BBA UNKNOWN lock recorded; no MBO recording enablement / no recorder SubscribeMarketByOrderData
-- [x] Master specification untouched
+- [x] Footer/manifest category counts + recovery equation
+- [x] InvocationResult* same-queue counters
+- [x] TradeToRawEventAdapter with DirectionRaw/DataTypeRaw; no Ticks access
+- [x] Trade callbacks dual-map; no base.OnNewTrades
+- [x] Settings EnableRawEventRecorder / EnableTradeRecording only
+- [x] Startup gate + diagnostics; master disabled = NotConfigured
+- [x] Dispose: recorder → Trade → DOM → MBO → base.OnDispose finally
+- [x] No DOM/BBA/MBO recorder / no master-spec changes
 - [x] `dotnet clean/restore/build/test -c Release` — 0 errors, 0 warnings
-- [x] P0-07C3 / P0-07C4 not started
+- [x] P0-07C3D not started

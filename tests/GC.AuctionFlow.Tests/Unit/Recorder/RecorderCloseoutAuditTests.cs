@@ -397,7 +397,7 @@ public sealed class RecorderCloseoutAuditTests
     [Fact]
     public void Versions_exact_lock()
     {
-        Assert.Equal("1.1.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
+        Assert.Equal("1.2.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
         Assert.Equal(1, RawEventRecorderVersions.RawEventContainerVersion);
         Assert.Equal("0.0.6", GC.AuctionFlow.Core.CapabilitySchemaVersions.ProbeVersionPlaceholder);
         Assert.Equal("1.0.1", GC.AuctionFlow.Probe.TradeStreamProbeVersions.TradeStreamProbeSchemaVersion);

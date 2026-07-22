@@ -91,24 +91,65 @@ public sealed class RawEventRecorderSession : IDisposable
         get { lock (_gate) return _completed.ToList(); }
     }
 
-    /// <summary>Non-blocking ingest. Does not perform file I/O.</summary>
+    /// <summary>
+    /// Non-blocking ingest. Does not perform file I/O.
+    /// Market drafts update AcceptedToQueue/QueueFullDrops.
+    /// Invocation-result drafts update InvocationResult* counters only (same channel).
+    /// </summary>
     public bool TryWrite(RawEventDraft draft)
     {
         if (draft is null) return false;
+
+        var isInvocationResult = draft.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult;
+        if (isInvocationResult)
+            Interlocked.Increment(ref _counters.InvocationResultEmissionAttempts);
+
         if (_disposed || !_accepting || _fatal)
         {
-            Interlocked.Increment(ref _counters.RejectedCallbackInvocationsAfterDispose);
+            if (isInvocationResult)
+                Interlocked.Increment(ref _counters.InvocationResultFaults);
+            else
+                Interlocked.Increment(ref _counters.RejectedCallbackInvocationsAfterDispose);
             return false;
         }
 
-        if (_channel.Writer.TryWrite(draft))
+        try
         {
-            Interlocked.Increment(ref _counters.AcceptedToQueue);
-            return true;
-        }
+            if (_channel.Writer.TryWrite(draft))
+            {
+                if (isInvocationResult)
+                    Interlocked.Increment(ref _counters.InvocationResultAcceptedToQueue);
+                else
+                    Interlocked.Increment(ref _counters.AcceptedToQueue);
+                return true;
+            }
 
-        Interlocked.Increment(ref _counters.QueueFullDrops);
-        return false;
+            if (isInvocationResult)
+                Interlocked.Increment(ref _counters.InvocationResultQueueFullDrops);
+            else
+                Interlocked.Increment(ref _counters.QueueFullDrops);
+            return false;
+        }
+        catch
+        {
+            if (isInvocationResult)
+                Interlocked.Increment(ref _counters.InvocationResultFaults);
+            return false;
+        }
+    }
+
+    /// <summary>Recorder sink outcome helper for fan-out (no market NormalizedObservations).</summary>
+    public FanOut.RecorderSinkOutcome TryAcceptDraft(RawEventDraft draft)
+    {
+        if (!MboOperationalLock.MboRecordingEnabled && draft.StreamKind == RecorderStreamKind.Mbo)
+            return FanOut.RecorderSinkOutcome.StreamDisabled;
+        if (_disposed)
+            return FanOut.RecorderSinkOutcome.StoppedAccepting;
+        if (!_accepting || _fatal)
+            return FanOut.RecorderSinkOutcome.StoppedAccepting;
+        if (_writer is null)
+            return FanOut.RecorderSinkOutcome.SessionNotStarted;
+        return TryWrite(draft) ? FanOut.RecorderSinkOutcome.Accepted : FanOut.RecorderSinkOutcome.QueueFull;
     }
 
     /// <summary>Test helper: mark one normalized observation accepted path.</summary>
@@ -139,15 +180,23 @@ public sealed class RawEventRecorderSession : IDisposable
         {
             if (!_worker.Wait(_config.ShutdownDrainTimeoutMilliseconds))
             {
-                // Count remaining as undrained
-                while (_channel.Reader.TryRead(out _))
-                    Interlocked.Increment(ref _counters.UndrainedAtShutdown);
+                while (_channel.Reader.TryRead(out var leftover))
+                {
+                    if (leftover.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult)
+                        ProcessInvocationResultDraft(leftover);
+                    else
+                        Interlocked.Increment(ref _counters.UndrainedAtShutdown);
+                }
             }
             else
             {
-                // Drain any residual without writing after fatal/close
-                while (_channel.Reader.TryRead(out _))
-                    Interlocked.Increment(ref _counters.UndrainedAtShutdown);
+                while (_channel.Reader.TryRead(out var leftover))
+                {
+                    if (leftover.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult)
+                        ProcessInvocationResultDraft(leftover);
+                    else
+                        Interlocked.Increment(ref _counters.UndrainedAtShutdown);
+                }
             }
         }
         catch
@@ -201,13 +250,23 @@ public sealed class RawEventRecorderSession : IDisposable
             _stopReason = "WorkerFault:" + ex.GetType().Name;
             // discard remaining
             while (_channel.Reader.TryRead(out _))
+            {
+                Interlocked.Increment(ref _counters.WriterDequeuedTotal);
                 Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
+            }
         }
     }
 
     private void ProcessDraft(RawEventDraft draft)
     {
+        if (draft.PayloadDiscriminator == RawEventPayloadKind.CallbackInvocationResult)
+        {
+            ProcessInvocationResultDraft(draft);
+            return;
+        }
+
         Interlocked.Increment(ref _counters.WriterDequeued);
+        Interlocked.Increment(ref _counters.WriterDequeuedTotal);
         if (_fatal || _writer is null)
         {
             Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
@@ -234,7 +293,6 @@ public sealed class RawEventRecorderSession : IDisposable
                 seq,
                 dequeuedUtc);
 
-            // Serialize first so rotation uses exact frame size + footer reservation.
             byte[] payloadUtf8;
             try
             {
@@ -286,6 +344,83 @@ public sealed class RawEventRecorderSession : IDisposable
             _accepting = false;
             _stopReason = "WriteFault:" + ex.GetType().Name;
             try { _writer?.AbandonIncomplete(); } catch { /* preserve tmp */ }
+        }
+    }
+
+    /// <summary>
+    /// Same writer ordering as market drafts. Does not touch market Normalized/Accepted/RecordsWritten.
+    /// </summary>
+    private void ProcessInvocationResultDraft(RawEventDraft draft)
+    {
+        Interlocked.Increment(ref _counters.WriterDequeuedTotal);
+
+        if (_fatal || _writer is null)
+        {
+            Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
+            return;
+        }
+
+        if (!EnsureDiskAndSessionBudget())
+        {
+            Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
+            return;
+        }
+
+        try
+        {
+            HandleIdentity(draft);
+            EnsureSegmentOpen(draft);
+
+            var seq = Interlocked.Increment(ref _writerSequence);
+            var dequeuedUtc = DateTime.UtcNow;
+            var envelope = RawEventEnvelope.FromDraft(
+                CloneDraftWithEpoch(draft, _contractEpoch),
+                _writer!.CurrentSegmentId,
+                _writer.CurrentSegmentOrdinal,
+                seq,
+                dequeuedUtc);
+
+            byte[] payloadUtf8;
+            try
+            {
+                payloadUtf8 = RecorderJson.SerializeEnvelope(envelope);
+            }
+            catch
+            {
+                Interlocked.Increment(ref _counters.SerializationFailures);
+                return;
+            }
+
+            if (payloadUtf8.Length > _config.MaxFramePayloadBytes)
+            {
+                Interlocked.Increment(ref _counters.SerializationFailures);
+                return;
+            }
+
+            var nextFrameBytes = ContainerFormat.FrameTotalSize(payloadUtf8.Length);
+            if (_writer.WouldExceedLimits(nextFrameBytes, _config.FooterReserveBytes, Stopwatch.GetTimestamp()))
+            {
+                CompleteCurrentSegment();
+                EnsureSegmentOpen(draft);
+                envelope = RawEventEnvelope.FromDraft(
+                    CloneDraftWithEpoch(draft, _contractEpoch),
+                    _writer.CurrentSegmentId,
+                    _writer.CurrentSegmentOrdinal,
+                    seq,
+                    dequeuedUtc);
+            }
+
+            if (!_writer.TryWriteRawEvent(envelope, out var serializationFailed))
+            {
+                if (serializationFailed)
+                    Interlocked.Increment(ref _counters.SerializationFailures);
+                else
+                    Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
+            }
+        }
+        catch
+        {
+            Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
         }
     }
 
@@ -382,8 +517,11 @@ public sealed class RawEventRecorderSession : IDisposable
             DateTime.UtcNow);
         if (!_writer.TryWriteRawEvent(env, out var serFail))
         {
+            Interlocked.Increment(ref _counters.WriterDequeuedTotal);
             if (!serFail)
                 Interlocked.Increment(ref _counters.WriterDiscardedAfterFatalFault);
+            else
+                Interlocked.Increment(ref _counters.SerializationFailures);
             Interlocked.Increment(ref _counters.SegmentWriteFailures);
             Interlocked.Increment(ref _counters.WorkerFaults);
             _fatal = true;
@@ -394,6 +532,7 @@ public sealed class RawEventRecorderSession : IDisposable
         }
 
         Interlocked.Increment(ref _counters.WriterDequeued);
+        Interlocked.Increment(ref _counters.WriterDequeuedTotal);
         Interlocked.Increment(ref _counters.AcceptedToQueue);
         Interlocked.Increment(ref _counters.NormalizedObservations);
         Interlocked.Increment(ref _counters.PayloadItemsEnumerated);
@@ -495,10 +634,14 @@ public sealed class RawEventRecorderSession : IDisposable
                 s.FileName,
                 s.Sha256Hex,
                 s.RecordCount,
+                s.MarketEventRecordCount,
+                s.InvocationResultRecordCount,
+                s.LifecycleIntegrityRecordCount,
                 s.ByteLength,
                 s.FirstWriterSequence,
                 s.LastWriterSequence,
-                s.ContractEpoch)).ToList();
+                s.ContractEpoch,
+                s.CategoryCountsKnown)).ToList();
 
             var manifest = new SessionManifestRecord(
                 RawEventRecorderVersions.ManifestGeneration,

@@ -14,10 +14,12 @@
 10. Shutdown-timeout undrained counting does not reclaim an in-flight draft already dequeued by a blocked worker (counted via later discard/fault paths).
 11. **CallbackInvocationResultPayload** absence means callback completion is unknown; it is local metadata, not a market event.
 12. **OnBestBidAskChanged** dual-sided payload shape remains **UNKNOWN**; no BestBidAsk recorder mapping in P0-07C2 (defer P0-07C4A).
-13. Schema **1.0.0** is unsupported for live trust; use **1.1.0+**.
-14. **Record-count taxonomy gap (P0-07C3 required amendment):** segment footer/manifest expose only `RawEventRecordCount`. Preferred invariant RawEventRecordCount = MarketEventRecordCount + InvocationResultRecordCount + LifecycleIntegrityRecordCount is not yet representable in footer fields. PayloadKind / `RawEventRecordCategory` discriminate in JSON only. Do not redesign GCAR/GCF1 framing to close this gap.
-15. **Invocation-result queue policy (approved for P0-07C3, not wired in C2):** same recorder queue as market drafts; separate InvocationResult* accounting; not counted as NormalizedObservations.
+13. Schema **1.0.0** is unsupported for live trust; use **1.2.0+**.
+14. **Record-count taxonomy (P0-07C3BC):** footer/manifest carry MarketEventRecordCount, InvocationResultRecordCount, LifecycleIntegrityRecordCount; RawEventRecordCount/RecordCount remain the compatible total.
+15. **Invocation-result queue policy (wired in C3BC):** same recorder queue as market drafts; separate InvocationResult* accounting; not counted as NormalizedObservations.
 16. CallbackInvocationSequence exhausted at `long.MaxValue` throws (no wrap). CallbackItemOrdinal exhausted at `int.MaxValue` stops enumeration with `CallbackItemOrdinalExhausted`.
+17. Recorder cumulative path never reads `CumulativeTrade.Ticks`; ReportedTickCountAvailable=false and ReportedTickCount=null (never zero-for-unknown).
+18. DOM / BestBidAsk / MBO recorder integration deferred (P0-07C4+). P0-07C3D live Trade evidence not started.
 
 ## P0-06 / P0-06B / P0-06C / P0-06D
 

@@ -217,10 +217,14 @@ public static class RecoveryScanner
             t.FileName,
             t.Sha256Hex,
             t.RecordCount,
+            t.MarketEventRecordCount,
+            t.InvocationResultRecordCount,
+            t.LifecycleIntegrityRecordCount,
             t.ByteLength,
             t.FirstWriterSequence,
             t.LastWriterSequence,
-            t.ContractEpoch)).ToList();
+            t.ContractEpoch,
+            t.CategoryCountsKnown)).ToList();
 
         return new SessionManifestRecord(
             RawEventRecorderVersions.ManifestGeneration,
@@ -313,6 +317,9 @@ public static class RecoveryScanner
         SegmentHeaderRecord? header = null;
         SegmentFooterRecord? footer = null;
         long rawEventCount = 0;
+        long marketCount = 0;
+        long invResultCount = 0;
+        long lifecycleCount = 0;
         long? prevSeq = null;
         var hadSequenceDiscontinuity = false;
         var hadPayloadDecodeFailure = false;
@@ -405,6 +412,19 @@ public static class RecoveryScanner
                         }
                         else
                         {
+                            switch (RawEventRecordCategoryClassifier.Classify(env.PayloadDiscriminator))
+                            {
+                                case RawEventRecordCategory.MarketEvent:
+                                    marketCount++;
+                                    break;
+                                case RawEventRecordCategory.CallbackInvocationResult:
+                                    invResultCount++;
+                                    break;
+                                case RawEventRecordCategory.LifecycleIntegrity:
+                                    lifecycleCount++;
+                                    break;
+                            }
+
                             if (prevSeq is not null && env.RecorderGlobalLocalSequence != prevSeq.Value + 1)
                                 hadSequenceDiscontinuity = true;
                             prevSeq = env.RecorderGlobalLocalSequence;
@@ -476,6 +496,28 @@ public static class RecoveryScanner
             return false;
         }
 
+        var requireCategories = RecorderSchemaCompatibility.RequiresCategoryCounts(header.RecorderSchemaVersion);
+        if (requireCategories)
+        {
+            if (footer.RawEventRecordCount
+                != footer.MarketEventRecordCount + footer.InvocationResultRecordCount + footer.LifecycleIntegrityRecordCount)
+            {
+                classification = RecoveryClassification.ReconciliationMismatch;
+                detail = "Footer category sum != RawEventRecordCount";
+                return false;
+            }
+
+            if (footer.MarketEventRecordCount != marketCount
+                || footer.InvocationResultRecordCount != invResultCount
+                || footer.LifecycleIntegrityRecordCount != lifecycleCount)
+            {
+                classification = RecoveryClassification.ReconciliationMismatch;
+                detail =
+                    $"Footer categories M={footer.MarketEventRecordCount}/I={footer.InvocationResultRecordCount}/L={footer.LifecycleIntegrityRecordCount} != scanned M={marketCount}/I={invResultCount}/L={lifecycleCount}";
+                return false;
+            }
+        }
+
         if (!SegmentWriter.TryReadSha256File(
                 Path.Combine(Path.GetDirectoryName(path)!, RecorderStoragePaths.SegmentHashFileName(header.SegmentId)),
                 out var sha))
@@ -490,10 +532,14 @@ public static class RecoveryScanner
             path,
             sha,
             rawEventCount,
+            requireCategories ? marketCount : 0,
+            requireCategories ? invResultCount : 0,
+            requireCategories ? lifecycleCount : 0,
             bytes.LongLength,
             footer.FirstWriterSequence,
             footer.LastWriterSequence,
-            header.ContractEpoch);
+            header.ContractEpoch,
+            categoryCountsKnown: requireCategories);
         classification = RecoveryClassification.TrustedComplete;
         return true;
     }

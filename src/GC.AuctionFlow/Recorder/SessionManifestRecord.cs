@@ -118,31 +118,48 @@ public sealed class ManifestSegmentRecord
         string fileName,
         string sha256Hex,
         long recordCount,
+        long marketEventRecordCount,
+        long invocationResultRecordCount,
+        long lifecycleIntegrityRecordCount,
         long byteLength,
         long firstWriterSequence,
         long lastWriterSequence,
-        int contractEpoch)
+        int contractEpoch,
+        bool categoryCountsKnown = true)
     {
+        if (categoryCountsKnown
+            && recordCount != marketEventRecordCount + invocationResultRecordCount + lifecycleIntegrityRecordCount)
+            throw new ArgumentException("RecordCount must equal category sum when category counts are known.");
+
         SegmentId = segmentId;
         SegmentOrdinal = segmentOrdinal;
         FileName = fileName;
         Sha256Hex = sha256Hex;
         RecordCount = recordCount;
+        MarketEventRecordCount = marketEventRecordCount;
+        InvocationResultRecordCount = invocationResultRecordCount;
+        LifecycleIntegrityRecordCount = lifecycleIntegrityRecordCount;
         ByteLength = byteLength;
         FirstWriterSequence = firstWriterSequence;
         LastWriterSequence = lastWriterSequence;
         ContractEpoch = contractEpoch;
+        CategoryCountsKnown = categoryCountsKnown;
     }
 
     public Guid SegmentId { get; }
     public int SegmentOrdinal { get; }
     public string FileName { get; }
     public string Sha256Hex { get; }
+    /// <summary>Compatible total — equals RawEventRecordCount when categories known.</summary>
     public long RecordCount { get; }
+    public long MarketEventRecordCount { get; }
+    public long InvocationResultRecordCount { get; }
+    public long LifecycleIntegrityRecordCount { get; }
     public long ByteLength { get; }
     public long FirstWriterSequence { get; }
     public long LastWriterSequence { get; }
     public int ContractEpoch { get; }
+    public bool CategoryCountsKnown { get; }
 }
 
 public sealed class CapabilityClaimsForcedFalse
@@ -183,7 +200,15 @@ public sealed class RecorderCountersSnapshot
         long normalizationFailures,
         long acceptedToQueue,
         long queueFullDrops,
+        long invocationResultEmissionAttempts,
+        long invocationResultAcceptedToQueue,
+        long invocationResultQueueFullDrops,
+        long invocationResultFaults,
+        long invocationResultsWritten,
         long writerDequeued,
+        long writerDequeuedTotal,
+        long marketEventsWritten,
+        long lifecycleIntegrityRecordsWritten,
         long recordsWritten,
         long serializationFailures,
         long writerDiscardedAfterFatalFault,
@@ -197,7 +222,10 @@ public sealed class RecorderCountersSnapshot
         long segmentWriteFailures,
         long flushFailures,
         long hashFailures,
-        long manifestFailures)
+        long manifestFailures,
+        long recorderCallbacksBeforeStart,
+        long recorderCallbacksAfterStop,
+        long recorderStartupFailures)
     {
         CallbackInvocations = callbackInvocations;
         AuthorizedCallbackInvocations = authorizedCallbackInvocations;
@@ -212,7 +240,15 @@ public sealed class RecorderCountersSnapshot
         NormalizationFailures = normalizationFailures;
         AcceptedToQueue = acceptedToQueue;
         QueueFullDrops = queueFullDrops;
+        InvocationResultEmissionAttempts = invocationResultEmissionAttempts;
+        InvocationResultAcceptedToQueue = invocationResultAcceptedToQueue;
+        InvocationResultQueueFullDrops = invocationResultQueueFullDrops;
+        InvocationResultFaults = invocationResultFaults;
+        InvocationResultsWritten = invocationResultsWritten;
         WriterDequeued = writerDequeued;
+        WriterDequeuedTotal = writerDequeuedTotal;
+        MarketEventsWritten = marketEventsWritten;
+        LifecycleIntegrityRecordsWritten = lifecycleIntegrityRecordsWritten;
         RecordsWritten = recordsWritten;
         SerializationFailures = serializationFailures;
         WriterDiscardedAfterFatalFault = writerDiscardedAfterFatalFault;
@@ -227,6 +263,9 @@ public sealed class RecorderCountersSnapshot
         FlushFailures = flushFailures;
         HashFailures = hashFailures;
         ManifestFailures = manifestFailures;
+        RecorderCallbacksBeforeStart = recorderCallbacksBeforeStart;
+        RecorderCallbacksAfterStop = recorderCallbacksAfterStop;
+        RecorderStartupFailures = recorderStartupFailures;
     }
 
     public long CallbackInvocations { get; }
@@ -242,7 +281,15 @@ public sealed class RecorderCountersSnapshot
     public long NormalizationFailures { get; }
     public long AcceptedToQueue { get; }
     public long QueueFullDrops { get; }
+    public long InvocationResultEmissionAttempts { get; }
+    public long InvocationResultAcceptedToQueue { get; }
+    public long InvocationResultQueueFullDrops { get; }
+    public long InvocationResultFaults { get; }
+    public long InvocationResultsWritten { get; }
     public long WriterDequeued { get; }
+    public long WriterDequeuedTotal { get; }
+    public long MarketEventsWritten { get; }
+    public long LifecycleIntegrityRecordsWritten { get; }
     public long RecordsWritten { get; }
     public long SerializationFailures { get; }
     public long WriterDiscardedAfterFatalFault { get; }
@@ -257,4 +304,7 @@ public sealed class RecorderCountersSnapshot
     public long FlushFailures { get; }
     public long HashFailures { get; }
     public long ManifestFailures { get; }
+    public long RecorderCallbacksBeforeStart { get; }
+    public long RecorderCallbacksAfterStop { get; }
+    public long RecorderStartupFailures { get; }
 }

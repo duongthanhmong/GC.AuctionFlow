@@ -43,21 +43,33 @@ public sealed class CompletedSegmentInfo
         string fullPath,
         string sha256Hex,
         long recordCount,
+        long marketEventRecordCount,
+        long invocationResultRecordCount,
+        long lifecycleIntegrityRecordCount,
         long byteLength,
         long firstWriterSequence,
         long lastWriterSequence,
-        int contractEpoch)
+        int contractEpoch,
+        bool categoryCountsKnown = true)
     {
+        if (categoryCountsKnown
+            && recordCount != marketEventRecordCount + invocationResultRecordCount + lifecycleIntegrityRecordCount)
+            throw new ArgumentException("RecordCount must equal category sum when category counts are known.");
+
         SegmentId = segmentId;
         SegmentOrdinal = segmentOrdinal;
         FileName = fileName;
         FullPath = fullPath;
         Sha256Hex = sha256Hex;
         RecordCount = recordCount;
+        MarketEventRecordCount = marketEventRecordCount;
+        InvocationResultRecordCount = invocationResultRecordCount;
+        LifecycleIntegrityRecordCount = lifecycleIntegrityRecordCount;
         ByteLength = byteLength;
         FirstWriterSequence = firstWriterSequence;
         LastWriterSequence = lastWriterSequence;
         ContractEpoch = contractEpoch;
+        CategoryCountsKnown = categoryCountsKnown;
     }
 
     public Guid SegmentId { get; }
@@ -66,10 +78,14 @@ public sealed class CompletedSegmentInfo
     public string FullPath { get; }
     public string Sha256Hex { get; }
     public long RecordCount { get; }
+    public long MarketEventRecordCount { get; }
+    public long InvocationResultRecordCount { get; }
+    public long LifecycleIntegrityRecordCount { get; }
     public long ByteLength { get; }
     public long FirstWriterSequence { get; }
     public long LastWriterSequence { get; }
     public int ContractEpoch { get; }
+    public bool CategoryCountsKnown { get; }
 }
 
 /// <summary>Writes a single segment: tmp → framed records → footer → rename → sha256 → done.</summary>
@@ -83,6 +99,9 @@ public sealed class SegmentWriter : IDisposable
     private int _segmentOrdinal;
     private int _contractEpoch;
     private long _recordCount;
+    private long _marketCount;
+    private long _invocationResultCount;
+    private long _lifecycleCount;
     private long _firstWriterSequence = -1;
     private long _lastWriterSequence = -1;
     private long _bytesWritten;
@@ -143,6 +162,9 @@ public sealed class SegmentWriter : IDisposable
         _startedStopwatch = startedStopwatchTimestamp;
         _startedUtc = startedUtc;
         _recordCount = 0;
+        _marketCount = 0;
+        _invocationResultCount = 0;
+        _lifecycleCount = 0;
         _firstWriterSequence = -1;
         _lastWriterSequence = -1;
         _bytesWritten = 0;
@@ -173,11 +195,6 @@ public sealed class SegmentWriter : IDisposable
         _open = true;
     }
 
-    /// <summary>
-    /// Prospective size check before writing the next RawEvent.
-    /// Reserves footer frame space so completion cannot exceed MaxSegmentBytes.
-    /// Duration uses Stopwatch elapsed time (not wall-clock UTC).
-    /// </summary>
     public bool WouldExceedLimits(int nextRawEventFrameTotalBytes, int footerReserveBytes, long nowStopwatchTimestamp)
     {
         if (!_open) return false;
@@ -191,8 +208,8 @@ public sealed class SegmentWriter : IDisposable
     }
 
     /// <summary>
-    /// Writes one RawEvent frame. RecordsWritten counts RawEvent frames only (not header/footer).
-    /// Returns false on serialization failure (counted) or IO failure (caller must count discard).
+    /// Writes one RawEvent frame. Market → RecordsWritten; InvocationResult → InvocationResultsWritten;
+    /// LifecycleIntegrity → RecordsWritten (keeps identity-lifecycle reconciliation).
     /// </summary>
     public bool TryWriteRawEvent(RawEventEnvelope envelope, out bool serializationFailed)
     {
@@ -229,9 +246,27 @@ public sealed class SegmentWriter : IDisposable
         }
 
         _recordCount++;
+        var category = RawEventRecordCategoryClassifier.Classify(envelope.PayloadDiscriminator);
+        switch (category)
+        {
+            case RawEventRecordCategory.MarketEvent:
+                _marketCount++;
+                Interlocked.Increment(ref _counters.MarketEventsWritten);
+                Interlocked.Increment(ref _counters.RecordsWritten);
+                break;
+            case RawEventRecordCategory.CallbackInvocationResult:
+                _invocationResultCount++;
+                Interlocked.Increment(ref _counters.InvocationResultsWritten);
+                break;
+            case RawEventRecordCategory.LifecycleIntegrity:
+                _lifecycleCount++;
+                Interlocked.Increment(ref _counters.LifecycleIntegrityRecordsWritten);
+                Interlocked.Increment(ref _counters.RecordsWritten);
+                break;
+        }
+
         if (_firstWriterSequence < 0) _firstWriterSequence = envelope.RecorderGlobalLocalSequence;
         _lastWriterSequence = envelope.RecorderGlobalLocalSequence;
-        Interlocked.Increment(ref _counters.RecordsWritten);
         return true;
     }
 
@@ -253,15 +288,18 @@ public sealed class SegmentWriter : IDisposable
             endedUtc,
             endedStopwatchTimestamp,
             rawEventRecordCount: _recordCount,
+            marketEventRecordCount: _marketCount,
+            invocationResultRecordCount: _invocationResultCount,
+            lifecycleIntegrityRecordCount: _lifecycleCount,
             firstWriterSequence: _firstWriterSequence < 0 ? 0 : _firstWriterSequence,
             lastWriterSequence: _lastWriterSequence < 0 ? 0 : _lastWriterSequence,
             bytesBeforeFooter: bytesBeforeFooter,
-            completedNormally: true);
+            completedNormally: true,
+            categoryCountsClaimed: true);
         WriteFrame(RecorderFrameType.SegmentFooter, RecorderJson.SerializeFooter(footer));
 
         try
         {
-            // Durable flush before close/rename (flushToDisk: true).
             _stream.Flush(flushToDisk: true);
         }
         catch
@@ -293,7 +331,6 @@ public sealed class SegmentWriter : IDisposable
         }
 
         var info = new FileInfo(finalPath);
-        // BytesWritten counter / CompletedSegmentInfo.ByteLength = final .seg file length.
         Interlocked.Increment(ref _counters.SegmentsCompleted);
         Interlocked.Add(ref _counters.BytesWritten, info.Length);
 
@@ -304,6 +341,9 @@ public sealed class SegmentWriter : IDisposable
             finalPath,
             sha,
             _recordCount,
+            _marketCount,
+            _invocationResultCount,
+            _lifecycleCount,
             info.Length,
             _firstWriterSequence < 0 ? 0 : _firstWriterSequence,
             _lastWriterSequence < 0 ? 0 : _lastWriterSequence,
@@ -344,7 +384,6 @@ public sealed class SegmentWriter : IDisposable
     {
         var tmp = Path.Combine(segmentsDir, RecorderStoragePaths.SegmentHashTempFileName(segmentId));
         var final = Path.Combine(segmentsDir, RecorderStoragePaths.SegmentHashFileName(segmentId));
-        // Deterministic companion encoding: uppercase hex (Convert.ToHexString), two spaces, file name, LF only.
         var content = sha256Hex + "  " + RecorderStoragePaths.SegmentFileName(segmentId) + "\n";
         File.WriteAllText(tmp, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         using (var fs = new FileStream(tmp, FileMode.Open, FileAccess.ReadWrite, FileShare.None))

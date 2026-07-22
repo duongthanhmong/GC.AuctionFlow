@@ -434,7 +434,7 @@ public sealed class CallbackGroupingContractTests
     [Fact]
     public void Schema_version_is_1_1_0_and_probes_unchanged()
     {
-        Assert.Equal("1.1.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
+        Assert.Equal("1.2.0", RawEventRecorderVersions.RawEventRecorderSchemaVersion);
         Assert.Equal(1, RawEventRecorderVersions.RawEventContainerVersion);
         Assert.Equal("0.0.6", GC.AuctionFlow.Core.CapabilitySchemaVersions.ProbeVersionPlaceholder);
         Assert.Equal("1.0.1", GC.AuctionFlow.Probe.TradeStreamProbeVersions.TradeStreamProbeSchemaVersion);
@@ -468,7 +468,7 @@ public sealed class CallbackGroupingContractTests
             1,
             DateTimeKind.Unspecified,
             RawEventPayloadKind.NewTrade,
-            new NewTradePayload(1, 1, 1, "Buy", "Trade", true, false, null, null, null),
+            new NewTradePayload(1, 1, 1, 1, "Buy", 2, "Trade", true, false, null, null, null),
             RecorderIntegrityFlags.NativeSequenceAbsent,
             false);
 }
@@ -568,20 +568,19 @@ public sealed class FanOutCoordinatorTests
     }
 
     [Fact]
-    public void Indicator_source_unchanged_no_recorder_settings_or_fanout_wiring()
+    public void Indicator_has_trade_recorder_settings_but_no_dom_bba_mbo_recorder_settings()
     {
         var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.True(File.Exists(path), path);
         var text = File.ReadAllText(path);
-        Assert.DoesNotContain("EnableRawEventRecorder", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableTradeRecording", text, StringComparison.Ordinal);
+        Assert.Contains("EnableRawEventRecorder", text, StringComparison.Ordinal);
+        Assert.Contains("EnableTradeRecording", text, StringComparison.Ordinal);
+        Assert.Contains("TradeRecorderHost", text, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableDomRecording", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableBbaRecording", text, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableMboRecording", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("PrimitiveFanOutCoordinator", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("RawEventRecorderSession", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("SinglePassEnumerationHelper", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("CallbackCaptureContext", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("CallbackInvocationResultPayload", text, StringComparison.Ordinal);
+        Assert.Contains("// P0-04B: do not call base.OnNewTrades", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("base.OnNewTrades", text.Replace("// P0-04B: do not call base.OnNewTrades", "", StringComparison.Ordinal), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -625,7 +624,7 @@ public sealed class FanOutCoordinatorTests
         return new PrimitiveFanOutItem(
             c, 0, 1, TestFixtures.Instrument(), 1, DateTimeKind.Utc,
             RawEventPayloadKind.NewTrade,
-            new NewTradePayload(1, 1, 1, "Buy", "Trade", true, false, null, null, null),
+            new NewTradePayload(1, 1, 1, 1, "Buy", 2, "Trade", true, false, null, null, null),
             RecorderIntegrityFlags.None, false);
     }
 

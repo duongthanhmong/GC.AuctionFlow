@@ -31,8 +31,10 @@ public sealed class NewTradePayload : RawEventPayload
         decimal price,
         decimal volume,
         decimal originPrice,
-        string direction,
-        string dataType,
+        long directionRaw,
+        string directionName,
+        long dataTypeRaw,
+        string dataTypeName,
         bool isAsk,
         bool isBid,
         long? exchangeOrderId,
@@ -42,8 +44,10 @@ public sealed class NewTradePayload : RawEventPayload
         Price = price;
         Volume = volume;
         OriginPrice = originPrice;
-        Direction = direction ?? string.Empty;
-        DataType = dataType ?? string.Empty;
+        DirectionRaw = directionRaw;
+        DirectionName = directionName ?? string.Empty;
+        DataTypeRaw = dataTypeRaw;
+        DataTypeName = dataTypeName ?? string.Empty;
         IsAsk = isAsk;
         IsBid = isBid;
         ExchangeOrderId = exchangeOrderId;
@@ -55,18 +59,22 @@ public sealed class NewTradePayload : RawEventPayload
     public decimal Price { get; }
     public decimal Volume { get; }
     public decimal OriginPrice { get; }
-    public string Direction { get; }
-    public string DataType { get; }
+    public long DirectionRaw { get; }
+    public string DirectionName { get; }
+    public long DataTypeRaw { get; }
+    public string DataTypeName { get; }
     public bool IsAsk { get; }
     public bool IsBid { get; }
     public long? ExchangeOrderId { get; }
     public long? AggressorExchangeOrderId { get; }
+    /// <summary>Raw OpenInterest field copy — not a validated OI claim.</summary>
     public decimal? OpenInterest { get; }
 }
 
 /// <summary>
-/// Cumulative trade aggregate. Constituent ticks are not recorded in P0-07B.
+/// Cumulative trade aggregate. Constituent ticks are not recorded.
 /// CumulativeTickConstituentsRecorded is always false.
+/// ReportedTickCount is null when no independent aggregate tick-count property exists (never zero-for-unknown).
 /// </summary>
 public sealed class CumulativeTradeNewPayload : RawEventPayload
 {
@@ -74,16 +82,20 @@ public sealed class CumulativeTradeNewPayload : RawEventPayload
         decimal volume,
         decimal firstPrice,
         decimal lastPrice,
-        string direction,
-        int reportedTickCount,
+        long directionRaw,
+        string directionName,
+        bool reportedTickCountAvailable,
+        int? reportedTickCount,
         long? processLocalInstanceId,
         bool processLocalInstanceIdObserved)
     {
         Volume = volume;
         FirstPrice = firstPrice;
         LastPrice = lastPrice;
-        Direction = direction ?? string.Empty;
-        ReportedTickCount = reportedTickCount;
+        DirectionRaw = directionRaw;
+        DirectionName = directionName ?? string.Empty;
+        ReportedTickCountAvailable = reportedTickCountAvailable;
+        ReportedTickCount = reportedTickCountAvailable ? reportedTickCount : null;
         ProcessLocalInstanceId = processLocalInstanceId;
         ProcessLocalInstanceIdObserved = processLocalInstanceIdObserved;
         CumulativeTickConstituentsRecorded = false;
@@ -93,17 +105,17 @@ public sealed class CumulativeTradeNewPayload : RawEventPayload
     public decimal Volume { get; }
     public decimal FirstPrice { get; }
     public decimal LastPrice { get; }
-    public string Direction { get; }
-    public int ReportedTickCount { get; }
+    public long DirectionRaw { get; }
+    public string DirectionName { get; }
+    public bool ReportedTickCountAvailable { get; }
+    public int? ReportedTickCount { get; }
     public long? ProcessLocalInstanceId { get; }
     public bool ProcessLocalInstanceIdObserved { get; }
-
-    /// <summary>P0-07B does not preserve constituent prints.</summary>
     public bool CumulativeTickConstituentsRecorded { get; }
 }
 
 /// <summary>
-/// Cumulative trade update aggregate. Constituent ticks are not recorded in P0-07B.
+/// Cumulative trade update aggregate. Constituent ticks are not recorded.
 /// </summary>
 public sealed class CumulativeTradeUpdatePayload : RawEventPayload
 {
@@ -111,16 +123,20 @@ public sealed class CumulativeTradeUpdatePayload : RawEventPayload
         decimal volume,
         decimal firstPrice,
         decimal lastPrice,
-        string direction,
-        int reportedTickCount,
+        long directionRaw,
+        string directionName,
+        bool reportedTickCountAvailable,
+        int? reportedTickCount,
         long? processLocalInstanceId,
         bool processLocalInstanceIdObserved)
     {
         Volume = volume;
         FirstPrice = firstPrice;
         LastPrice = lastPrice;
-        Direction = direction ?? string.Empty;
-        ReportedTickCount = reportedTickCount;
+        DirectionRaw = directionRaw;
+        DirectionName = directionName ?? string.Empty;
+        ReportedTickCountAvailable = reportedTickCountAvailable;
+        ReportedTickCount = reportedTickCountAvailable ? reportedTickCount : null;
         ProcessLocalInstanceId = processLocalInstanceId;
         ProcessLocalInstanceIdObserved = processLocalInstanceIdObserved;
         CumulativeTickConstituentsRecorded = false;
@@ -130,8 +146,10 @@ public sealed class CumulativeTradeUpdatePayload : RawEventPayload
     public decimal Volume { get; }
     public decimal FirstPrice { get; }
     public decimal LastPrice { get; }
-    public string Direction { get; }
-    public int ReportedTickCount { get; }
+    public long DirectionRaw { get; }
+    public string DirectionName { get; }
+    public bool ReportedTickCountAvailable { get; }
+    public int? ReportedTickCount { get; }
     public long? ProcessLocalInstanceId { get; }
     public bool ProcessLocalInstanceIdObserved { get; }
     public bool CumulativeTickConstituentsRecorded { get; }

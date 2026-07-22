@@ -18,7 +18,22 @@ public sealed class RecorderCounters
     public long AcceptedToQueue;
     public long QueueFullDrops;
 
+    public long InvocationResultEmissionAttempts;
+    public long InvocationResultAcceptedToQueue;
+    public long InvocationResultQueueFullDrops;
+    public long InvocationResultFaults;
+    public long InvocationResultsWritten;
+
+    /// <summary>Market-channel dequeues only (excludes invocation-result drafts).</summary>
     public long WriterDequeued;
+
+    /// <summary>
+    /// Every writer-handled unit: market dequeue, invocation-result dequeue, and inline lifecycle writes.
+    /// </summary>
+    public long WriterDequeuedTotal;
+
+    public long MarketEventsWritten;
+    public long LifecycleIntegrityRecordsWritten;
     public long RecordsWritten;
     public long SerializationFailures;
     public long WriterDiscardedAfterFatalFault;
@@ -33,6 +48,10 @@ public sealed class RecorderCounters
     public long FlushFailures;
     public long HashFailures;
     public long ManifestFailures;
+
+    public long RecorderCallbacksBeforeStart;
+    public long RecorderCallbacksAfterStop;
+    public long RecorderStartupFailures;
 
     public RecorderCountersSnapshot Snapshot() =>
         new(
@@ -49,7 +68,15 @@ public sealed class RecorderCounters
             NormalizationFailures,
             AcceptedToQueue,
             QueueFullDrops,
+            InvocationResultEmissionAttempts,
+            InvocationResultAcceptedToQueue,
+            InvocationResultQueueFullDrops,
+            InvocationResultFaults,
+            InvocationResultsWritten,
             WriterDequeued,
+            WriterDequeuedTotal,
+            MarketEventsWritten,
+            LifecycleIntegrityRecordsWritten,
             RecordsWritten,
             SerializationFailures,
             WriterDiscardedAfterFatalFault,
@@ -63,7 +90,10 @@ public sealed class RecorderCounters
             SegmentWriteFailures,
             FlushFailures,
             HashFailures,
-            ManifestFailures);
+            ManifestFailures,
+            RecorderCallbacksBeforeStart,
+            RecorderCallbacksAfterStop,
+            RecorderStartupFailures);
 }
 
 public sealed class ReconciliationResult
@@ -106,10 +136,36 @@ public static class RecorderReconciliation
                 $"AcceptedToQueue({c.AcceptedToQueue}) != WriterDequeued({c.WriterDequeued})+Undrained({c.UndrainedAtShutdown})");
         }
 
+        // Market WriterDequeued reconciles to market+lifecycle RecordsWritten path (compat).
         if (c.WriterDequeued != c.RecordsWritten + c.SerializationFailures + c.WriterDiscardedAfterFatalFault)
         {
             mismatches.Add(
                 $"WriterDequeued({c.WriterDequeued}) != Written({c.RecordsWritten})+SerFail({c.SerializationFailures})+Discarded({c.WriterDiscardedAfterFatalFault})");
+        }
+
+        if (c.RecordsWritten != c.MarketEventsWritten + c.LifecycleIntegrityRecordsWritten)
+        {
+            mismatches.Add(
+                $"RecordsWritten({c.RecordsWritten}) != Market({c.MarketEventsWritten})+Lifecycle({c.LifecycleIntegrityRecordsWritten})");
+        }
+
+        // Total writer invariant across all categories (no double-count).
+        if (c.WriterDequeuedTotal
+            != c.MarketEventsWritten
+            + c.InvocationResultsWritten
+            + c.LifecycleIntegrityRecordsWritten
+            + c.SerializationFailures
+            + c.WriterDiscardedAfterFatalFault)
+        {
+            mismatches.Add(
+                $"WriterDequeuedTotal({c.WriterDequeuedTotal}) != MarketWritten({c.MarketEventsWritten})+InvWritten({c.InvocationResultsWritten})+LifecycleWritten({c.LifecycleIntegrityRecordsWritten})+SerFail({c.SerializationFailures})+Discarded({c.WriterDiscardedAfterFatalFault})");
+        }
+
+        if (c.InvocationResultEmissionAttempts
+            != c.InvocationResultAcceptedToQueue + c.InvocationResultQueueFullDrops + c.InvocationResultFaults)
+        {
+            mismatches.Add(
+                $"InvocationResultAttempts({c.InvocationResultEmissionAttempts}) != Accepted({c.InvocationResultAcceptedToQueue})+QueueFull({c.InvocationResultQueueFullDrops})+Faults({c.InvocationResultFaults})");
         }
 
         if (cleanShutdown)
@@ -120,6 +176,9 @@ public static class RecorderReconciliation
                 mismatches.Add($"CleanShutdown WriterDiscardedAfterFatalFault={c.WriterDiscardedAfterFatalFault}");
             if (c.RecordsWritten != c.AcceptedToQueue)
                 mismatches.Add($"CleanShutdown RecordsWritten({c.RecordsWritten}) != AcceptedToQueue({c.AcceptedToQueue})");
+            if (c.InvocationResultsWritten != c.InvocationResultAcceptedToQueue)
+                mismatches.Add(
+                    $"CleanShutdown InvocationResultsWritten({c.InvocationResultsWritten}) != InvocationResultAcceptedToQueue({c.InvocationResultAcceptedToQueue})");
         }
 
         return new ReconciliationResult(mismatches.Count == 0, mismatches);

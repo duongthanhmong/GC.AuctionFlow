@@ -3,11 +3,12 @@ using ATAS.DataFeedsCore;
 using ATAS.Indicators;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
+using GC.AuctionFlow.Recorder;
 
 namespace GC.AuctionFlow.Atas;
 
 /// <summary>
-/// GC AuctionFlow Engine — Phase 0 probes (trade P0-04, DOM P0-05, MBO P0-06).
+/// GC AuctionFlow Engine — Phase 0 probes (trade P0-04, DOM P0-05, MBO P0-06) + P0-07C3BC Trade recorder.
 /// P0-06: SubscribeMarketByOrderData once; OnMarketByOrdersChanged batch only (empty base — do not call).
 /// P0-06C Decision B: OnCalculate must never write this[bar]/DataSeries; no MBO price to chart series.
 /// Always base.OnDispose() in finally. No IOnlineDataProvider.MarketByOrdersChanged; no Unsubscribe.
@@ -21,6 +22,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private TradeStreamAtasMapper? _tradeMapper;
     private DomSemanticsProbe? _domProbe;
     private MboLifecycleProbe? _mboProbe;
+    private TradeRecorderHost? _tradeRecorder;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -32,6 +34,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableTradeStreamProbe = false;
         EnableDomSemanticsProbe = false;
         EnableMboLifecycleProbe = false;
+        EnableRawEventRecorder = false;
+        EnableTradeRecording = true;
         DeclaredDataSourceMode = DataSourceMode.Unknown;
         DataSourceModeProvenance = DataSourceModeProvenance.Unknown;
         ExpectedInstrumentCode = "";
@@ -64,6 +68,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("First GC run: true with Live/OperatorDeclared, ExpectedInstrumentCode=GCQ6, Rithmic/OperatorDeclared.")]
     public bool EnableMboLifecycleProbe { get; set; }
 
+    [Category("Raw Event Recorder")]
+    [DisplayName("Enable Raw Event Recorder")]
+    [Description("Master switch. Default false. Trade recording requires this true.")]
+    public bool EnableRawEventRecorder { get; set; }
+
+    [Category("Raw Event Recorder")]
+    [DisplayName("Enable Trade Recording")]
+    [Description("Effective only when Enable Raw Event Recorder is true. Default true.")]
+    public bool EnableTradeRecording { get; set; }
+
     [Category("Shared Feed Declaration")]
     [DisplayName("Declared Feed Provider")]
     [Description("First GC run: Rithmic with OperatorDeclared provenance.")]
@@ -77,6 +91,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TryCompleteRecorderStartup();
         TrySubscribeMboOnce();
         TryExecuteDeferredSnapshotPull();
     }
@@ -94,6 +109,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
             var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTrade, probe.NextSequence(), key);
             probe.TryEnqueueNewTrade(obs, EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
+            TryRecordNewTrade(trade, RecorderCallbackSource.OnNewTrade);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
     }
@@ -109,20 +125,54 @@ public sealed class GcAuctionFlowIndicator : Indicator
         try
         {
             var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
-            probe.Counters.IncCallback(TradeCallbackSource.OnNewTradesBatch);
-            foreach (var trade in trades)
+            var host = TryGetRecorderReady();
+            if (host is not null)
             {
-                if (trade is null) continue;
-                if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); continue; }
-                var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
-                if (!gate.Accepted)
+                var identity = ObservedInstrumentIdentityMapper.FromSnapshot(
+                    probe.GetObservedInstrument() ?? new ObservedInstrumentSnapshot(
+                        null, null, null, null, null, null, null, null, null, null, null));
+                var ctx = host.Capture(RecorderCallbackSource.OnNewTrades);
+                probe.Counters.IncCallback(TradeCallbackSource.OnNewTradesBatch);
+                host.ProcessNewTradesBatch(
+                    trades,
+                    ctx,
+                    identity,
+                    DeclaredDataSourceMode.ToString(),
+                    DataSourceModeProvenance.ToString(),
+                    DeclaredFeedProvider.ToString(),
+                    FeedProviderProvenance.ToString(),
+                    probePerItem: (trade, _) =>
+                    {
+                        if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); return; }
+                        var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
+                        if (!gate.Accepted)
+                        {
+                            if (gate.InstrumentGate) probe.Counters.IncRejectedByInstrumentGate();
+                            else probe.Counters.IncRejectedByModeGate();
+                            return;
+                        }
+
+                        var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, probe.NextSequence(), key);
+                        probe.TryEnqueueNewTradeAlreadyCounted(obs);
+                    });
+            }
+            else
+            {
+                probe.Counters.IncCallback(TradeCallbackSource.OnNewTradesBatch);
+                foreach (var trade in trades)
                 {
-                    if (gate.InstrumentGate) probe.Counters.IncRejectedByInstrumentGate();
-                    else probe.Counters.IncRejectedByModeGate();
-                    continue;
+                    if (trade is null) continue;
+                    if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); continue; }
+                    var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
+                    if (!gate.Accepted)
+                    {
+                        if (gate.InstrumentGate) probe.Counters.IncRejectedByInstrumentGate();
+                        else probe.Counters.IncRejectedByModeGate();
+                        continue;
+                    }
+                    var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, probe.NextSequence(), key);
+                    probe.TryEnqueueNewTradeAlreadyCounted(obs);
                 }
-                var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, probe.NextSequence(), key);
-                probe.TryEnqueueNewTradeAlreadyCounted(obs);
             }
         }
         catch { probe.Counters.IncNormalizationFailures(); }
@@ -142,6 +192,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
             var obs = mapper.MapCumulative(trade, TradeCallbackSource.OnCumulativeTrade, probe.NextSequence(), key, true);
             probe.TryEnqueueCumulative(obs, EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
+            TryRecordCumulative(trade, RecorderCallbackSource.OnCumulativeTrade, assignInstanceId: true, isUpdate: false);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
     }
@@ -159,6 +210,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
             var obs = mapper.MapCumulative(trade, TradeCallbackSource.OnUpdateCumulativeTrade, probe.NextSequence(), key, false);
             probe.TryEnqueueCumulative(obs, EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
+            TryRecordCumulative(trade, RecorderCallbackSource.OnUpdateCumulativeTrade, assignInstanceId: false, isUpdate: true);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
     }
@@ -329,17 +381,22 @@ public sealed class GcAuctionFlowIndicator : Indicator
             TradeStreamProbe? trade;
             DomSemanticsProbe? dom;
             MboLifecycleProbe? mbo;
+            TradeRecorderHost? recorder;
             lock (_lifecycleGate)
             {
                 trade = _tradeProbe;
                 dom = _domProbe;
                 mbo = _mboProbe;
+                recorder = _tradeRecorder;
                 _tradeProbe = null;
                 _tradeMapper = null;
                 _domProbe = null;
                 _mboProbe = null;
+                _tradeRecorder = null;
             }
 
+            // Recorder first: stop accepting → drain → finalize → dispose
+            try { recorder?.StopAndDispose(); } catch { /* contained */ }
             DisposeTrade(trade);
             DisposeDom(dom);
             DisposeMbo(mbo);
@@ -431,7 +488,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     private void EnsureProbesStarted()
     {
-        if (_tradeProbe is not null && _domProbe is not null && _mboProbe is not null) return;
+        if (_tradeProbe is not null && _domProbe is not null && _mboProbe is not null && _tradeRecorder is not null) return;
         lock (_lifecycleGate)
         {
             if (_sessionId == Guid.Empty)
@@ -448,7 +505,115 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_mboProbe is null)
                 _mboProbe = new MboLifecycleProbe(new MboLifecycleProbeConfig());
+
+            if (_tradeRecorder is null)
+                _tradeRecorder = new TradeRecorderHost();
         }
+    }
+
+    private void TryCompleteRecorderStartup()
+    {
+        if (Volatile.Read(ref _disposed) != 0)
+            return;
+        var host = _tradeRecorder;
+        var probe = _tradeProbe;
+        var mapper = _tradeMapper;
+        if (host is null || probe is null || mapper is null)
+            return;
+        if (!EnableRawEventRecorder)
+            return;
+
+        // Refresh pending request with latest gates/identity, then complete I/O off Trade callbacks.
+        _ = host.EnsureStarted(
+            EnableRawEventRecorder,
+            EnableTradeRecording,
+            probe.GetObservedInstrument(),
+            ExpectedInstrumentCode,
+            DeclaredDataSourceMode,
+            DataSourceModeProvenance,
+            DeclaredFeedProvider,
+            FeedProviderProvenance,
+            _sessionId,
+            mapper);
+        host.TryCompleteStartupFromLifecycle();
+    }
+
+    private TradeRecorderHost? TryGetRecorderReady()
+    {
+        if (Volatile.Read(ref _disposed) != 0)
+            return null;
+
+        var host = _tradeRecorder;
+        var probe = _tradeProbe;
+        var mapper = _tradeMapper;
+        if (host is null || probe is null || mapper is null)
+            return null;
+
+        if (!EnableRawEventRecorder)
+            return null;
+
+        var outcome = host.EnsureStarted(
+            EnableRawEventRecorder,
+            EnableTradeRecording,
+            probe.GetObservedInstrument(),
+            ExpectedInstrumentCode,
+            DeclaredDataSourceMode,
+            DataSourceModeProvenance,
+            DeclaredFeedProvider,
+            FeedProviderProvenance,
+            _sessionId,
+            mapper);
+
+        if (outcome == Recorder.FanOut.RecorderSinkOutcome.NotConfigured
+            || outcome == Recorder.FanOut.RecorderSinkOutcome.StreamDisabled
+            || outcome == Recorder.FanOut.RecorderSinkOutcome.SessionNotStarted)
+        {
+            host.NoteCallbackBeforeStart();
+            return null;
+        }
+
+        if (outcome == Recorder.FanOut.RecorderSinkOutcome.Faulted
+            || outcome == Recorder.FanOut.RecorderSinkOutcome.StoppedAccepting)
+        {
+            host.NoteCallbackAfterStop();
+            return null;
+        }
+
+        return host.IsAccepting ? host : null;
+    }
+
+    private void TryRecordNewTrade(MarketDataArg trade, RecorderCallbackSource source)
+    {
+        var host = TryGetRecorderReady();
+        var probe = _tradeProbe;
+        if (host is null || probe is null) return;
+        var snap = probe.GetObservedInstrument();
+        if (snap is null) return;
+        var identity = ObservedInstrumentIdentityMapper.FromSnapshot(snap);
+        var ctx = host.Capture(source);
+        host.RecordNewTradeAfterProbe(
+            trade, ctx, identity,
+            DeclaredDataSourceMode.ToString(),
+            DataSourceModeProvenance.ToString(),
+            DeclaredFeedProvider.ToString(),
+            FeedProviderProvenance.ToString());
+    }
+
+    private void TryRecordCumulative(CumulativeTrade trade, RecorderCallbackSource source, bool assignInstanceId, bool isUpdate)
+    {
+        var host = TryGetRecorderReady();
+        var probe = _tradeProbe;
+        if (host is null || probe is null) return;
+        var snap = probe.GetObservedInstrument();
+        if (snap is null) return;
+        var identity = ObservedInstrumentIdentityMapper.FromSnapshot(snap);
+        var ctx = host.Capture(source);
+        host.RecordCumulativeAfterProbe(
+            trade, ctx, assignInstanceId, isUpdate, identity,
+            DeclaredDataSourceMode.ToString(),
+            DataSourceModeProvenance.ToString(),
+            DeclaredFeedProvider.ToString(),
+            FeedProviderProvenance.ToString());
     }
 
     private void TryCaptureInstrument()

@@ -122,5 +122,6 @@ public enum RecoveryClassification
     MissingFooter = 12,
     SequenceDiscontinuity = 13,
     DuplicateSegmentIdentity = 14,
-    TrustedComplete = 15
+    TrustedComplete = 15,
+    ReconciliationMismatch = 16
 }
