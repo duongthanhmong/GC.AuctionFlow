@@ -106,8 +106,23 @@
 
 ## D-P0-06D-001 — Controlled Chart A/B reproduction PASS + operational lock
 
-- **Decision:** P0-06D PASS. Session `ced0cc72-dad1-431b-b542-e2d30611fa35`, artifact SHA-256 `AD5D12D7…C6D8` (companion verified). Fresh snapshot sequence (2131 Snapshot) with integrity zeros. Two GCQ6 charts in one ATAS session: abnormal vertical bar appeared on **both** the GCAE chart and the non-GCAE chart. Chart-local GCAE DataSeries writing not supported; shared ATAS/Rithmic instrument/provider/chart-data interaction strongly supported; exact mechanism Unknown. **Operational lock:** do not enable MBO subscription in the ATAS process used for primary GC analysis or trading; same-process separate chart is not proven isolation. P0-06 overall = **PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION**. P0-07 NOT STARTED.
+- **Decision:** P0-06D PASS. Session `ced0cc72-dad1-431b-b542-e2d30611fa35`, artifact SHA-256 `AD5D12D7…C6D8` (companion verified). Fresh snapshot sequence (2131 Snapshot) with integrity zeros. Two GCQ6 charts in one ATAS session: abnormal vertical bar appeared on **both** the GCAE chart and the non-GCAE chart. Chart-local GCAE DataSeries writing not supported; shared ATAS/Rithmic instrument/provider/chart-data interaction strongly supported; exact mechanism Unknown. **Operational lock:** do not enable MBO subscription in the ATAS process used for primary GC analysis or trading; same-process separate chart is not proven isolation. P0-06 overall = **PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION**.
 - **Evidence:** `docs/evidence/P0-06D_ChartAB_Reproduction_GCQ6_Rithmic.md`
+- **Date:** 2026-07-22
+
+## D-P0-07A-001 — Raw Event Recorder architecture PASS WITH LOCKED AMENDMENTS
+
+- **Decision:** P0-07A architecture plan accepted with locked amendments: callback `RawEventDraft` vs writer `RawEventEnvelope`; writer-dequeue global sequence only; mandatory CRC32C length-framed container carrying UTF-8 JSON; exact multi-level accounting; segments authoritative / manifest recoverable index; MBO schema-capable but primary-process blocked; no exchange-feed completeness claims.
+- **Date:** 2026-07-22
+
+## D-P0-07B-001 — Recorder contracts, framing, segment, manifest, recovery
+
+- **Decision:** Implement P0-07B only. RawEventRecorderSchemaVersion **1.0.0**; RawEventContainerVersion **1**. ProbeVersion **0.0.6** and probe schemas unchanged. No ATAS callback adapters, no indicator recorder settings, no MBO subscribe/record, no P0-07C. Storage under `%USERPROFILE%\.gcae\recorder\sessions\{SessionId}\`. Cumulative constituents not recorded. Capability claims forced false in manifests.
+- **Date:** 2026-07-22
+
+## D-P0-07B-002 — Closeout audit corrections
+
+- **Decision:** P0-07B closeout audit fixed proven defects only: footer byte reservation in rotation; RawEventRecordCount / BytesBeforeFooter footer fields; RecordsWritten excludes header/footer; identity lifecycle carries previous/new identity tuples and is first RawEvent of new epoch segment; write-fault outcome accounting; recovery continues after valid-CRC malformed JSON but does not trust; CRC/length faults stop; quarantine copy failure reported; companion SHA uses uppercase hex + LF; invalid MaxSegmentBytes fails before recording.
 - **Date:** 2026-07-22
 
 ## D-P0-04-002 — Base invocation from IL evidence

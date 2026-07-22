@@ -1,18 +1,24 @@
-# Review Checklist — P0-06D Controlled Chart A/B Closeout
+# Review Checklist — P0-07B Closeout Audit
 
 ## Prior
 
-- [x] P0-06B PASS
-- [x] P0-06C PASS / Decision B
+- [x] P0-06 PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION
+- [x] Tag `gcae-p0-06-mbo-lifecycle-pass` at clean baseline
+- [x] P0-07A PASS WITH LOCKED AMENDMENTS
+- [x] P0-07B implementation present (uncommitted)
 
-## P0-06D must pass
+## Closeout audit must pass
 
-- [x] Session `ced0cc72-…` recorded with verified SHA-256
-- [x] Artifact / burst / bounded-state findings recorded
-- [x] Chart A/B: abnormal bar on both GCAE and non-GCAE charts recorded
-- [x] Interpretation: no chart-local GCAE DataSeries write; shared platform interaction strongly supported; mechanism Unknown
-- [x] Operational lock: no MBO in primary analysis/trading ATAS process
-- [x] P0-06 overall = PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION
-- [x] P0-07 = NOT STARTED
-- [x] Documentation-only; master spec untouched
-- [x] `dotnet build/test -c Release` — 0 errors, 0 warnings
+- [x] Diff scope: recorder + recorder tests + governance only
+- [x] Versions locked (recorder 1.0.0 / container 1; probes unchanged)
+- [x] Draft vs envelope separation; writer sequence = dequeue only
+- [x] Closed payloads; constituents/provider completion false
+- [x] Frame layout + mandatory CRC32C coverage documented/tested
+- [x] Footer reserved in byte rotation; RecordsWritten = RawEvent only
+- [x] Durable flush(true) before rename; hash then manifest
+- [x] Accounting equations + terminal outcomes
+- [x] Identity lifecycle first event of new epoch segment
+- [x] Recovery stop/continue rules + quarantine failure reported
+- [x] MBO lock; no subscribe; no adapters; no P0-07C
+- [x] Master specification untouched
+- [x] `dotnet clean/restore/build/test -c Release` — 0 errors, 0 warnings
