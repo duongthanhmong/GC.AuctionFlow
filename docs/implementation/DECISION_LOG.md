@@ -84,6 +84,32 @@
 - **Unchanged:** HistoricalDom=Unknown; ReplayDom=Unknown; VolumeMeaning/ZeroVolumeMeaning/UpdateAction=Unknown; no Delete inference from zero volume.
 - **Date:** 2026-07-22
 
+## D-P0-06A-001 — MBO API audit PASS
+
+- **Decision:** P0-06A PASS on ATAS 8.0.14.395. Indicator path: `protected Task SubscribeMarketByOrderData()` → `IOnlineDataProvider.SubscribeMarketByOrdersData()`; callback `protected virtual void OnMarketByOrdersChanged(IEnumerable<MarketByOrder>)` EMPTY_RET. Payload `ATAS.DataFeedsCore.MarketByOrder` with Type=`MarketByOrderUpdateTypes` {Snapshot=0,New=1,Change=2,Delete=3}, Side=`MarketDataType`, ExchangeOrderId/Priority `long`. No MBO-specific unsubscribe. Do not attach provider `MarketByOrdersChanged` event in P0-06.
+- **Date:** 2026-07-22
+
+## D-P0-06-001 — MBO lifecycle probe 0.0.6 / schema 1.0.0
+
+- **Decision:** ProbeVersion **0.0.6**; MboLifecycleProbeSchemaVersion **1.0.0** (superseded by D-P0-06B-001); TradeStreamProbeSchemaVersion **1.0.1** and DomSemanticsProbeSchemaVersion **1.0.0** preserved. Subscribe-once with Task outcome observation (TaskCompleted ≠ Succeeded ≠ callback presence). MboInterpretedLifecycleAction=Unknown; SnapshotCompletionKnown=false; all MBO capability claims forced false. Queue seed capacity 32768.
+- **Date:** 2026-07-22
+
+## D-P0-06B-001 — MBO probe diagnostic hardening / schema 1.0.1
+
+- **Decision:** Keep ProbeVersion **0.0.6**; bump MboLifecycleProbeSchemaVersion to **1.0.1**. Early-return subscribe trigger so later OnCalculate does not inflate `duplicateSubscribeSuppressed`. Artifact fields `captureSubscriptionEpoch` + `finalClosedEpoch`. Initial time window from FirstCallbackReceiveUtc (5s seed) with batch/window item counts. Bounded `MboOrderObservationState` with UntrackedNonzeroIdDueToStateCapacity / StateCapacityReached.
+- **Date:** 2026-07-22
+
+## D-P0-06C-001 — Chart side-effect audit Decision B
+
+- **Decision:** P0-06C PASS with root-cause **Decision B**. GCAE has no `this[bar]` / DataSeries write that can receive MBO prices (source + OnCalculate IL). BaseIndicator still constructs a default `ValueDataSeries` (**OBSERVED_IL**). Visual isolation APIs (`IsHidden`, `ScaleIt`, …) exist (**OBSERVED_API**) but are **not** applied speculatively. Abnormal M1 bar correlates with fresh MBO snapshot; ATAS mechanism unproven.
+- **Date:** 2026-07-22
+
+## D-P0-06D-001 — Controlled Chart A/B reproduction PASS + operational lock
+
+- **Decision:** P0-06D PASS. Session `ced0cc72-dad1-431b-b542-e2d30611fa35`, artifact SHA-256 `AD5D12D7…C6D8` (companion verified). Fresh snapshot sequence (2131 Snapshot) with integrity zeros. Two GCQ6 charts in one ATAS session: abnormal vertical bar appeared on **both** the GCAE chart and the non-GCAE chart. Chart-local GCAE DataSeries writing not supported; shared ATAS/Rithmic instrument/provider/chart-data interaction strongly supported; exact mechanism Unknown. **Operational lock:** do not enable MBO subscription in the ATAS process used for primary GC analysis or trading; same-process separate chart is not proven isolation. P0-06 overall = **PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION**. P0-07 NOT STARTED.
+- **Evidence:** `docs/evidence/P0-06D_ChartAB_Reproduction_GCQ6_Rithmic.md`
+- **Date:** 2026-07-22
+
 ## D-P0-04-002 — Base invocation from IL evidence
 
 - **Decision (original P0-04):** IL on ATAS.Indicators 8.0.14.395: `OnNewTrade` / `OnCumulativeTrade` / `OnUpdateCumulativeTrade` / `BaseIndicator.OnDispose` = empty `ret`. `OnNewTrades` = non-trivial (foreach → `OnNewTrade`). Originally called `base.OnNewTrades`.

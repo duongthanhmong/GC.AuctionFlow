@@ -1,20 +1,23 @@
 # Known Limitations
 
-## P0-05 / P0-05B DOM semantics (post operator PASS)
+## P0-06 / P0-06B / P0-06C / P0-06D
 
-1. No explicit depth action / level index / native sequence / Indicator reset marker.
-2. VolumeMeaning = Unknown; ZeroVolumeMeaning = Unknown; zero volume must not be classified as Delete.
-3. UpdateAction remains Unknown; StableBookReconstruction = false.
-4. LiveDom Availability = Available with Partial fidelity — **not** fully Validated. HistoricalDom / ReplayDom remain Unknown.
-5. NativeSequence = Absent; no exchange-level ordering guarantee.
-6. Source timestamps were not monotonic; all observed source DateTime.Kind = Unspecified.
-7. DOM callbacks delivered across many managed threads.
-8. Snapshot pull non-empty in operator runs, but snapshot completion and production-book suitability remain Unknown.
-9. Snapshot coverage is provider-defined and very broad (Bid min 10.0 / Ask max 5826.1 observed); Smart DOM visible depth ≠ API snapshot depth.
-10. Controlled reconnect not tested; reconnect behavior Unknown. No native reset marker observed.
-11. Internal capture continuity does not establish exchange-feed completeness.
-12. Queue capacity 16384 is a seed value (subject to sensitivity test); bursts may drop.
-13. Singular `MarketDepthChanged` was NOT_OBSERVED_IN_TEST_WINDOW on GCQ6/Rithmic (batch path observed).
+1. No MBO-specific unsubscribe; ProviderUnsubscribePerformed=false.
+2. Raw enums ≠ exchange lifecycle; interpreted action Unknown.
+3. captureSubscriptionEpoch stamps obs; finalClosedEpoch is post-stop only.
+4. duplicateSubscribeSuppressed is genuine races only; SubscribeTriggerCheckCount is separate.
+5. Initial time window 5s from FirstCallbackReceiveUtc (seed).
+6. MboOrderObservationState capacity 65536 (seed); saturation without eviction.
+7. **P0-06C Decision B:** no GCAE MBO→chart DataSeries write found.
+8. **P0-06D:** Chart A/B showed abnormal bar on **both** GCAE and non-GCAE charts during fresh MBO snapshot — shared platform/provider interaction strongly supported; exact mechanism Unknown. Do not claim MBO→trade/candle conversion.
+9. **Operational lock:** MBO must not run in the ATAS process used for primary GC analysis or trading; same-process separate chart is not proven isolation.
+10. Historical/Replay MBO Unknown; Queue 32768 seed.
+
+## P0-05 / P0-05B DOM (retained)
+
+11. LiveDom Available with Partial fidelity — not fully Validated.
+12. VolumeMeaning / ZeroVolumeMeaning Unknown; no stable DOM book.
+13. Singular MarketDepthChanged NOT_OBSERVED_IN_TEST_WINDOW on GCQ6/Rithmic.
 
 ## P0-04 trade (retained)
 

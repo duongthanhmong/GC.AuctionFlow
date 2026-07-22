@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Diagnostics;
+using ATAS.DataFeedsCore;
 using ATAS.Indicators;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
@@ -7,10 +7,10 @@ using GC.AuctionFlow.Probe;
 namespace GC.AuctionFlow.Atas;
 
 /// <summary>
-/// GC AuctionFlow Engine — Phase 0 probes (trade P0-04 + DOM semantics P0-05).
-/// IL (ATAS 8.0.14.395): MarketDepthsChanged HAS WORK (foreach → MarketDepthChanged);
-/// MarketDepthChanged / OnBestBidAskChanged EMPTY_RET.
-/// P0-05 policy: do NOT call base.MarketDepthsChanged. Always base.OnDispose() in finally.
+/// GC AuctionFlow Engine — Phase 0 probes (trade P0-04, DOM P0-05, MBO P0-06).
+/// P0-06: SubscribeMarketByOrderData once; OnMarketByOrdersChanged batch only (empty base — do not call).
+/// P0-06C Decision B: OnCalculate must never write this[bar]/DataSeries; no MBO price to chart series.
+/// Always base.OnDispose() in finally. No IOnlineDataProvider.MarketByOrdersChanged; no Unsubscribe.
 /// </summary>
 [DisplayName(BuildInfo.VisibleIndicatorName)]
 [Category("GC")]
@@ -20,6 +20,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private TradeStreamProbe? _tradeProbe;
     private TradeStreamAtasMapper? _tradeMapper;
     private DomSemanticsProbe? _domProbe;
+    private MboLifecycleProbe? _mboProbe;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -30,6 +31,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableCustomDrawing = false;
         EnableTradeStreamProbe = false;
         EnableDomSemanticsProbe = false;
+        EnableMboLifecycleProbe = false;
         DeclaredDataSourceMode = DataSourceMode.Unknown;
         DataSourceModeProvenance = DataSourceModeProvenance.Unknown;
         ExpectedInstrumentCode = "";
@@ -57,12 +59,17 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Enable DOM Semantics Probe")]
     public bool EnableDomSemanticsProbe { get; set; }
 
-    [Category("DOM Semantics Probe")]
+    [Category("MBO Lifecycle Probe")]
+    [DisplayName("Enable MBO Lifecycle Probe")]
+    [Description("First GC run: true with Live/OperatorDeclared, ExpectedInstrumentCode=GCQ6, Rithmic/OperatorDeclared.")]
+    public bool EnableMboLifecycleProbe { get; set; }
+
+    [Category("Shared Feed Declaration")]
     [DisplayName("Declared Feed Provider")]
     [Description("First GC run: Rithmic with OperatorDeclared provenance.")]
     public DeclaredFeedProvider DeclaredFeedProvider { get; set; }
 
-    [Category("DOM Semantics Probe")]
+    [Category("Shared Feed Declaration")]
     [DisplayName("Feed Provider Provenance")]
     public FeedProviderProvenance FeedProviderProvenance { get; set; }
 
@@ -70,6 +77,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         TryExecuteDeferredSnapshotPull();
     }
 
@@ -77,6 +85,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -93,6 +102,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trades is null) return;
@@ -123,6 +133,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -139,6 +150,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -153,19 +165,18 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     protected override void MarketDepthChanged(MarketDataArg depth)
     {
-        // Singular platform callback only. IL: empty base — no base call.
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _domProbe;
         if (probe is null || depth is null) return;
         try
         {
             var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
             var (obs, detail) = DepthAtasMapper.Map(depth, DepthCallbackSource.MarketDepthChanged, probe.NextSequence(), key);
-            var accepted = probe.TryEnqueue(
-                obs, detail, EnableDomSemanticsProbe, DeclaredDataSourceMode, DataSourceModeProvenance,
-                ExpectedInstrumentCode, DeclaredFeedProvider, FeedProviderProvenance);
-            if (accepted)
+            if (probe.TryEnqueue(
+                    obs, detail, EnableDomSemanticsProbe, DeclaredDataSourceMode, DataSourceModeProvenance,
+                    ExpectedInstrumentCode, DeclaredFeedProvider, FeedProviderProvenance))
                 probe.TryRequestSnapshotPull();
         }
         catch { probe.Counters.IncNormalizationFailures(); }
@@ -174,9 +185,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
     protected override void MarketDepthsChanged(IEnumerable<MarketDataArg> depths)
     {
         // P0-05: enumerate as MarketDepthsBatch. Do NOT call base.MarketDepthsChanged
-        // (base foreach invokes virtual MarketDepthChanged per IL evidence).
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _domProbe;
         if (probe is null || depths is null) return;
         try
@@ -211,9 +222,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     protected override void OnBestBidAskChanged(MarketDataArg depth)
     {
-        // IL: empty base — no base call.
         EnsureProbesStarted();
         TryCaptureInstrument();
+        TrySubscribeMboOnce();
         var probe = _domProbe;
         if (probe is null || depth is null) return;
         try
@@ -227,6 +238,87 @@ public sealed class GcAuctionFlowIndicator : Indicator
         catch { probe.Counters.IncNormalizationFailures(); }
     }
 
+    /// <summary>
+    /// P0-06: batch MBO callback only. Base is EMPTY_RET — do not call base.
+    /// Do not attach IOnlineDataProvider.MarketByOrdersChanged.
+    /// Enumerate ATAS IEnumerable exactly once; copy primitives immediately; TryWrite; return.
+    /// </summary>
+    protected override void OnMarketByOrdersChanged(IEnumerable<MarketByOrder> values)
+    {
+        EnsureProbesStarted();
+        TryCaptureInstrument();
+        var probe = _mboProbe;
+        if (probe is null) return;
+        try
+        {
+            var (receiveUtc, sw, threadId) = MboAtasMapper.CaptureReceiveContext();
+            probe.BeginCallback(receiveUtc);
+
+            if (!probe.IsAccepting)
+            {
+                probe.Counters.IncRejectedAfterDispose();
+                return;
+            }
+
+            var gate = probe.EvaluateGates(
+                EnableMboLifecycleProbe, DeclaredDataSourceMode, DataSourceModeProvenance,
+                ExpectedInstrumentCode, DeclaredFeedProvider, FeedProviderProvenance);
+            if (!gate.Accepted)
+            {
+                if (gate.InstrumentGate) probe.Counters.IncRejectedByInstrumentGate();
+                else probe.Counters.IncRejectedByModeGate();
+                return;
+            }
+
+            if (values is null)
+            {
+                probe.Counters.IncNullBatch();
+                return;
+            }
+
+            var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
+            var epoch = probe.SubscriptionEpoch;
+            var enumerated = 0L;
+            var any = false;
+            foreach (var mbo in values)
+            {
+                any = true;
+                enumerated++;
+                if (mbo is null)
+                {
+                    probe.Counters.IncNullItem();
+                    continue;
+                }
+
+                if (!probe.IsAccepting)
+                {
+                    probe.Counters.IncRejectedAfterDispose();
+                    continue;
+                }
+
+                try
+                {
+                    var obs = MboAtasMapper.Map(
+                        mbo, epoch, probe.NextSequence(), receiveUtc, sw, threadId, key);
+                    probe.TryEnqueueMapped(obs);
+                }
+                catch
+                {
+                    probe.Counters.IncNormalizationFailures();
+                }
+            }
+
+            probe.Counters.AddBatchItems(enumerated);
+            if (!any)
+                probe.Counters.IncEmptyBatch();
+        }
+        catch
+        {
+            probe.Counters.IncBatchEnumerationFailures();
+        }
+        // Do not call base.OnMarketByOrdersChanged
+    }
+
     protected override void OnDispose()
     {
         try
@@ -236,17 +328,21 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             TradeStreamProbe? trade;
             DomSemanticsProbe? dom;
+            MboLifecycleProbe? mbo;
             lock (_lifecycleGate)
             {
                 trade = _tradeProbe;
                 dom = _domProbe;
+                mbo = _mboProbe;
                 _tradeProbe = null;
                 _tradeMapper = null;
                 _domProbe = null;
+                _mboProbe = null;
             }
 
             DisposeTrade(trade);
             DisposeDom(dom);
+            DisposeMbo(mbo);
         }
         catch { }
         finally
@@ -307,9 +403,35 @@ public sealed class GcAuctionFlowIndicator : Indicator
         catch { }
     }
 
+    private void DisposeMbo(MboLifecycleProbe? probe)
+    {
+        if (probe is null) return;
+        try
+        {
+            probe.StopAccepting();
+            if (!probe.Drain(TimeSpan.FromMilliseconds(probe.Config.DrainTimeoutMilliseconds)))
+            {
+                probe.RecordLimitation("WorkerDrainTimeout");
+                probe.RecordIntegrity("WorkerDrainTimeout");
+            }
+
+            var snapshot = probe.FreezeSnapshot(
+                DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode,
+                DeclaredFeedProvider, FeedProviderProvenance, _sessionId, EnableMboLifecycleProbe);
+            try { MboLifecycleProbeArtifactWriter.WriteAtomic(snapshot); }
+            catch (Exception ex)
+            {
+                probe.RecordIntegrity("ArtifactExportFailure:" + ex.GetType().Name);
+            }
+
+            probe.Dispose();
+        }
+        catch { }
+    }
+
     private void EnsureProbesStarted()
     {
-        if (_tradeProbe is not null && _domProbe is not null) return;
+        if (_tradeProbe is not null && _domProbe is not null && _mboProbe is not null) return;
         lock (_lifecycleGate)
         {
             if (_sessionId == Guid.Empty)
@@ -323,6 +445,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_domProbe is null)
                 _domProbe = new DomSemanticsProbe(new DomSemanticsProbeConfig());
+
+            if (_mboProbe is null)
+                _mboProbe = new MboLifecycleProbe(new MboLifecycleProbeConfig());
         }
     }
 
@@ -338,10 +463,32 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var snap = TradeStreamAtasMapper.CaptureInstrument(info, security);
             _tradeProbe?.SetObservedInstrument(snap);
             _domProbe?.SetObservedInstrument(snap);
+            _mboProbe?.SetObservedInstrument(snap);
             if (!string.Equals(snap.IdentityKey, "Unknown", StringComparison.Ordinal))
                 _instrumentCaptured = true;
         }
         catch { }
+    }
+
+    private void TrySubscribeMboOnce()
+    {
+        var probe = _mboProbe;
+        if (probe is null || !EnableMboLifecycleProbe) return;
+        try
+        {
+            probe.TrySubscribeOnce(
+                EnableMboLifecycleProbe,
+                DeclaredDataSourceMode,
+                DataSourceModeProvenance,
+                ExpectedInstrumentCode,
+                DeclaredFeedProvider,
+                FeedProviderProvenance,
+                startSubscribe: () => SubscribeMarketByOrderData());
+        }
+        catch (Exception ex)
+        {
+            probe.RecordIntegrity("SubscribeInvokeFailure:" + ex.GetType().Name);
+        }
     }
 
     private void TryExecuteDeferredSnapshotPull()

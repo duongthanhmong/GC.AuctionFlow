@@ -4,7 +4,7 @@ namespace GC.AuctionFlow.Core;
 public static class CapabilitySchemaVersions
 {
     public const string SchemaVersion = "1.0.0";
-    public const string ProbeVersionPlaceholder = "0.0.5";
+    public const string ProbeVersionPlaceholder = "0.0.6";
 }
 
 /// <summary>Stable limitation / invariant codes (not scores).</summary>

@@ -10,9 +10,9 @@
     <RootNamespace>GC.AuctionFlow</RootNamespace>
     <AssemblyName>GC.AuctionFlow</AssemblyName>
     <OutputType>Library</OutputType>
-    <Description>GC AuctionFlow Engine (GCAE) — Phase 0 DOM Semantics Probe</Description>
-    <Version>0.0.5</Version>
-    <InformationalVersion>0.0.5+P0-05</InformationalVersion>
+    <Description>GC AuctionFlow Engine (GCAE) — Phase 0 MBO Lifecycle Probe</Description>
+    <Version>0.0.6</Version>
+    <InformationalVersion>0.0.6+P0-06</InformationalVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>

@@ -2,42 +2,33 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **P0-05B closeout complete** — P0-06 NOT STARTED |
-| Production TFM | **net10.0-windows** (`UseWPF=true`) |
-| Deployable assembly | **GC.AuctionFlow.dll** |
-| Probe version | **0.0.5** |
-| TradeStreamProbe schema | **1.0.1** (unchanged) |
-| DomSemanticsProbe schema | **1.0.0** |
-| GC trade verification | **GCQ6 / Rithmic — P0-04 PASS** |
-| GC DOM verification | **GCQ6 / Rithmic — P0-05 / P0-05B PASS** |
+| Current phase | **P0-06 closed** — PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION; **P0-07 NOT STARTED** |
+| Probe version | **0.0.6** |
+| MboLifecycleProbe schema | **1.0.1** |
+| Trade / Dom schemas | **1.0.1** / **1.0.0** |
+| GC MBO runtime presence | **PASS** (GCQ6/Rithmic) |
+| P0-06 overall | **PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION** |
 
 ## Phase checklist
 
 | Phase | Status |
 |-------|--------|
-| P0-04 Trade Stream Probe | **PASS** |
-| P0-04B / P0-04C | **PASS** |
-| P0-05A DOM API audit | **PASS** |
-| P0-05 DOM Event Semantics Probe | **PASS** |
-| P0-05 live operator verification | **PASS** (GCQ6 / Rithmic) |
-| P0-05B Operator Evidence Closeout | **PASS** (awaiting review) |
-| P0-06+ | **NOT STARTED** |
+| P0-06 MBO lifecycle probe | **PASS** (runtime presence) |
+| P0-06B diagnostic hardening | **PASS** |
+| P0-06C chart side-effect audit | **PASS / Decision B** |
+| P0-06D controlled Chart A/B reproduction | **PASS** |
+| P0-07+ | **NOT STARTED** |
 
-## Locked LiveDom interpretation (governance)
+## Operational lock (P0-06D)
 
-| Axis | Value |
-|------|--------|
-| Availability | Available |
-| Coverage | Live included |
-| Runtime presence | Observed |
-| Fidelity | Partial (not fully Validated) |
-| NativeSequence | Absent |
-| StableBookReconstruction | false |
+**MBO subscription must not be enabled in the ATAS process used for primary GC analysis or trading.**
 
-HistoricalDom = **Unknown**. ReplayDom = **Unknown**.
+Same-process separate chart/workspace is **not** proven isolation. Future MBO tests need a separate ATAS process / VM / machine.
 
-Evidence: `docs/evidence/P0-05B_DomSemantics_GCQ6_Rithmic_OperatorEvidence.md`
+Chart A/B: abnormal bar appeared on **both** GCAE and non-GCAE GCQ6 charts during fresh MBO snapshot — shared platform/provider interaction strongly supported; exact mechanism Unknown.
 
-## Explicit non-claim
-
-VolumeMeaning and ZeroVolumeMeaning remain **Unknown**. No stable book reconstruction. Probe artifact boolean capability claims remain false (do not assert full validation). LiveDom is Available with Partial fidelity — **not** fully Validated.
+Evidence:
+- `docs/evidence/P0-06D_ChartAB_Reproduction_GCQ6_Rithmic.md`
+- `docs/evidence/P0-06C_Chart_Side_Effect_Audit.md`
+- `docs/evidence/P0-06BC_OperatorSessions_GCQ6_Rithmic.md`
+- `docs/evidence/P0-06B_MboLifecycle_GCQ6_Rithmic_OperatorEvidence.md`

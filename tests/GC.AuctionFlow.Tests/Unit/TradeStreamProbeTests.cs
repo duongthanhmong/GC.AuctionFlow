@@ -422,8 +422,8 @@ public sealed class TradeStreamProbeTests
     {
         Assert.Equal("0.0.4", TradeStreamProbeVersions.ProbeVersion);
         Assert.Equal("1.0.1", TradeStreamProbeVersions.TradeStreamProbeSchemaVersion);
-        Assert.Equal("0.0.5", CapabilitySchemaVersions.ProbeVersionPlaceholder);
-        Assert.Equal("P0-05", BuildInfo.Phase);
+        Assert.Equal("0.0.6", CapabilitySchemaVersions.ProbeVersionPlaceholder);
+        Assert.Equal("P0-06", BuildInfo.Phase);
     }
 
     private static void WaitProcessed(TradeStreamProbe probe, long min)
