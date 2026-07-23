@@ -1,12 +1,13 @@
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
+using GC.AuctionFlow.Profile;
 
 namespace GC.AuctionFlow.Runtime;
 
 /// <summary>Runtime capability snapshot distinct from historical research claims.</summary>
 public sealed class RuntimeCapabilitySnapshot
 {
-    public const string SnapshotVersion = "0.1.0";
+    public const string SnapshotVersion = "0.2.0";
 
     public RuntimeCapabilitySnapshot(
         RuntimeCapabilityState tradeStreamState,
@@ -68,7 +69,9 @@ public static class RuntimeCapabilitySnapshotBuilder
         bool tradeRecordingEnabled,
         bool recorderAccepting,
         bool recorderFaulted,
-        bool recorderSessionPresent)
+        bool recorderSessionPresent,
+        RuntimeCapabilityState profileState = RuntimeCapabilityState.NotReady,
+        IReadOnlyList<string>? extraLimitations = null)
     {
         var limitations = new List<string>
         {
@@ -77,9 +80,10 @@ public static class RuntimeCapabilitySnapshotBuilder
             "NOT_REPLAY_FIDELITY_CLAIM",
             "BIDASK_NOT_VALIDATED",
             "DOM_NOT_VALIDATED",
-            "MBO_BLOCKED_ISOLATED_ENVIRONMENT_ONLY",
-            "PROFILE_ENGINE_NOT_IMPLEMENTED"
+            "MBO_BLOCKED_ISOLATED_ENVIRONMENT_ONLY"
         };
+        if (extraLimitations is not null)
+            limitations.AddRange(extraLimitations);
 
         var tradeState = tradeObserved
             ? RuntimeCapabilityState.Available
@@ -91,7 +95,7 @@ public static class RuntimeCapabilitySnapshotBuilder
         return new RuntimeCapabilitySnapshot(
             tradeStreamState: tradeState,
             bidAskClassificationState: RuntimeCapabilityState.Unknown,
-            profileState: RuntimeCapabilityState.NotReady,
+            profileState: profileState,
             domState: RuntimeCapabilityState.Unavailable,
             mboState: RuntimeCapabilityState.Blocked,
             dataSourceMode: mode,
@@ -103,6 +107,26 @@ public static class RuntimeCapabilitySnapshotBuilder
             recorderState: recorderState,
             knownLimitations: limitations);
     }
+
+    public static RuntimeCapabilityState MapProfileState(AuctionProfileState? state) => state switch
+    {
+        null => RuntimeCapabilityState.NotReady,
+        AuctionProfileState.NotReady => RuntimeCapabilityState.NotReady,
+        AuctionProfileState.Partial => RuntimeCapabilityState.Partial,
+        AuctionProfileState.Ready => RuntimeCapabilityState.Ready,
+        AuctionProfileState.Invalid => RuntimeCapabilityState.Invalid,
+        _ => RuntimeCapabilityState.NotReady
+    };
+
+    public static ProfilePlaceholderState MapPlaceholder(AuctionProfileState? state) => state switch
+    {
+        null => ProfilePlaceholderState.NotReady,
+        AuctionProfileState.NotReady => ProfilePlaceholderState.NotReady,
+        AuctionProfileState.Partial => ProfilePlaceholderState.Partial,
+        AuctionProfileState.Ready => ProfilePlaceholderState.Ready,
+        AuctionProfileState.Invalid => ProfilePlaceholderState.Invalid,
+        _ => ProfilePlaceholderState.NotReady
+    };
 
     private static RuntimeCapabilityState ClassifyRecorder(
         bool master,

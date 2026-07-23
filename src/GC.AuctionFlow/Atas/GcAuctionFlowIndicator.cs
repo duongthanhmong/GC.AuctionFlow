@@ -3,6 +3,7 @@ using ATAS.DataFeedsCore;
 using ATAS.Indicators;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
+using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
 using GC.AuctionFlow.Runtime;
 using GC.AuctionFlow.UI;
@@ -11,7 +12,7 @@ using OFT.Rendering.Context;
 namespace GC.AuctionFlow.Atas;
 
 /// <summary>
-/// GC AuctionFlow Engine — Phase 0 probes/recorder + P0-08A Runtime DataGate + Auction GPS Card.
+/// GC AuctionFlow Engine — Phase 0 probes/recorder + P0-08A DataGate/GPS + Phase 1A Primary TPO/VP.
 /// P0-06C Decision B: OnCalculate must never write this[bar]/DataSeries.
 /// Always base.OnDispose() in finally.
 /// </summary>
@@ -27,12 +28,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private TradeRecorderHost? _tradeRecorder;
     private GcaeRuntimeEngine? _runtime;
     private AuctionGpsCardRenderer? _gpsRenderer;
+    private PrimaryProfileOverlayRenderer? _overlayRenderer;
+    private PrimaryProfileHost? _profileHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
     private bool _tradeObserved;
     private DateTime? _lastTradeCallbackUtc;
     private bool _drawingSubscribed;
+    private long _barSourceVersion;
+    private string _profileSettingsKey = "";
 
     public GcAuctionFlowIndicator()
     {
@@ -45,6 +50,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableTradeRecording = true;
         EnableAuctionGpsCard = true;
         ShowAuctionGpsDiagnostics = false;
+        EnablePrimaryProfile = true;
+        EnablePrimaryProfileOverlay = true;
+        ShowPreviousProfileLevels = true;
+        EnableTpoParityDiagnostics = false;
+        EnableTpoParityReferencePrice = false;
+        TpoParityReferencePrice = 0m;
+        TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
+        ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
+        AnchorHourLocal = 8;
+        AnchorMinuteLocal = 20;
         ExpectedTickSize = RuntimeGateConfig.DefaultExpectedTickSize;
         NearExpirationCalendarDays = RuntimeGateConfig.DefaultNearExpirationCalendarDays;
         GpsCardMarginX = 12;
@@ -127,6 +142,51 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("GPS Card Margin Y")]
     public int GpsCardMarginY { get; set; }
 
+    [Category("Primary Profile")]
+    [DisplayName("Enable Primary Profile")]
+    public bool EnablePrimaryProfile { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Enable Primary Profile Overlay")]
+    public bool EnablePrimaryProfileOverlay { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Show Previous Profile Levels")]
+    public bool ShowPreviousProfileLevels { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Enable TPO Parity Diagnostics")]
+    [Description("When true, GPS card shows bounded Classic TPO parity diagnostic rows. Default false. No file I/O.")]
+    public bool EnableTpoParityDiagnostics { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Enable TPO Parity Reference Price")]
+    [Description("When true, uses TPO Parity Reference Price for diagnostics only. Default false.")]
+    public bool EnableTpoParityReferencePrice { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("TPO Parity Reference Price")]
+    [Description("Diagnostics-only ATAS TPO POC reference (e.g. 4130.2). Used only when Enable TPO Parity Reference Price is true. Does not affect POC, VA, or rendering.")]
+    public decimal TpoParityReferencePrice { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("TPO Period Minutes")]
+    [Description("Production default 30. Seed value, subject to sensitivity test.")]
+    public int TpoPeriodMinutes { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Value Area Fraction")]
+    [Description("Conventional configurable default 0.70 — not a predictive GC edge.")]
+    public decimal ValueAreaFraction { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Anchor Hour Local (ET)")]
+    public int AnchorHourLocal { get; set; }
+
+    [Category("Primary Profile")]
+    [DisplayName("Anchor Minute Local (ET)")]
+    public int AnchorMinuteLocal { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -135,17 +195,24 @@ public sealed class GcAuctionFlowIndicator : Indicator
         TryCompleteRecorderStartup();
         TrySubscribeMboOnce();
         TryExecuteDeferredSnapshotPull();
-        PublishRuntimeSnapshot();
+        ProcessProfileBar(bar);
+        // Historical bulk: skip per-bar GPS/runtime publish (O(n) UI work). Publish on live/current bar only.
+        if (bar >= CurrentBar)
+            PublishRuntimeSnapshot();
     }
 
     protected override void OnRender(RenderContext context, DrawingLayouts drawingLayouts)
     {
-        if (!EnableAuctionGpsCard)
-            return;
         try
         {
-            _gpsRenderer?.SetMargins(GpsCardMarginX, GpsCardMarginY);
-            _gpsRenderer?.Render(context, drawingLayouts);
+            if (EnableAuctionGpsCard)
+            {
+                _gpsRenderer?.SetMargins(GpsCardMarginX, GpsCardMarginY);
+                _gpsRenderer?.Render(context, drawingLayouts);
+            }
+
+            if (EnablePrimaryProfileOverlay)
+                _overlayRenderer?.Render(context, drawingLayouts, ChartInfo);
         }
         catch
         {
@@ -456,6 +523,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             TradeRecorderHost? recorder;
             GcaeRuntimeEngine? runtime;
             AuctionGpsCardRenderer? gps;
+            PrimaryProfileOverlayRenderer? overlay;
             lock (_lifecycleGate)
             {
                 trade = _tradeProbe;
@@ -464,6 +532,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 recorder = _tradeRecorder;
                 runtime = _runtime;
                 gps = _gpsRenderer;
+                overlay = _overlayRenderer;
                 _tradeProbe = null;
                 _tradeMapper = null;
                 _domProbe = null;
@@ -471,10 +540,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _tradeRecorder = null;
                 _runtime = null;
                 _gpsRenderer = null;
+                _overlayRenderer = null;
+                _profileHost = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
             try { gps?.Dispose(); } catch { /* contained */ }
+            try { overlay?.Dispose(); } catch { /* contained */ }
 
             // Recorder first: stop accepting → drain → finalize → dispose (locked Trade Recorder order)
             try { recorder?.StopAndDispose(); } catch { /* contained */ }
@@ -597,9 +669,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
         if (Volatile.Read(ref _disposed) != 0)
             return;
 
-        if (_runtime is not null && _gpsRenderer is not null)
+        if (_runtime is not null && _gpsRenderer is not null && _overlayRenderer is not null)
         {
             EnsureDrawingSubscription();
+            EnsureProfileHost();
             return;
         }
 
@@ -616,25 +689,101 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             _gpsRenderer ??= new AuctionGpsCardRenderer();
             _gpsRenderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
+            _overlayRenderer ??= new PrimaryProfileOverlayRenderer();
         }
 
         EnsureDrawingSubscription();
+        EnsureProfileHost();
     }
 
     private void EnsureDrawingSubscription()
     {
-        if (!EnableAuctionGpsCard || _drawingSubscribed)
+        if ((!EnableAuctionGpsCard && !EnablePrimaryProfileOverlay) || _drawingSubscribed)
             return;
         try
         {
             EnableCustomDrawing = true;
-            // Final + LatestBar — CẦN XÁC MINH TRÊN ATAS THẬT that both fire for overlay cards.
             SubscribeToDrawingEvents(DrawingLayouts.Final | DrawingLayouts.LatestBar);
             _drawingSubscribed = true;
         }
         catch
         {
-            // Contained — card may still receive OnRender if platform invokes by default.
+            // Contained.
+        }
+    }
+
+    private void EnsureProfileHost()
+    {
+        if (!EnablePrimaryProfile)
+            return;
+
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var period = TpoPeriodMinutes > 0 ? TpoPeriodMinutes : PrimaryAuctionClockConfig.DefaultPeriodMinutes;
+        var frac = ValueAreaFraction > 0m && ValueAreaFraction <= 1m
+            ? ValueAreaFraction
+            : PrimaryAuctionClockConfig.DefaultValueAreaFraction;
+        var anchor = new TimeSpan(Math.Clamp(AnchorHourLocal, 0, 23), Math.Clamp(AnchorMinuteLocal, 0, 59), 0);
+        var key = $"{tick}|{period}|{frac}|{anchor}|{AtasTimestampNormalizer.PolicyVersion}";
+
+        if (_profileHost is not null && string.Equals(_profileSettingsKey, key, StringComparison.Ordinal))
+            return;
+
+        var cfg = new PrimaryAuctionClockConfig(
+            AuctionTimezoneResolver.IanaAmericaNewYork,
+            anchor,
+            period,
+            frac);
+
+        if (_profileHost is null)
+            _profileHost = new PrimaryProfileHost(tick, cfg);
+        else
+            _profileHost.Reset(tick, cfg);
+
+        _profileSettingsKey = key;
+    }
+
+    private void ProcessProfileBar(int bar)
+    {
+        if (!EnablePrimaryProfile || Volatile.Read(ref _disposed) != 0)
+            return;
+
+        try
+        {
+            EnsureProfileHost();
+            var host = _profileHost;
+            if (host is null)
+                return;
+
+            IndicatorCandle? candle = null;
+            try { candle = GetCandle(bar); }
+            catch { return; }
+            if (candle is null)
+                return;
+
+            var version = Interlocked.Increment(ref _barSourceVersion);
+            // Deferred rebuild on first historical pass: ingest only until current bar (or bar replace).
+            // Prevents O(n²) ClassicTpoEngine+VolumeProfile rebuilds when adding indicator to a long chart.
+            var rebuildNow = bar >= CurrentBar || host.ContainsBar(bar);
+            var wantTsDiag = rebuildNow || bar == 0 || (bar % 64) == 0;
+            var obs = ProfileBarAtasMapper.TryMap(
+                candle, bar, CurrentBar, version, out var tsDiag, includeTimestampDiagnostic: wantTsDiag);
+            if (obs is null)
+                return;
+
+            if (tsDiag is not null)
+                host.NoteTimestampDiagnostic(tsDiag);
+
+            host.EnableTpoParityReferencePrice = EnableTpoParityReferencePrice;
+            host.TpoParityReferencePrice = TpoParityReferencePrice;
+            host.UpsertBar(
+                obs,
+                evaluationBarIndex: Math.Min(bar, CurrentBar),
+                evaluationUtc: DateTimeOffset.UtcNow,
+                rebuildNow: rebuildNow);
+        }
+        catch
+        {
+            // Contained — never escape into ATAS.
         }
     }
 
@@ -646,7 +795,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     private void PublishRuntimeSnapshot()
     {
-        if (!EnableAuctionGpsCard && _runtime is null)
+        if (!EnableAuctionGpsCard && !EnablePrimaryProfile && _runtime is null)
             return;
 
         try
@@ -654,6 +803,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureRuntimeStarted();
             var runtime = _runtime;
             var renderer = _gpsRenderer;
+            var overlay = _overlayRenderer;
             if (runtime is null)
                 return;
 
@@ -663,6 +813,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var startupFailures = recorder is null
                 ? 0L
                 : Interlocked.Read(ref recorder.Counters.RecorderStartupFailures);
+
+            var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -678,7 +830,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 recorderAccepting: recorder?.IsAccepting == true,
                 recorderFaulted: startupFailures > 0,
                 recorderSessionPresent: recorder?.Session is not null,
-                indicatorDisposed: disposed);
+                indicatorDisposed: disposed,
+                profiles: profiles,
+                enableTpoParityDiagnostics: EnableTpoParityDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
@@ -689,6 +843,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
             else
             {
                 renderer?.Update(null, false);
+            }
+
+            if (EnablePrimaryProfileOverlay && overlay is not null)
+            {
+                var ovm = PrimaryProfileOverlayViewModel.FromProfiles(profiles, ShowPreviousProfileLevels);
+                overlay.Update(ovm);
+            }
+            else
+            {
+                overlay?.Update(null);
             }
         }
         catch

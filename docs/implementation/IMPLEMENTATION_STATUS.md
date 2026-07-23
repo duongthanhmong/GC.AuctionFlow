@@ -2,34 +2,32 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **P0-08A** — Runtime Data Gate + Auction GPS Card foundation (implementation complete; live acceptance pending operator) |
+| Current phase | **Phase 1A CLOSED** — next authorized slice is Phase 1B Composite Profile (not started) |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| RawEventContainerVersion | **1** (unchanged) |
-| Trade / Dom / Mbo probe schemas | **1.0.1** / **1.0.0** / **1.0.1** (unchanged) |
-| Runtime snapshot schema | **0.1.0** (Contract / Capability / DataGate / GcaeRuntimeSnapshot) |
-| P0-07B | **PASS** |
-| P0-07C1 | **PASS / Decision B** |
-| P0-07C2 | **PASS** (`gcae-p0-07c2-callback-grouping-pass`) |
-| P0-07C3A | **PASS** |
-| P0-07C3BC | **PASS** (`gcae-p0-07c3bc-trade-recorder-pass` @ `25bf03c`) |
-| P0-07C3D | **PASS + LOCKED** (`gcae-p0-07c3d-live-trade-recorder-pass` @ `4543a79`) |
+| Runtime snapshot schema | **0.2.0** |
+| Profile snapshot schema | **1.0.1** (TPO / Volume / PrimaryAuction / PrimaryProfileSet) |
+| P0-07C3D | **PASS + LOCKED** (`gcae-p0-07c3d-live-trade-recorder-pass`) |
+| P0-08A | **PASS + LOCKED** (`gcae-p0-08a-runtime-data-gate-gps-card-pass` @ `01ebeee`) |
+| Phase 1A | **PASS WITH DOCUMENTED ATAS METHODOLOGY DIFFERENCE** — tag `gcae-p1a-primary-tpo-volume-profile-pass` |
 | P0-07C4 | **NOT STARTED** |
-| P0-08A | **IMPLEMENTED** — unit/integration verified; live chart acceptance not claimed |
+| Phase 1B | **NOT STARTED** |
 
-## P0-07C3D locks (baseline for P0-08A)
+## Phase 1A locks / semantics
 
-- HEAD baseline: `4543a791e4d060ec3189a55af53e2e060739789e`
-- Tag: `gcae-p0-07c3d-live-trade-recorder-pass`
-- Trade Recorder: **COMPLETE + LOCKED** — do not reopen
-- Live session `01f6650494194d3bacbe00062dede326` — GCQ6/Rithmic Trade-only
-- Evidence: `docs/evidence/P0-07C3D_GCQ6_Rithmic_TradeRecorder_LiveVerification.md`
-
-## P0-08A slice
-
-- ContractSnapshot + DataGateEngine + RuntimeCapabilitySnapshot + immutable GcaeRuntimeSnapshot
-- AuctionGpsCardViewModel + ATAS OnRender adapter (`AuctionGpsCardRenderer`)
-- Expected live card state until Profile exists: **DATA: DEGRADED / REASON: PROFILE NOT READY**
-- MBO remains **BLOCKED** / isolated-environment-only; no DOM/BBA/MBO recording
-- No Profile / TPO / VP / Episode / FAR / AAC / Thesis / trading logic
+- Classic TPO period: **30 minutes** (configurable)
+- Primary Intraday anchor: **08:20 America/New_York** (IANA + Windows Eastern fallback)
+- Timestamp policy: **`ATAS_CANDLE_TIME_UTC_V1`** (LiveObserved: Unspecified Kind, UTC wall-clock)
+- Exact price-volume only for VP — **no bar-total smearing**
+- Current + previous auction only — no Composite / Structural References
+- Global DATA may remain **Degraded** due BidAsk/Roll Unknown even when PROFILE READY
+- TPO parity / forensic diagnostics: **disabled by default**, diagnostic-only, cannot influence TPO/POC/VA
+- Trade Recorder unchanged / locked; MBO remains blocked in primary process
 - Master spec v1.2 untouched
+- **ATAS built-in TPO POC is not treated as an unquestionable oracle**; GCAE follows its explicit deterministic algorithm
+
+## Phase 1A scope (contained)
+
+Present: PrimaryAuctionClock + timestamp normalization, PriceGrid, Classic TPO, exact Volume Profile, VA + deterministic POC, current/previous snapshots, runtime/DataGate, GPS profile rows, minimal overlay, bounded diagnostics, tests, governance.
+
+Absent: Composite Profile, Structural Reference Engine, Directional Auction Context, Auction Episode, Acceptance/Re-entry, FAR/AAC, Entry/Invalidation/Targets, DOM/MBO implementation, master-spec changes.

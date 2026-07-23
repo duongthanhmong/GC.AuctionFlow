@@ -12,6 +12,8 @@ public static class DataGateReasonCodes
     public const string IndicatorDisposed = "INDICATOR_DISPOSED";
     public const string IdentityCorruption = "IDENTITY_CORRUPTION";
     public const string ProfileNotReady = "PROFILE_NOT_READY";
+    public const string ProfilePartial = "PROFILE_PARTIAL";
+    public const string ProfileInvalid = "PROFILE_INVALID";
     public const string BidAskUnknownOrPartial = "BIDASK_UNKNOWN_OR_PARTIAL";
     public const string RollStateUnknown = "ROLL_STATE_UNKNOWN";
     public const string TradeNotObserved = "TRADE_NOT_OBSERVED";

@@ -197,3 +197,20 @@
 
 - **Decision:** P0-08A adds ContractSnapshot, RuntimeCapabilitySnapshot, deterministic DataGateEngine, immutable GcaeRuntimeSnapshot publication, AuctionGpsCardViewModel, and ATAS OnRender overlay. Profile remains NotReady ? DataState Degraded with primary reason PROFILE_NOT_READY is correct until a Profile slice exists. Roll stays Unknown without roll evidence (no invented next-contract volume / calendars). MBO displays BLOCKED and stays disabled in the primary ATAS process. Trade Recorder remains locked; UI never reaches mutable recorder/probe objects. EnableCustomDrawing=true is authorized only for the GPS card overlay (no DataSeries mutation).
 - **Date:** 2026-07-22
+
+## D-P1A-001 — Primary Intraday Classic TPO / Volume Profile vertical slice
+
+- **Decision:** Phase 1A implements Classic 30-minute TPO anchored at 08:20 America/New_York (IANA with Windows Eastern fallback), exact ATAS per-price executed volume via IndicatorCandle.GetAllPriceLevels()/PriceVolumeInfo when available, deterministic POC/VA (0.70 conventional configurable default, not GC edge), current+previous auction only, GPS card profile rows, and minimal overlay. No volume smearing from bar totals. Profile Ready removes PROFILE_NOT_READY but BidAsk/Roll Unknown may keep global DATA Degraded. Composite, Structural References, Episode, FAR/AAC, Thesis, Adaptive TPO, DOM/MBO remain deferred.
+- **Observed ATAS API:** GetCandle(int), IndicatorCandle.GetAllPriceLevels(), PriceVolumeInfo.{Price,Volume,Bid,Ask,Ticks}, IChart.PriceChartContainer.GetYByPrice/GetXByBar.
+- **Date:** 2026-07-22
+
+## D-P1A-002 ? ATAS candle timestamp is UTC (LiveObserved)
+
+- **Decision:** IndicatorCandle.Time/LastTime contained wall-clock is UTC even when DateTime.Kind is Unspecified (LiveObserved 2026-07-23 GCQ6/Rithmic; period index 40 vs 32 = +4h NY mis-convert). Normalization policy `ATAS_CANDLE_TIME_UTC_V1`: normalize once to UTC DateTimeOffset, then PrimaryAuctionClock converts to America/New_York. Unknown semantics do not convert. Ledger rebuilds on policy mismatch. POC/VA/TPO/VP algorithms unchanged.
+- **Date:** 2026-07-23
+
+## D-P1A-003 ? Phase 1A PASS WITH DOCUMENTED ATAS METHODOLOGY DIFFERENCE
+
+- **Decision:** Phase 1A Primary Intraday Classic TPO + Volume Profile is **PASS WITH DOCUMENTED ATAS METHODOLOGY DIFFERENCE**. Live-verified: UTC candle Time (bar start), 08:20 America/New_York clock, period index, current/previous rollover, Classic 30m TPO, exact volume-by-price VP, ledger accounting (no rejected bars in forensic capture), replace-by-bar-index, independent ClassicTpoOracle equals engine, developing/completed-only agree at selected POC, POC tie policy as specified. ATAS displayed TPO POC (e.g. 4130.2) did not match GCAE selected POC (e.g. 4124.8); forensic showed 4130.2 at count 14 / rank 57 / below max by 3 ? not in GCAE max-count tie set. Timestamp, developing policy, and tie policy are not the cause. No concrete GCAE distribution defect demonstrated. ATAS proprietary methodology / exact benchmark settings remain unconfirmed. **ATAS is not an unquestionable oracle.** No TPO/POC/VA algorithm was changed to force parity. Parity/forensic diagnostics remain default-off and diagnostic-only. Tag `gcae-p1a-primary-tpo-volume-profile-pass`. Phase 1B not started.
+- **Evidence:** `docs/evidence/Phase1A_Primary_TPO_Volume_Profile_LiveCloseout.md`
+- **Date:** 2026-07-23

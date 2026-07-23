@@ -47,10 +47,23 @@
 
 ## P0-08A Runtime Data Gate / Auction GPS Card
 
-23. Profile / TPO / Volume Profile / Composite Profile not implemented — DataState is expected **Degraded** with **PROFILE_NOT_READY** when identity is otherwise valid.
+23. ~~Profile / TPO / Volume Profile not implemented~~ — **superseded by Phase 1A PASS** (Primary Intraday Classic TPO + VP present; Composite still deferred).
 24. RollState remains **Unknown** without next-contract volume or external roll-calendar evidence; ActiveRoll is never inferred in this slice.
 25. Bid/Ask classification is **Unknown** (not validated fidelity); DOM capability shown Unavailable; MBO remains **Blocked** / isolated-environment-only.
 26. Live Trade Recorder success is not promoted to exchange-feed completeness, historical fidelity, replay fidelity, or validated Bid/Ask/DOM fidelity.
 27. Auction GPS Card reserved rows (Structural/Tactical/Location/Episode/Thesis) are NOT AVAILABLE and hidden unless ShowAuctionGpsDiagnostics is enabled.
 28. No Production Thesis, FAR/AAC, Entry/Target, CFD mapping, Telegram, or trading/order execution in P0-08A.
-29. OnRender overlay uses OFT.Rendering; Exact Final vs LatestBar draw cadence is operator-confirmed on live ATAS (C?N XÁC MINH TRÊN ATAS TH?T).
+29. OnRender overlay uses OFT.Rendering; Exact Final vs LatestBar draw cadence is operator-confirmed on live ATAS (C?N XÁC MINH TRÊN ATAS TH?T for residual draw-cadence nuances).
+
+## Phase 1A Primary Intraday Profile
+
+30. ~~Unspecified Kind treated as America/New_York~~ — **superseded by D-P1A-002 / `ATAS_CANDLE_TIME_UTC_V1`** (LiveObserved UTC wall-clock).
+31. Volume Profile Unavailable when GetAllPriceLevels is empty/fails ? ProfileState Partial; TPO may still be Ready.
+32. ValueAreaFraction default 0.70 is a conventional configurable method default, not a calibrated GC edge or predictive threshold.
+33. Only current + immediately previous primary auctions are retained in runtime; no Composite / weekly / monthly profiles.
+34. Overlay lines are informational price levels only — not Structural References, support/resistance claims, or Entry/Target semantics.
+35. Global DataState may remain Degraded due BidAsk Unknown and Roll Unknown even when PROFILE READY.
+36. **ATAS TPO methodology difference (Phase 1A closeout):** ATAS built-in TPO POC did not match GCAE Classic TPO POC in the observed live comparison. GCAE timestamp normalization, bar-ledger accounting, deterministic TPO distribution and independent oracle were verified. ATAS proprietary methodology or exact benchmark settings remain unconfirmed. No GCAE algorithm was changed to force parity.
+37. TPO parity / forensic diagnostics (reference price, period coverage, ledger audit) are **disabled by default**, diagnostic-only, and must not influence TPO, POC, Value Area, or Production analysis.
+38. Unknown timestamp semantics still refuse silent conversion. Candle Time = bar start, LastTime = bar end (ATAS API names).
+39. Historical chart-add uses deferred profile rebuild (ingest-only until current bar) to avoid O(n²) load; final distribution equals eager rebuild.

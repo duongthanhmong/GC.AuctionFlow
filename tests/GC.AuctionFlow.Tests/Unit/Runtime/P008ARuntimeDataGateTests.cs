@@ -196,7 +196,7 @@ public sealed class P008ARuntimeDataGateTests
         Assert.Same(snap, engine.Current);
         Assert.Equal(ProfilePlaceholderState.NotReady, snap.Profile);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
-        Assert.Contains("PROFILE_ENGINE_NOT_IMPLEMENTED", snap.KnownLimitations);
+        Assert.Contains("PROFILE_SET_ABSENT", snap.KnownLimitations);
         Assert.Null(snap.GetType().GetProperty("TradeRecorderHost"));
         Assert.Null(snap.GetType().GetProperty("TradeStreamProbe"));
     }
@@ -264,13 +264,13 @@ public sealed class P008ARuntimeDataGateTests
             Gcq6(), "GCQ6",
             DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
-            true, Now, false, true, false, false, false, false, Now);
+            true, Now, false, true, false, false, false, false, timestampUtc: Now);
         var count1 = engine.Transitions.Count;
         engine.Publish(
             Gcq6(), "GCQ6",
             DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
-            true, Now, false, true, false, false, false, false, Now);
+            true, Now, false, true, false, false, false, false, timestampUtc: Now);
         Assert.Equal(count1, engine.Transitions.Count);
     }
 
@@ -311,7 +311,7 @@ public sealed class P008ARuntimeDataGateTests
             Gcq6(), "GCQ6",
             DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
-            true, Now, false, true, false, false, false, false, Now);
+            true, Now, false, true, false, false, false, false, timestampUtc: Now);
         engine.Stop();
         engine.Stop();
         Assert.Null(engine.Current);

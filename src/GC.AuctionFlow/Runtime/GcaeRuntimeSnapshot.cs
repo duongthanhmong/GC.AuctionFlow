@@ -1,9 +1,11 @@
+using GC.AuctionFlow.Profile;
+
 namespace GC.AuctionFlow.Runtime;
 
-/// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder objects.</summary>
+/// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.1.0";
+    public const string SnapshotVersion = "0.2.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -12,10 +14,12 @@ public sealed class GcaeRuntimeSnapshot
         ParticipationRegimePlaceholderState participationRegime,
         ProfilePlaceholderState profile,
         ReferencePlaceholderState reference,
+        PrimaryProfileSetSnapshot? profiles,
         string recorderDiagnosticSummary,
         DateTime timestampUtc,
         long publicationSequence,
-        IReadOnlyList<string> knownLimitations)
+        IReadOnlyList<string> knownLimitations,
+        bool enableTpoParityDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -23,10 +27,12 @@ public sealed class GcaeRuntimeSnapshot
         ParticipationRegime = participationRegime;
         Profile = profile;
         Reference = reference;
+        Profiles = profiles;
         RecorderDiagnosticSummary = recorderDiagnosticSummary ?? "";
         TimestampUtc = timestampUtc;
         PublicationSequence = publicationSequence;
         KnownLimitations = knownLimitations ?? Array.Empty<string>();
+        EnableTpoParityDiagnostics = enableTpoParityDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -35,11 +41,14 @@ public sealed class GcaeRuntimeSnapshot
     public ParticipationRegimePlaceholderState ParticipationRegime { get; }
     public ProfilePlaceholderState Profile { get; }
     public ReferencePlaceholderState Reference { get; }
+    public PrimaryProfileSetSnapshot? Profiles { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
     public string Version => SnapshotVersion;
     public IReadOnlyList<string> KnownLimitations { get; }
+    /// <summary>When true, GPS card includes bounded Classic TPO parity diagnostic rows. Default false.</summary>
+    public bool EnableTpoParityDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

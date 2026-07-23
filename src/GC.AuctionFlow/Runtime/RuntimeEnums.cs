@@ -44,7 +44,9 @@ public enum RuntimeCapabilityState
     NotConfigured = 8,
     Recording = 9,
     Faulted = 10,
-    Off = 11
+    Off = 11,
+    TpoReady = 12,
+    VolumeReady = 13
 }
 
 public enum ParticipationRegimePlaceholderState
@@ -54,7 +56,10 @@ public enum ParticipationRegimePlaceholderState
 
 public enum ProfilePlaceholderState
 {
-    NotReady = 0
+    NotReady = 0,
+    Partial = 1,
+    Ready = 2,
+    Invalid = 3
 }
 
 public enum ReferencePlaceholderState

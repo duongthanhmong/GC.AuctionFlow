@@ -5,7 +5,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable DataGate evaluation result.</summary>
 public sealed class DataGateSnapshot
 {
-    public const string SnapshotVersion = "0.1.0";
+    public const string SnapshotVersion = "0.2.0";
 
     public DataGateSnapshot(
         DataState dataState,
@@ -29,7 +29,10 @@ public sealed class DataGateSnapshot
     public IReadOnlyList<string> KnownLimitations { get; }
 }
 
-/// <summary>Deterministic DataGate for P0-08A. Hard INVALID cannot be overridden by favorable capabilities.</summary>
+/// <summary>
+/// Deterministic DataGate. Hard INVALID cannot be overridden.
+/// Profile Ready removes PROFILE_NOT_READY; BidAsk/Roll may still keep DATA Degraded.
+/// </summary>
 public static class DataGateEngine
 {
     public static DataGateSnapshot Evaluate(
@@ -43,8 +46,8 @@ public static class DataGateEngine
         var degraded = new List<string>();
         var limitations = new List<string>
         {
-            "PROFILE_NOT_IMPLEMENTED_IN_P0_08A",
-            "READY_REQUIRES_ALL_MANDATORY_CAPABILITIES"
+            "READY_REQUIRES_ALL_MANDATORY_CAPABILITIES",
+            "PROFILE_READY_DOES_NOT_IMPLLY_GLOBAL_READY"
         };
 
         if (indicatorDisposed)
@@ -76,9 +79,14 @@ public static class DataGateEngine
             invalid.Add(DataGateReasonCodes.IdentityCorruption);
         }
 
-        // Degraded (only considered when not Invalid)
+        if (capability.ProfileState == RuntimeCapabilityState.Invalid)
+            invalid.Add(DataGateReasonCodes.ProfileInvalid);
+
+        // Degraded
         if (capability.ProfileState is RuntimeCapabilityState.NotReady or RuntimeCapabilityState.Unavailable)
             degraded.Add(DataGateReasonCodes.ProfileNotReady);
+        else if (capability.ProfileState is RuntimeCapabilityState.Partial or RuntimeCapabilityState.TpoReady)
+            degraded.Add(DataGateReasonCodes.ProfilePartial);
 
         if (capability.BidAskClassificationState is RuntimeCapabilityState.Unknown or RuntimeCapabilityState.Partial)
             degraded.Add(DataGateReasonCodes.BidAskUnknownOrPartial);
@@ -101,46 +109,46 @@ public static class DataGateEngine
         if (invalid.Count > 0)
         {
             var unique = Dedup(invalid);
-            return new DataGateSnapshot(
-                DataState.Invalid,
-                unique[0],
-                unique,
-                timestampUtc,
-                limitations);
+            return new DataGateSnapshot(DataState.Invalid, unique[0], unique, timestampUtc, limitations);
         }
 
         if (degraded.Count > 0)
         {
             var unique = Dedup(degraded);
-            // Prefer PROFILE_NOT_READY as primary when present (expected P0-08A card state).
-            var primary = unique.Contains(DataGateReasonCodes.ProfileNotReady)
-                ? DataGateReasonCodes.ProfileNotReady
-                : unique[0];
-            if (primary != unique[0])
-            {
-                unique.Remove(primary);
-                unique.Insert(0, primary);
-            }
-
-            return new DataGateSnapshot(
-                DataState.Degraded,
-                primary,
-                unique,
-                timestampUtc,
-                limitations);
+            var primary = PreferPrimary(unique);
+            return new DataGateSnapshot(DataState.Degraded, primary, unique, timestampUtc, limitations);
         }
 
-        return new DataGateSnapshot(
-            DataState.Ready,
-            "",
-            Array.Empty<string>(),
-            timestampUtc,
-            limitations);
+        return new DataGateSnapshot(DataState.Ready, "", Array.Empty<string>(), timestampUtc, limitations);
+    }
+
+    private static string PreferPrimary(List<string> unique)
+    {
+        // Deterministic preference: NotReady > Partial > BidAsk > Roll > Trade > Provenance
+        string[] order =
+        {
+            DataGateReasonCodes.ProfileNotReady,
+            DataGateReasonCodes.ProfilePartial,
+            DataGateReasonCodes.BidAskUnknownOrPartial,
+            DataGateReasonCodes.RollStateUnknown,
+            DataGateReasonCodes.TradeNotObserved,
+            DataGateReasonCodes.SourceProvenanceIncomplete
+        };
+        foreach (var code in order)
+        {
+            if (unique.Contains(code))
+            {
+                unique.Remove(code);
+                unique.Insert(0, code);
+                return code;
+            }
+        }
+
+        return unique[0];
     }
 
     private static bool IsProviderModeConflict(RuntimeCapabilitySnapshot capability)
     {
-        // Explicit conflict: Live claimed without OperatorDeclared / ObservedApi provenance, or Unknown provider with Live.
         if (capability.DataSourceMode == DataSourceMode.Live
             && capability.DataSourceModeProvenance == DataSourceModeProvenance.Unknown)
             return true;

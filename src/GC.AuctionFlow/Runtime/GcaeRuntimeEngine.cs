@@ -1,11 +1,12 @@
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
+using GC.AuctionFlow.Profile;
 
 namespace GC.AuctionFlow.Runtime;
 
 /// <summary>
 /// Owns snapshot construction, publication, and transition diagnostics.
-/// No ATAS types. No file I/O. No mutable probe/recorder objects exposed.
+/// No ATAS types. No file I/O. No mutable probe/recorder/profile objects exposed.
 /// </summary>
 public sealed class GcaeRuntimeEngine
 {
@@ -40,10 +41,21 @@ public sealed class GcaeRuntimeEngine
         bool recorderFaulted,
         bool recorderSessionPresent,
         bool indicatorDisposed,
-        DateTime? timestampUtc = null)
+        PrimaryProfileSetSnapshot? profiles = null,
+        DateTime? timestampUtc = null,
+        bool enableTpoParityDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
+
+        var auctionState = profiles?.CurrentAuction?.ProfileState;
+        var profileCap = RuntimeCapabilitySnapshotBuilder.MapProfileState(auctionState);
+        var profileExtra = new List<string>();
+        if (profiles?.CurrentAuction?.VolumeProfile?.PriceVolumeCapability == PriceVolumeCapability.Unavailable)
+            profileExtra.Add("PRICE_VOLUME_DATA_UNAVAILABLE");
+        if (profiles is null)
+            profileExtra.Add("PROFILE_SET_ABSENT");
+
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
             instrumentIdentityAvailable: observed is not null
@@ -54,7 +66,9 @@ public sealed class GcaeRuntimeEngine
             tradeRecordingEnabled,
             recorderAccepting,
             recorderFaulted,
-            recorderSessionPresent);
+            recorderSessionPresent,
+            profileState: profileCap,
+            extraLimitations: profileExtra);
 
         var gate = DataGateEngine.Evaluate(contract, capability, _config, indicatorDisposed, now);
         var seq = Interlocked.Increment(ref _publicationSequence);
@@ -64,18 +78,22 @@ public sealed class GcaeRuntimeEngine
         limitations.AddRange(contract.KnownLimitations);
         limitations.AddRange(capability.KnownLimitations);
         limitations.AddRange(gate.KnownLimitations);
+        if (profiles?.KnownLimitations is not null)
+            limitations.AddRange(profiles.KnownLimitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
             contract,
             capability,
             ParticipationRegimePlaceholderState.NotAvailable,
-            ProfilePlaceholderState.NotReady,
+            RuntimeCapabilitySnapshotBuilder.MapPlaceholder(auctionState),
             ReferencePlaceholderState.NotAvailable,
+            profiles,
             recorderSummary,
             now,
             seq,
-            limitations.Distinct(StringComparer.Ordinal).ToArray());
+            limitations.Distinct(StringComparer.Ordinal).ToArray(),
+            enableTpoParityDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;
@@ -104,10 +122,44 @@ public sealed class GcaeRuntimeEngine
         Track("RollState", previous?.Contract.RollState.ToString(), next.Contract.RollState.ToString(), next.DataGate.PrimaryReasonCode);
         Track("TradeStreamState", previous?.Capability.TradeStreamState.ToString(), next.Capability.TradeStreamState.ToString(), next.DataGate.PrimaryReasonCode);
         Track("RecorderState", previous?.Capability.RecorderState.ToString(), next.Capability.RecorderState.ToString(), next.DataGate.PrimaryReasonCode);
+        Track("ProfileState", previous?.Capability.ProfileState.ToString(), next.Capability.ProfileState.ToString(), next.DataGate.PrimaryReasonCode);
+        Track(
+            "AuctionId",
+            previous?.Profiles?.CurrentAuction?.AuctionId,
+            next.Profiles?.CurrentAuction?.AuctionId ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "TpoPoc",
+            previous?.Profiles?.CurrentAuction?.TpoProfile?.TpoPoc?.ToString(),
+            next.Profiles?.CurrentAuction?.TpoProfile?.TpoPoc?.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "Vpoc",
+            previous?.Profiles?.CurrentAuction?.VolumeProfile?.VolumePoc?.ToString(),
+            next.Profiles?.CurrentAuction?.VolumeProfile?.VolumePoc?.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "TpoValueArea",
+            FormatVa(previous?.Profiles?.CurrentAuction?.TpoProfile?.TpoVal, previous?.Profiles?.CurrentAuction?.TpoProfile?.TpoVah),
+            FormatVa(next.Profiles?.CurrentAuction?.TpoProfile?.TpoVal, next.Profiles?.CurrentAuction?.TpoProfile?.TpoVah),
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "VolumeValueArea",
+            FormatVa(previous?.Profiles?.CurrentAuction?.VolumeProfile?.VolumeVal, previous?.Profiles?.CurrentAuction?.VolumeProfile?.VolumeVah),
+            FormatVa(next.Profiles?.CurrentAuction?.VolumeProfile?.VolumeVal, next.Profiles?.CurrentAuction?.VolumeProfile?.VolumeVah),
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "PriceVolumeCapability",
+            previous?.Profiles?.CurrentAuction?.VolumeProfile?.PriceVolumeCapability.ToString(),
+            next.Profiles?.CurrentAuction?.VolumeProfile?.PriceVolumeCapability.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
         Track(
             "ProviderModeGate",
             previous is null ? null : $"{previous.Capability.DataSourceMode}/{previous.Capability.FeedProvider}",
             $"{next.Capability.DataSourceMode}/{next.Capability.FeedProvider}",
             next.DataGate.PrimaryReasonCode);
     }
+
+    private static string FormatVa(decimal? val, decimal? vah) =>
+        val is null && vah is null ? "" : $"{val}/{vah}";
 }
