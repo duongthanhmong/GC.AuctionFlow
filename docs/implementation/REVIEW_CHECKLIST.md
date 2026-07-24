@@ -102,3 +102,50 @@
 - [x] Source/deployed DLL hashes match `9CAE06B9091D23854DA60A425E45884D2CC0D5C50E501A4E9EB1B12A58FAF3CA`
 - [x] Documented live coverage limitation accepted (module disable / remove-add / MIXED live / per-id StateVersion visuals = automated)
 - [x] FINAL PASS WITH DOCUMENTED LIVE COVERAGE LIMITATION
+
+## Phase 1D Multi-Horizon Directional Context — code/test
+
+- [x] Pairwise migration decision table (Discovery/Rotation/Balance/Conflicted/Transition/Unknown)
+- [x] Up/Down Discovery
+- [x] Up/Down Rotation
+- [x] Balance
+- [x] Transition
+- [x] Conflicted
+- [x] Unknown/fail-closed behavior
+- [x] Exact volume Unavailable never fabricated as zero
+- [x] Tick/epoch/timestamp compatibility fails closed
+- [x] Completed-auction-only Structural context; no fixed five-day window
+- [x] Insufficient history → Unknown + limitation
+- [x] Developing Tactical context; idempotent republish; identity stable per auction
+- [x] Completed-period-only OTF; DevelopingUp/Down/Broken/Mixed
+- [x] No calibrated OTF Confirmed state (`OTF_CONFIRMATION_NOT_CALIBRATED`)
+- [x] Exact-tick price location; no S/R wording
+- [x] Missing-volume Partial handling
+- [x] Module disabled does not degrade Profile/Composite/References
+- [x] Directional Ready does not clear global DATA DEGRADED
+- [x] Input fingerprint reuse on ordinary trade-style publish
+- [x] GPS READY/PARTIAL/AWAITING + Developing label; no Long/Short/Buy/Sell/Thesis/Entry/Probability
+- [x] No Episode/Acceptance/Orderflow production dependency
+- [x] No directional chart arrows / duplicated reference lines
+- [x] Source-scope: Phase 1E not started
+- [x] GCAE tests green (399 passed / 0 failed / 0 skipped)
+- [x] 0 build errors / 0 warnings
+- [x] Runtime schema 0.5.0; DIRECTIONAL_CONTEXT_POLICY_V1; assembly 0.0.6
+
+## Phase 1D live acceptance (operator — focused first gate)
+
+- [x] GCQ6 / Rithmic Live; Primary + Composite READY; References READY; Directional ON; OTF ON; Preview OFF; MBO OFF/BLOCKED
+- [x] Card core: DIRECTIONAL CONTEXT READY; POLICY V1; STRUCTURAL CONFLICTED; TACTICAL DOWNDISCOVERY (DEVELOPING); OTF DEVELOPINGDOWN; PRICE LOCATION InsideValue
+- [x] No Long/Short/Buy/Sell/Thesis/Entry/Target/Probability/Acceptance/Rejection/Episode wording
+- [x] DATA DEGRADED independent of Directional READY; MBO BLOCKED
+- [x] Source/deployed DLL hashes match `9976E848578B9057503EC0D8A866C1593CED189EDC5EC04563940F605F0C6AFB`
+- [x] FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION
+
+### Automated-only (not manually observed live)
+
+- [x] Transition count details (**automated coverage**)
+- [x] Current/previous auction ID diagnostics (**automated coverage**)
+- [x] Component migration diagnostics (TPO value/POC, VPOC) (**automated coverage**)
+- [x] OTF streak/count diagnostics (**automated coverage**)
+- [x] Individual Directional StateVersion values (**automated coverage**)
+- [x] Input fingerprint/version diagnostics (**automated coverage**)

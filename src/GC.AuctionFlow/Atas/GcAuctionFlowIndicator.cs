@@ -3,6 +3,7 @@ using ATAS.DataFeedsCore;
 using ATAS.Indicators;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
@@ -38,6 +39,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private StructuralReferenceHost? _referenceHost;
     /// <summary>Last input fingerprint successfully applied to the published Structural Reference snapshot.</summary>
     private ReferenceInputFingerprint? _lastAppliedReferenceFingerprint;
+    private DirectionalContextHost? _directionalHost;
+    /// <summary>Last input fingerprint successfully applied to the published Directional Context snapshot.</summary>
+    private DirectionalInputFingerprint? _lastAppliedDirectionalFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -75,6 +79,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableStructuralReferences = false;
         EnableStructuralReferenceOverlay = true;
         ShowStructuralReferenceDiagnostics = false;
+        EnableDirectionalContext = false;
+        ShowDirectionalContextDiagnostics = false;
+        EnableOneTimeFraming = true;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -258,6 +265,21 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Nearest above/below and registry diagnostics. Default false. No Long/Short/Episode/Thesis.")]
     public bool ShowStructuralReferenceDiagnostics { get; set; }
 
+    [Category("Directional Auction Context")]
+    [DisplayName("Enable Directional Context")]
+    [Description("Multi-horizon descriptive Directional Context (DIRECTIONAL_CONTEXT_POLICY_V1). Default false. No Long/Short/score.")]
+    public bool EnableDirectionalContext { get; set; }
+
+    [Category("Directional Auction Context")]
+    [DisplayName("Show Directional Context Diagnostics")]
+    [Description("Evidence, conflicts, limitations, fingerprints. Default false. No Buy/Sell/Thesis.")]
+    public bool ShowDirectionalContextDiagnostics { get; set; }
+
+    [Category("Directional Auction Context")]
+    [DisplayName("Enable One-Time Framing")]
+    [Description("Completed TPO period OTF evidence when Directional Context enabled. Default true. Confirmed OTF reserved.")]
+    public bool EnableOneTimeFraming { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -271,6 +293,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         {
             ProcessComposite();
             ProcessStructuralReferences();
+            ProcessDirectionalContext();
             PublishRuntimeSnapshot();
         }
     }
@@ -618,8 +641,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _profileHost = null;
                 _compositeHost = null;
                 _referenceHost = null;
+                _directionalHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
+                _lastAppliedDirectionalFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -937,6 +962,42 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessDirectionalContext()
+    {
+        if (!EnableDirectionalContext || Volatile.Read(ref _disposed) != 0)
+        {
+            _directionalHost = null;
+            _lastAppliedDirectionalFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var profiles = _profileHost?.Current;
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new DirectionalPolicyConfig(
+                enabled: true,
+                enableOneTimeFraming: EnableOneTimeFraming);
+            var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
+            var references = EnableStructuralReferences ? _referenceHost?.Current : null;
+
+            _directionalHost ??= new DirectionalContextHost(
+                tick, identity, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _directionalHost.Configure(tick, identity, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _directionalHost.Rebuild(profiles, composite, references);
+
+            if (_directionalHost.Current is not null && _directionalHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedDirectionalFingerprint = fp;
+        }
+        catch
+        {
+            // Contained — do not advance fingerprint.
+        }
+    }
+
     /// <summary>
     /// Ensure Structural Reference host matches current inputs before GPS publish.
     /// Rebuilds only when Current missing or input fingerprint changed.
@@ -973,6 +1034,43 @@ public sealed class GcAuctionFlowIndicator : Indicator
             return;
 
         ProcessStructuralReferences();
+    }
+
+    private void EnsureDirectionalContextInitializedForPublish()
+    {
+        if (!EnableDirectionalContext || Volatile.Read(ref _disposed) != 0)
+        {
+            _directionalHost = null;
+            _lastAppliedDirectionalFingerprint = null;
+            return;
+        }
+
+        var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
+        var references = EnableStructuralReferences ? _referenceHost?.Current : null;
+        var current = DirectionalInputFingerprint.Build(
+            true,
+            EnableOneTimeFraming,
+            profiles,
+            composite,
+            references,
+            tick,
+            epoch,
+            AtasTimestampNormalizer.PolicyVersion);
+
+        if (!DirectionalPublishInitialization.ShouldProcess(
+                EnableDirectionalContext,
+                profiles,
+                _directionalHost,
+                _lastAppliedDirectionalFingerprint,
+                current))
+            return;
+
+        ProcessDirectionalContext();
     }
 
     private CompositePolicyConfig BuildCompositePolicyFromSettings()
@@ -1047,10 +1145,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
             // Trade-style publishes: init or rebuild only when host/Current missing or operator config changed.
             EnsureCompositeSnapshotInitializedForPublish();
             EnsureStructuralReferencesInitializedForPublish();
+            EnsureDirectionalContextInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
             var references = EnableStructuralReferences ? _referenceHost?.Current : null;
+            var directional = EnableDirectionalContext ? _directionalHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1072,7 +1172,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 composite: composite,
                 showCompositeDiagnostics: ShowCompositeDiagnostics,
                 structuralReferences: references,
-                showStructuralReferenceDiagnostics: ShowStructuralReferenceDiagnostics);
+                showStructuralReferenceDiagnostics: ShowStructuralReferenceDiagnostics,
+                directionalContext: directional,
+                showDirectionalContextDiagnostics: ShowDirectionalContextDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

@@ -95,9 +95,27 @@
 59. **Reference Ready does not clear global DATA DEGRADED.** Bid/Ask may remain Unknown/Partial.
 60. MBO remains blocked; OI is not a Production Core dependency.
 61. Single-price references use `ZoneLow == ZoneHigh` on the instrument tick grid.
-62. **No Phase 1D behavior** (Directional Auction / Episode / FAR/AAC / Thesis / Entry / Risk / Telegram).
-63. OAC contamination remains outside GCAE Phase 1C scope.
+62. ~~**No Phase 1D behavior**~~ — **superseded by Phase 1D Directional Context (descriptive only; still no Episode/FAR/AAC/Thesis/Entry)**.
+63. OAC contamination remains outside GCAE Phase 1C/1D scope.
 64. **Overlay readability (`REFERENCE_OVERLAY_POLICY_V1`):** while Structural Reference Overlay is ON, Primary/Composite visual levels are suppressed to avoid duplicate constituent labels; dense labels may be collision-suppressed while lines remain. Engine registry membership is unchanged.
 65. **Developing StateVersion:** registry-owned monotonic revision. Reconcile drafts use `RegistryAssignedStateVersion = 0`. Authoritative lower external revisions still fail closed (`STALE_REVISION`).
 66. **Documented live coverage limitation:** complete module disable, remove/add after final revision fix, live MIXED confluence display, and per-reference StateVersion visuals were not separately repeated as final live manual gates (operator ended further toggle testing). Covered by automated tests; does not alter Reference semantics.
 67. Live-accepted closeout DLL SHA-256: `9CAE06B9091D23854DA60A425E45884D2CC0D5C50E501A4E9EB1B12A58FAF3CA`. Tag: `gcae-p1c-structural-reference-foundation-pass`.
+
+## Phase 1D Multi-Horizon Directional Context Foundation (LOCKED — FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION)
+
+68. Limited to Primary/Composite profile evidence (+ optional Reference snapshot identity). No weekly/monthly directional horizon.
+69. No Acceptance/Episode inputs. No executed Orderflow inputs.
+70. Execution Context Unavailable / NotAvailable in Phase 1D.
+71. OTF confirmation policy **not calibrated** — ConfirmedUp/ConfirmedDown never emitted; `OTF_CONFIRMATION_NOT_CALIBRATED`.
+72. No Thin Participation / Settlement tags yet.
+73. No Day Structure Production classifier.
+74. No score, probability, Long/Short signal, or automatic execution.
+75. Tactical context may revise descriptively during the current Developing auction; must not rewrite Structural completed context.
+76. Directional Ready does not clear global DATA DEGRADED; module default OFF.
+77. Completed TPO period feed is read-only from ClassicTpoEngine — TPO math / 30m / 08:20 ET anchor unchanged.
+78. **Documented live diagnostic coverage limitation:** expanded diagnostic fields (auction IDs, transition count, component migrations, OTF streaks/counts, StateVersions, fingerprint) were not manually observed live; covered by automated tests. Core READY gate was live-verified.
+79. MBO remains blocked in the primary ATAS process.
+80. OAC contamination remains outside GCAE Phase 1D scope.
+81. **No Phase 1E behavior** (Episode / Acceptance / Orderflow / FAR/AAC / Thesis / Entry / Risk).
+82. Live-accepted closeout DLL SHA-256: `9976E848578B9057503EC0D8A866C1593CED189EDC5EC04563940F605F0C6AFB`. Tag: `gcae-p1d-multi-horizon-directional-context-pass`.

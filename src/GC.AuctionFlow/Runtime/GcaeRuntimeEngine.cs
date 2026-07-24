@@ -1,5 +1,6 @@
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
@@ -49,7 +50,9 @@ public sealed class GcaeRuntimeEngine
         CompositeSetSnapshot? composite = null,
         bool showCompositeDiagnostics = false,
         StructuralReferenceSetSnapshot? structuralReferences = null,
-        bool showStructuralReferenceDiagnostics = false)
+        bool showStructuralReferenceDiagnostics = false,
+        DirectionalContextSetSnapshot? directionalContext = null,
+        bool showDirectionalContextDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -65,6 +68,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("COMPOSITE_STATUS=" + conf.CompositeStatus);
         if (structuralReferences is not null)
             profileExtra.Add("REFERENCES_STATUS=" + structuralReferences.ModuleState);
+        if (directionalContext is not null)
+            profileExtra.Add("DIRECTIONAL_STATUS=" + directionalContext.Status);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -94,6 +99,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(composite.Confirmed.KnownLimitations);
         if (structuralReferences?.KnownLimitations is not null)
             limitations.AddRange(structuralReferences.KnownLimitations);
+        if (directionalContext?.Limitations is not null)
+            limitations.AddRange(directionalContext.Limitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -111,7 +118,9 @@ public sealed class GcaeRuntimeEngine
             composite,
             showCompositeDiagnostics,
             structuralReferences,
-            showStructuralReferenceDiagnostics);
+            showStructuralReferenceDiagnostics,
+            directionalContext,
+            showDirectionalContextDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;
@@ -217,6 +226,21 @@ public sealed class GcaeRuntimeEngine
             "ReferenceDevelopingCount",
             previous?.StructuralReferences?.DevelopingReferences.Count.ToString(),
             next.StructuralReferences?.DevelopingReferences.Count.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "DirectionalModuleState",
+            previous?.DirectionalContext?.Status.ToString(),
+            next.DirectionalContext?.Status.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "DirectionalStructuralState",
+            previous?.DirectionalContext?.StructuralContext.State.ToString(),
+            next.DirectionalContext?.StructuralContext.State.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "DirectionalTacticalState",
+            previous?.DirectionalContext?.TacticalContext.State.ToString(),
+            next.DirectionalContext?.TacticalContext.State.ToString() ?? "",
             next.DataGate.PrimaryReasonCode);
     }
 

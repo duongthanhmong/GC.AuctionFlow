@@ -2,7 +2,7 @@ namespace GC.AuctionFlow.Profile;
 
 public sealed class TpoProfileSnapshot
 {
-    public const string SnapshotVersion = "1.0.1";
+    public const string SnapshotVersion = "1.0.2";
 
     /// <summary>
     /// Production policy: developing TPO period IS included in letter counts used for
@@ -30,7 +30,8 @@ public sealed class TpoProfileSnapshot
         ProfileDataQuality dataQuality,
         string provenance,
         IReadOnlyList<string> knownLimitations,
-        TpoParityDiagnostic? parityDiagnostic = null)
+        TpoParityDiagnostic? parityDiagnostic = null,
+        IReadOnlyList<CompletedTpoPeriodSnapshot>? completedPeriods = null)
     {
         AuctionId = auctionId;
         StartUtc = startUtc;
@@ -51,6 +52,7 @@ public sealed class TpoProfileSnapshot
         Provenance = provenance;
         KnownLimitations = knownLimitations ?? Array.Empty<string>();
         ParityDiagnostic = parityDiagnostic;
+        CompletedPeriods = completedPeriods ?? Array.Empty<CompletedTpoPeriodSnapshot>();
     }
 
     public string AuctionId { get; }
@@ -72,13 +74,16 @@ public sealed class TpoProfileSnapshot
     public string Provenance { get; }
     public IReadOnlyList<string> KnownLimitations { get; }
     public TpoParityDiagnostic? ParityDiagnostic { get; }
+    /// <summary>Completed TPO periods only (developing excluded). OTF / Directional feed.</summary>
+    public IReadOnlyList<CompletedTpoPeriodSnapshot> CompletedPeriods { get; }
     public string Version => SnapshotVersion;
 
     public TpoProfileSnapshot WithParityDiagnostic(TpoParityDiagnostic? diagnostic) =>
         new(
             AuctionId, StartUtc, EndUtc, AnchorTimezone, AnchorLocalTime, PeriodMinutes,
             ProfileHigh, ProfileLow, TpoPoc, TpoVah, TpoVal, TotalTpoCount, CompletedPeriodCount,
-            DevelopingPeriodIndex, PriceLevelTpoCounts, DataQuality, Provenance, KnownLimitations, diagnostic);
+            DevelopingPeriodIndex, PriceLevelTpoCounts, DataQuality, Provenance, KnownLimitations,
+            diagnostic, CompletedPeriods);
 }
 
 /// <summary>
@@ -105,7 +110,6 @@ public static class ClassicTpoEngine
         var etZone = cfg.TimeZone;
         var limitations = new List<string>
         {
-            "OTF_NOT_IMPLEMENTED",
             "DEVELOPING_PERIOD_NOT_USED_FOR_OTF",
             "DEVELOPING_PERIOD_INCLUDED_IN_POC_AND_VA=true",
             "PERIOD_OWNERSHIP=BAR_START_UTC",
@@ -360,6 +364,20 @@ public static class ClassicTpoEngine
             operatorReferencePrice: parityReferencePrice);
 
         var totalTpo = counts.Values.Sum();
+        var completedPeriods = periodDiags
+            .Where(p => p.IsCompleted && !p.IsDeveloping && p.PeriodHigh is not null && p.PeriodLow is not null
+                        && p.HighTick is not null && p.LowTick is not null)
+            .OrderBy(p => p.PeriodIndex)
+            .Select(p => new CompletedTpoPeriodSnapshot(
+                p.PeriodIndex,
+                p.PeriodStartUtc,
+                p.PeriodEndUtc,
+                p.PeriodHigh!.Value,
+                p.PeriodLow!.Value,
+                p.HighTick!.Value,
+                p.LowTick!.Value))
+            .ToArray();
+
         return new TpoProfileSnapshot(
             auctionId, auctionStartUtc, auctionEndUtc,
             cfg.TimezoneId, cfg.AnchorLocalTime, cfg.PeriodMinutes,
@@ -369,7 +387,8 @@ public static class ClassicTpoEngine
             counts.Count > 0 ? ProfileDataQuality.Complete : ProfileDataQuality.Unknown,
             "ClassicTpoEngine/v1",
             limitations.Distinct(StringComparer.Ordinal).ToArray(),
-            diag);
+            diag,
+            completedPeriods);
     }
 
     private static Dictionary<long, IReadOnlyList<int>> BuildTickToPeriods(Dictionary<int, HashSet<long>> periodTouches)

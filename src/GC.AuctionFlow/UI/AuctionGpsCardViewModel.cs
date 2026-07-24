@@ -1,6 +1,7 @@
 using System.Globalization;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Runtime;
@@ -160,12 +161,20 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildStructuralReferenceLines(
             snapshot.StructuralReferences,
             snapshot.ShowStructuralReferenceDiagnostics));
+        details.AddRange(BuildDirectionalContextLines(
+            snapshot.DirectionalContext,
+            snapshot.ShowDirectionalContextDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
             {
-                "TACTICAL CONTEXT: NOT AVAILABLE",
-                "LOCATION: NOT AVAILABLE",
+                snapshot.DirectionalContext is null
+                    ? "TACTICAL CONTEXT: NOT AVAILABLE"
+                    : "TACTICAL CONTEXT: " + FormatDirectionalState(snapshot.DirectionalContext.TacticalContext.State)
+                      + " (DEVELOPING)",
+                snapshot.DirectionalContext is null
+                    ? "LOCATION: NOT AVAILABLE"
+                    : "LOCATION: " + snapshot.DirectionalContext.PriceLocation.CurrentPrimaryTpo,
                 "EPISODE: NOT AVAILABLE",
                 "THESIS: NOT AVAILABLE"
             }
@@ -350,6 +359,84 @@ public static class AuctionGpsCardMapper
 
         return rows;
     }
+
+    public static IReadOnlyList<string> BuildDirectionalContextLines(
+        DirectionalContextSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.Status == DirectionalModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.Status)
+        {
+            case DirectionalModuleState.AwaitingProfile:
+                rows.Add("DIRECTIONAL CONTEXT: AWAITING PROFILE");
+                rows.Add("DIRECTIONAL POLICY: " + set.PolicyVersion);
+                break;
+            case DirectionalModuleState.Partial:
+                rows.Add("DIRECTIONAL CONTEXT: PARTIAL");
+                rows.Add("DIRECTIONAL POLICY: " + set.PolicyVersion);
+                AppendDirectionalCoreRows(rows, set);
+                break;
+            case DirectionalModuleState.Ready:
+                rows.Add("DIRECTIONAL CONTEXT: READY");
+                rows.Add("DIRECTIONAL POLICY: " + set.PolicyVersion);
+                AppendDirectionalCoreRows(rows, set);
+                break;
+            case DirectionalModuleState.Invalid:
+                rows.Add("DIRECTIONAL CONTEXT: INVALID");
+                rows.Add("DIRECTIONAL POLICY: " + set.PolicyVersion);
+                rows.Add("DIRECTIONAL LIMITATION: " + (set.Limitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("DIRECTIONAL CONTEXT: " + set.Status.ToString().ToUpperInvariant());
+                break;
+        }
+
+        if (showDiagnostics
+            && set.Status is DirectionalModuleState.Ready or DirectionalModuleState.Partial)
+        {
+            var tac = set.TacticalContext;
+            var pair = tac.PrimaryPairwise;
+            rows.Add("DIR TRANSITIONS: " + set.StructuralContext.CompletedTransitionCount.ToString(CultureInfo.InvariantCulture));
+            rows.Add("DIR AUCTIONS: " + (tac.SourceAuctionIds.Count == 0 ? "—" : string.Join(",", tac.SourceAuctionIds)));
+            rows.Add("DIR TPO VALUE: " + tac.TpoValueMigration);
+            rows.Add("DIR TPO POC: " + tac.TpoPocMigration);
+            rows.Add("DIR VPOC: " + (pair?.ExactVolumeAvailable == true
+                ? tac.VolumePocMigration.ToString()
+                : "UNAVAILABLE"));
+            rows.Add("DIR PRIMARY LOC: " + set.PriceLocation.CurrentPrimaryTpo);
+            rows.Add("DIR PREV LOC: " + set.PriceLocation.PreviousPrimaryTpo);
+            rows.Add("DIR COMPOSITE LOC: " + set.PriceLocation.ConfirmedCompositeTpo);
+            rows.Add("DIR OTF PERIODS: " + set.OneTimeFraming.CompletedPeriodCount.ToString(CultureInfo.InvariantCulture)
+                     + " UP=" + set.OneTimeFraming.UpStreak.ToString(CultureInfo.InvariantCulture)
+                     + " DN=" + set.OneTimeFraming.DownStreak.ToString(CultureInfo.InvariantCulture));
+            rows.Add("DIR STRUCT VER: " + set.StructuralContext.StateVersion.ToString(CultureInfo.InvariantCulture));
+            rows.Add("DIR TACT VER: " + set.TacticalContext.StateVersion.ToString(CultureInfo.InvariantCulture));
+            rows.Add("DIR INPUT: " + Truncate(set.InputFingerprint, 96));
+            if (tac.Conflicts.Count > 0)
+                rows.Add("DIR CONFLICTS: " + string.Join(",", tac.Conflicts));
+            if (set.Limitations.Count > 0)
+                rows.Add("DIR LIMITATIONS: " + Truncate(string.Join(",", set.Limitations.Take(4)), 96));
+        }
+
+        return rows;
+    }
+
+    private static void AppendDirectionalCoreRows(List<string> rows, DirectionalContextSetSnapshot set)
+    {
+        rows.Add("STRUCTURAL STATE: " + FormatDirectionalState(set.StructuralContext.State));
+        rows.Add("TACTICAL STATE: " + FormatDirectionalState(set.TacticalContext.State) + " (DEVELOPING)");
+        rows.Add("OTF: " + FormatOtfState(set.OneTimeFraming.State));
+        rows.Add("PRICE LOCATION: " + set.PriceLocation.CurrentPrimaryTpo);
+    }
+
+    private static string FormatDirectionalState(DirectionalAuctionState state) =>
+        state.ToString().ToUpperInvariant();
+
+    private static string FormatOtfState(OneTimeFramingState state) =>
+        state.ToString().ToUpperInvariant();
 
     private static string Truncate(string value, int max)
     {

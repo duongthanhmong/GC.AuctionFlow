@@ -1,4 +1,5 @@
 using GC.AuctionFlow.Composite;
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 
@@ -7,7 +8,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.4.0";
+    public const string SnapshotVersion = "0.5.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -25,7 +26,9 @@ public sealed class GcaeRuntimeSnapshot
         CompositeSetSnapshot? composite = null,
         bool showCompositeDiagnostics = false,
         StructuralReferenceSetSnapshot? structuralReferences = null,
-        bool showStructuralReferenceDiagnostics = false)
+        bool showStructuralReferenceDiagnostics = false,
+        DirectionalContextSetSnapshot? directionalContext = null,
+        bool showDirectionalContextDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -43,6 +46,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowCompositeDiagnostics = showCompositeDiagnostics;
         StructuralReferences = structuralReferences;
         ShowStructuralReferenceDiagnostics = showStructuralReferenceDiagnostics;
+        DirectionalContext = directionalContext;
+        ShowDirectionalContextDiagnostics = showDirectionalContextDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -54,6 +59,7 @@ public sealed class GcaeRuntimeSnapshot
     public PrimaryProfileSetSnapshot? Profiles { get; }
     public CompositeSetSnapshot? Composite { get; }
     public StructuralReferenceSetSnapshot? StructuralReferences { get; }
+    public DirectionalContextSetSnapshot? DirectionalContext { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -65,6 +71,8 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowCompositeDiagnostics { get; }
     /// <summary>When true, GPS card includes bounded Structural Reference diagnostic rows. Default false.</summary>
     public bool ShowStructuralReferenceDiagnostics { get; }
+    /// <summary>When true, GPS card includes bounded Directional Context diagnostic rows. Default false.</summary>
+    public bool ShowDirectionalContextDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>
