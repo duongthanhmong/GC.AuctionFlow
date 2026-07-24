@@ -210,3 +210,52 @@
 - [x] Individual StateVersion and EventRevision sequences (**automated coverage**)
 - [x] History/live overlap dedup (**automated coverage**)
 - [x] No-lookahead historical replay where exact events supported (**automated coverage**)
+
+## Phase 1F Acceptance / Re-entry Evidence Measurement — code/test
+
+- [x] EvidenceId stability
+- [x] Phase 1E EpisodeMeasurementEvent feed consumption
+- [x] UpperBoundary eligibility
+- [x] LowerBoundary eligibility
+- [x] Centerline not-applicable behavior
+- [x] Acceptance observation mapping
+- [x] Re-entry observation mapping
+- [x] Outside time / volume / trade count
+- [x] Descriptive ratios + mathematical safety (no NaN/Infinity; zero denom → unavailable)
+- [x] Maximum outside excursion
+- [x] Local POC displacement
+- [x] Geometric re-entry / re-entry speed / maintained-inside / inside volume-trades
+- [x] Revision ownership; duplicate idempotence; lifecycle freeze
+- [x] Data Gate independence; MBO independence
+- [x] Runtime schema 0.7.0; ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1; assembly 0.0.6
+- [x] GPS/card integration; no Episode mutation; no prohibited wording
+- [x] GCAE tests green (458 passed / 0 failed / 0 skipped)
+- [x] 0 build errors / 0 warnings
+- [x] Source/deployed DLL hash match `1FDEBBB3E4E94497157FF6FA7D621760028AA516497BAB8800D88CF5C9E07249`
+- [x] Focused live acceptance gate PASS
+- [x] FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION — commit/tag
+
+## Phase 1F live acceptance (operator — focused first gate) — PASS
+
+- [x] GCQ6 / Rithmic Live; Primary + Composite READY; References READY; Directional READY; Episodes ON; Evidence ON; Evidence Diagnostics ON; Preview OFF; MBO OFF
+- [x] Card: ACCEPTANCE/REENTRY EVIDENCE PARTIAL; POLICY V1; EVIDENCE HISTORY LIVE_ONLY; ACTIVE EVIDENCE SETS 2
+- [x] UpperBoundary PreviousPrimaryTpoVah @ 4063.9; ACCEPTANCE OBS UNRESOLVED; REENTRY OBS GEOMETRICREENTRY
+- [x] Outside ratios time 0.4242 / volume 0.4479 / trade 0.4404; Local POC displacement −8 ticks
+- [x] Episode remained REENTRYDEVELOPING AttemptCount 1 max excursion 29 ticks — no Resolution mutation
+- [x] DATA DEGRADED independent; MBO BLOCKED; no prohibited wording
+- [x] Source/deployed DLL SHA match
+
+### Automated-only (not manually observed live)
+
+- [x] OutsideAttempt → AcceptanceObservation Early (**automated**)
+- [x] Continued outside → Developing (**automated**)
+- [x] Outside/inside time and volume segmentation (**automated**)
+- [x] Zero denominator → unavailable; no NaN/Infinity (**automated**)
+- [x] LowerBoundary symmetry (**automated**)
+- [x] First geometric re-entry timestamp / exact ReentrySpeed (**automated**)
+- [x] Returned-inside distance / TimeMaintainedInside / inside volume-trades (**automated**)
+- [x] Second outside attempt / reattempt; same EvidenceId (**automated**)
+- [x] Duplicate event idempotence; StateVersion/EventRevision sequences (**automated**)
+- [x] Episode expiry freeze; Primary Auction close; disable/re-enable (**automated**)
+- [x] Stale revision rejection; deterministic replay (**automated**)
+- [x] Centerline not-applicable; bid/ask variants; invalid epoch/tick/timestamp fail-closed (**automated**)

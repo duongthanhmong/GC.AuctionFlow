@@ -184,6 +184,10 @@ public sealed class AuctionEpisodeHost
         return _published;
     }
 
+    /// <summary>Drain Phase 1E → Phase 1F read-only measurement events after ProcessTrade.</summary>
+    public IReadOnlyList<EpisodeMeasurementEvent> DrainMeasurementEvents() =>
+        _registry.DrainMeasurementEvents();
+
     /// <summary>Record a mapper/normalization failure without fabricating an episode.</summary>
     public AuctionEpisodeSetSnapshot NoteMappingReject(string reason, DateTime? nowUtc = null)
     {

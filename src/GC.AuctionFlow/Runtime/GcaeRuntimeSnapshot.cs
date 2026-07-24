@@ -1,6 +1,7 @@
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
+using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 
@@ -9,7 +10,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.6.0";
+    public const string SnapshotVersion = "0.7.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -31,7 +32,9 @@ public sealed class GcaeRuntimeSnapshot
         DirectionalContextSetSnapshot? directionalContext = null,
         bool showDirectionalContextDiagnostics = false,
         AuctionEpisodeSetSnapshot? auctionEpisodes = null,
-        bool showAuctionEpisodeDiagnostics = false)
+        bool showAuctionEpisodeDiagnostics = false,
+        AcceptanceReentryEvidenceSetSnapshot? acceptanceReentryEvidence = null,
+        bool showAcceptanceReentryEvidenceDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -53,6 +56,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowDirectionalContextDiagnostics = showDirectionalContextDiagnostics;
         AuctionEpisodes = auctionEpisodes;
         ShowAuctionEpisodeDiagnostics = showAuctionEpisodeDiagnostics;
+        AcceptanceReentryEvidence = acceptanceReentryEvidence;
+        ShowAcceptanceReentryEvidenceDiagnostics = showAcceptanceReentryEvidenceDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -66,6 +71,7 @@ public sealed class GcaeRuntimeSnapshot
     public StructuralReferenceSetSnapshot? StructuralReferences { get; }
     public DirectionalContextSetSnapshot? DirectionalContext { get; }
     public AuctionEpisodeSetSnapshot? AuctionEpisodes { get; }
+    public AcceptanceReentryEvidenceSetSnapshot? AcceptanceReentryEvidence { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -76,6 +82,7 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowStructuralReferenceDiagnostics { get; }
     public bool ShowDirectionalContextDiagnostics { get; }
     public bool ShowAuctionEpisodeDiagnostics { get; }
+    public bool ShowAcceptanceReentryEvidenceDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

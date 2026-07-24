@@ -334,12 +334,12 @@ public sealed class Phase1EAuctionEpisodeTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: host.Current);
-        Assert.Equal("0.6.0", snap.Version);
+        Assert.Equal("0.7.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
     }
 
     [Fact]
-    public void J_GpsRows_NoProhibitedWording_Phase1FNotStarted()
+    public void J_GpsRows_NoProhibitedWording_ThesisFarNotStarted()
     {
         var host = Host();
         var r = Ref(ReferenceType.PreviousPrimaryTpoVah, 100.2m);
@@ -365,12 +365,14 @@ public sealed class Phase1EAuctionEpisodeTests
         Assert.Contains("MBO: BLOCKED", vm.MboLine, StringComparison.Ordinal);
 
         var root = FindRepoRoot();
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Acceptance")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
+        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableAuctionEpisodes", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptanceOutside", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("SweepDetector", indicator, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
     }
 
     [Fact]

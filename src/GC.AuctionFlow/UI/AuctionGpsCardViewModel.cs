@@ -3,6 +3,7 @@ using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
+using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Runtime;
@@ -168,6 +169,9 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildAuctionEpisodeLines(
             snapshot.AuctionEpisodes,
             snapshot.ShowAuctionEpisodeDiagnostics));
+        details.AddRange(BuildAcceptanceReentryEvidenceLines(
+            snapshot.AcceptanceReentryEvidence,
+            snapshot.ShowAcceptanceReentryEvidenceDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -182,6 +186,9 @@ public static class AuctionGpsCardMapper
                 snapshot.AuctionEpisodes is null
                     ? "EPISODE: NOT AVAILABLE"
                     : "EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.AcceptanceReentryEvidence is null
+                    ? "ACCEPTANCE/REENTRY EVIDENCE: NOT AVAILABLE"
+                    : "ACCEPTANCE/REENTRY EVIDENCE: " + snapshot.AcceptanceReentryEvidence.ModuleState.ToString().ToUpperInvariant(),
                 "THESIS: NOT AVAILABLE"
             }
             : new List<string>();
@@ -542,6 +549,106 @@ public static class AuctionGpsCardMapper
             rows.Add("MAX EXCURSION: " + maxExc.ToString(CultureInfo.InvariantCulture) + " ticks");
         }
     }
+
+    public static IReadOnlyList<string> BuildAcceptanceReentryEvidenceLines(
+        AcceptanceReentryEvidenceSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.ModuleState == EvidenceModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.ModuleState)
+        {
+            case EvidenceModuleState.AwaitingEpisodes:
+                rows.Add("ACCEPTANCE/REENTRY EVIDENCE: AWAITING EPISODE");
+                rows.Add("EVIDENCE POLICY: " + set.PolicyVersion);
+                break;
+            case EvidenceModuleState.Partial:
+                rows.Add("ACCEPTANCE/REENTRY EVIDENCE: PARTIAL");
+                rows.Add("EVIDENCE POLICY: " + set.PolicyVersion);
+                AppendEvidenceCoreRows(rows, set);
+                break;
+            case EvidenceModuleState.Ready:
+                rows.Add("ACCEPTANCE/REENTRY EVIDENCE: READY");
+                rows.Add("EVIDENCE POLICY: " + set.PolicyVersion);
+                AppendEvidenceCoreRows(rows, set);
+                break;
+            case EvidenceModuleState.Invalid:
+                rows.Add("ACCEPTANCE/REENTRY EVIDENCE: INVALID");
+                rows.Add("EVIDENCE POLICY: " + set.PolicyVersion);
+                rows.Add("EVIDENCE LIMITATION: " + (set.Limitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("ACCEPTANCE/REENTRY EVIDENCE: " + set.ModuleState.ToString().ToUpperInvariant());
+                break;
+        }
+
+        rows.Add("EVIDENCE HISTORY: LIVE_ONLY");
+
+        if (showDiagnostics
+            && set.ModuleState is EvidenceModuleState.Ready or EvidenceModuleState.Partial or EvidenceModuleState.AwaitingEpisodes)
+        {
+            rows.Add("EVIDENCE REGISTRY REV: " + set.RegistryRevision.ToString(CultureInfo.InvariantCulture));
+            var latest = set.LatestUpdatedEvidence;
+            if (latest is not null)
+            {
+                rows.Add("EVIDENCE ID: " + Truncate(latest.EvidenceId, 96));
+                rows.Add("EVIDENCE EPISODE ID: " + Truncate(latest.EpisodeId, 72));
+                rows.Add("EVIDENCE REF ID: " + Truncate(latest.ReferenceId, 64));
+                rows.Add("EVIDENCE ATTEMPTS: " + latest.Acceptance.AttemptCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE OUT SEGMENTS: " + latest.Acceptance.OutsideSegmentCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE OUT TIME: " + latest.Acceptance.OutsideTime.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture) + "s");
+                rows.Add("EVIDENCE OUT VOL: " + latest.Acceptance.OutsideExecutedVolume.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE OUT TRADES: " + latest.Acceptance.OutsideTradeCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE AGGRESSOR: " + latest.Acceptance.AggressorEvidenceAvailability);
+                rows.Add("EVIDENCE LOCAL POC: " + (latest.Acceptance.LocalPocTick?.ToString(CultureInfo.InvariantCulture) ?? "—"));
+                rows.Add("EVIDENCE STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE REATTEMPTS: " + latest.Reentry.OutsideReattemptCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EVIDENCE REF TESTS: " + latest.Reentry.SubsequentReferenceTestCount.ToString(CultureInfo.InvariantCulture));
+            }
+
+            if (set.Limitations.Count > 0)
+                rows.Add("EVIDENCE LIMITATIONS: " + Truncate(string.Join(",", set.Limitations.Take(4)), 96));
+        }
+
+        return rows;
+    }
+
+    private static void AppendEvidenceCoreRows(List<string> rows, AcceptanceReentryEvidenceSetSnapshot set)
+    {
+        rows.Add("ACTIVE EVIDENCE SETS: " + set.ActiveEvidence.Count.ToString(CultureInfo.InvariantCulture));
+        var latest = set.LatestUpdatedEvidence;
+        rows.Add("LATEST ACCEPTANCE OBS: " + (latest is null ? "NONE" : latest.AcceptanceObservationState.ToString().ToUpperInvariant()));
+        rows.Add("LATEST REENTRY OBS: " + (latest is null ? "NONE" : latest.ReentryObservationState.ToString().ToUpperInvariant()));
+        if (latest is not null)
+        {
+            rows.Add("EVIDENCE REF: " + latest.ReferenceType + " @ " + latest.ReferencePrice.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EVIDENCE ROLE: " + FormatEpisodeRole(latest.ReferenceRole));
+            if (latest.ReferenceRole == ReferenceInteractionRole.Centerline)
+            {
+                rows.Add("ACCEPTANCE OBS: NOT APPLICABLE");
+                rows.Add("REENTRY OBS: NOT APPLICABLE");
+            }
+            else
+            {
+                rows.Add("ACCEPTANCE OBS: " + latest.AcceptanceObservationState.ToString().ToUpperInvariant());
+                rows.Add("REENTRY OBS: " + latest.ReentryObservationState.ToString().ToUpperInvariant());
+                rows.Add("OUTSIDE TIME RATIO: " + FormatRatio(latest.Acceptance.OutsideTimeRatio));
+                rows.Add("OUTSIDE VOLUME RATIO: " + FormatRatio(latest.Acceptance.OutsideVolumeRatio));
+                rows.Add("OUTSIDE TRADE RATIO: " + FormatRatio(latest.Acceptance.OutsideTradeCountRatio));
+                rows.Add("LOCAL POC DISPLACEMENT: " + (latest.Acceptance.LocalPocDisplacementTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable") + " ticks");
+                rows.Add("GEOMETRIC REENTRY: " + (latest.Reentry.GeometricReentryObserved ? "YES" : "NO"));
+                rows.Add("TIME MAINTAINED INSIDE: " + (latest.Reentry.TimeMaintainedInside > TimeSpan.Zero
+                    ? latest.Reentry.TimeMaintainedInside.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture) + "s"
+                    : "unavailable"));
+            }
+        }
+    }
+
+    private static string FormatRatio(decimal? ratio) =>
+        ratio is null ? "unavailable" : ratio.Value.ToString("0.####", CultureInfo.InvariantCulture);
 
     private static string FormatEpisodeRole(ReferenceInteractionRole role) => role switch
     {

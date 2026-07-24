@@ -5,6 +5,7 @@ using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
+using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
@@ -45,6 +46,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private DirectionalInputFingerprint? _lastAppliedDirectionalFingerprint;
     private AuctionEpisodeHost? _episodeHost;
     private EpisodeInputFingerprint? _lastAppliedEpisodeFingerprint;
+    private AcceptanceReentryEvidenceHost? _evidenceHost;
+    private EvidenceInputFingerprint? _lastAppliedEvidenceFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -87,6 +90,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableOneTimeFraming = true;
         EnableAuctionEpisodes = false;
         ShowAuctionEpisodeDiagnostics = false;
+        EnableAcceptanceReentryEvidence = false;
+        ShowAcceptanceReentryEvidenceDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -295,6 +300,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Episode metrics and limitations. Default false. No Acceptance/FAR/AAC/alerts.")]
     public bool ShowAuctionEpisodeDiagnostics { get; set; }
 
+    [Category("Acceptance / Re-entry Evidence")]
+    [DisplayName("Enable Acceptance Re-entry Evidence")]
+    [Description("Raw Acceptance/Re-entry evidence measurement (ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1). Default false. No resolution/FAR/AAC.")]
+    public bool EnableAcceptanceReentryEvidence { get; set; }
+
+    [Category("Acceptance / Re-entry Evidence")]
+    [DisplayName("Show Acceptance Re-entry Diagnostics")]
+    [Description("Evidence vector diagnostics. Default false. No Established Acceptance/Stable Reacceptance wording.")]
+    public bool ShowAcceptanceReentryEvidenceDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -310,6 +325,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessStructuralReferences();
             ProcessDirectionalContext();
             ProcessAuctionEpisodes();
+            ProcessAcceptanceReentryEvidence();
             PublishRuntimeSnapshot();
         }
     }
@@ -684,10 +700,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _referenceHost = null;
                 _directionalHost = null;
                 _episodeHost = null;
+                _evidenceHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
                 _lastAppliedEpisodeFingerprint = null;
+                _lastAppliedEvidenceFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -1104,11 +1122,78 @@ public sealed class GcAuctionFlowIndicator : Indicator
             host.ProcessTrade(evt);
             if (host.LastAppliedFingerprint is { } fp)
                 _lastAppliedEpisodeFingerprint = fp;
+
+            if (EnableAcceptanceReentryEvidence)
+            {
+                EnsureAcceptanceReentryEvidenceInitializedForPublish();
+                var measurements = host.DrainMeasurementEvents();
+                if (measurements.Count > 0)
+                    _evidenceHost?.ProcessMeasurementEvents(measurements, host.Current);
+            }
         }
         catch
         {
             // Contained.
         }
+    }
+
+    private void ProcessAcceptanceReentryEvidence()
+    {
+        if (!EnableAcceptanceReentryEvidence || Volatile.Read(ref _disposed) != 0)
+        {
+            _evidenceHost = null;
+            _lastAppliedEvidenceFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new AcceptanceReentryEvidencePolicyConfig(enabled: true);
+            var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+
+            _evidenceHost ??= new AcceptanceReentryEvidenceHost(tick, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _evidenceHost.Configure(tick, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _evidenceHost.RebuildContext(episodes);
+
+            if (_evidenceHost.Current is not null && _evidenceHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedEvidenceFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureAcceptanceReentryEvidenceInitializedForPublish()
+    {
+        if (!EnableAcceptanceReentryEvidence || Volatile.Read(ref _disposed) != 0)
+        {
+            _evidenceHost = null;
+            _lastAppliedEvidenceFingerprint = null;
+            return;
+        }
+
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+        var current = EvidenceInputFingerprint.Build(
+            true, episodes, tick, epoch, AtasTimestampNormalizer.PolicyVersion);
+
+        if (!EvidencePublishInitialization.ShouldProcess(
+                EnableAcceptanceReentryEvidence,
+                episodes,
+                _evidenceHost,
+                _lastAppliedEvidenceFingerprint,
+                current))
+            return;
+
+        ProcessAcceptanceReentryEvidence();
     }
 
     /// <summary>
@@ -1297,12 +1382,14 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureStructuralReferencesInitializedForPublish();
             EnsureDirectionalContextInitializedForPublish();
             EnsureAuctionEpisodesInitializedForPublish();
+            EnsureAcceptanceReentryEvidenceInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
             var references = EnableStructuralReferences ? _referenceHost?.Current : null;
             var directional = EnableDirectionalContext ? _directionalHost?.Current : null;
             var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+            var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1328,7 +1415,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 directionalContext: directional,
                 showDirectionalContextDiagnostics: ShowDirectionalContextDiagnostics,
                 auctionEpisodes: episodes,
-                showAuctionEpisodeDiagnostics: ShowAuctionEpisodeDiagnostics);
+                showAuctionEpisodeDiagnostics: ShowAuctionEpisodeDiagnostics,
+                acceptanceReentryEvidence: evidence,
+                showAcceptanceReentryEvidenceDiagnostics: ShowAcceptanceReentryEvidenceDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

@@ -411,8 +411,8 @@ public sealed class Phase1CStructuralReferenceTests
             indicatorDisposed: false,
             profiles: profiles,
             structuralReferences: null);
-        Assert.Equal("0.6.0", GcaeRuntimeSnapshot.SnapshotVersion);
-        Assert.Equal("0.6.0", snap.Version);
+        Assert.Equal("0.7.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.7.0", snap.Version);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
         // Bid/Ask unknown keeps degraded independently of references.
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
@@ -545,19 +545,22 @@ public sealed class Phase1CStructuralReferenceTests
     // --- I. Regression / scope ---
 
     [Fact]
-    public void Source_scope_no_phase1f_acceptance_or_thesis_wiring()
+    public void Source_scope_no_phase1g_thesis_or_far_wiring()
     {
         var root = FindRepoRoot();
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableStructuralReferences = false", indicator, StringComparison.Ordinal);
         Assert.Contains("REFERENCE_POLICY_V1", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableAuctionEpisodes = false", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableAcceptanceReentryEvidence = false", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("DirectionalAuction", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("ProductionThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("FarAacEngine", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("AcceptanceReentry", indicator, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("TradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("Telegram", indicator, StringComparison.Ordinal);
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
+        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
 
         var refDir = Path.Combine(root, "src", "GC.AuctionFlow", "Reference");
         foreach (var file in Directory.GetFiles(refDir, "*.cs"))

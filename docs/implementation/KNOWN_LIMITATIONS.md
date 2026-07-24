@@ -137,5 +137,24 @@
 95. OAC contamination remains outside GCAE Phase 1E scope.
 96. **Live AWAITING TRADES wiring defect (fixed, D-P1E-002):** Episode admission must not depend on Trade Stream Probe enablement.
 97. **Documented live state-machine coverage limitation:** repeated-attempt / geometric re-entry / auction expiry / reference retirement / disable-reenable / stale ordering / exact revision sequences / history-live overlap / LocalPoc ties were not all manually observed live; covered by automated tests. Core live gate (PARTIAL, natural ACTIVE episodes, Centerline) was live-verified.
-98. **No Phase 1F behavior** (Acceptance / Re-entry Resolution / FAR/AAC / Orderflow / Thesis / Entry / Risk).
+98. ~~**No Phase 1F behavior**~~ — **superseded by Phase 1F Acceptance / Re-entry Evidence Measurement** (measurement only; still no resolution conclusions / FAR/AAC / Thesis / Entry / Risk).
 99. Live-accepted closeout DLL SHA-256: `924DB65C4D719D831926C81392AF600A332CD6BFF81401C5B6FC9E30CDFACBC2`. Tag: `gcae-p1e-auction-episode-observation-pass`.
+
+## Phase 1F Acceptance / Re-entry Evidence Measurement Foundation (LOCKED — FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION)
+
+100. **Measurement ≠ resolution.** No Established/Failed Acceptance; no StableReaccepted/ReentryFailed.
+101. **LIVE_ONLY** evidence history inherited from Episode — no candle OHLC backfill / reconstruction.
+102. **Boundary episodes only** for canonical Acceptance Outside / Re-entry geometry.
+103. **Centerline** marked `CENTERLINE_ACCEPTANCE_GEOMETRY_NOT_APPLICABLE` — no canonical outside ratios or reentry conclusions.
+104. **No OutsideCloseRatio / TPO outside count / Local Value rebuild / OldValueReclaimFailure / RetestHoldQuality** unless exact feed/policy later authorized.
+105. **No opposite-aggression effectiveness** / Orderflow interpretation (`OPPOSITE_AGGRESSION_INTERPRETATION_NOT_AUTHORIZED`).
+106. Bid/Ask / delta may be **unavailable** (Partial) — never fabricate zero aggressor evidence.
+107. **No FAR/AAC**, Thesis, Entry/Risk, Long/Short, probability/confidence, alerts, or Phase 1F chart overlay.
+108. **No invented** acceptance / maintenance / stable-reentry / reclaim / retest thresholds.
+109. Phase 1F does **not mutate** Episode State, Resolution, or AttemptCount.
+110. Module Ready/Partial does **not clear** global DATA DEGRADED. MBO/DOM/OI not required; MBO remains blocked.
+111. OAC contamination remains outside GCAE Phase 1F scope.
+112. **No Phase 2 Executed Orderflow** interpretation.
+113. **Documented live evidence-lifecycle coverage limitation:** full outside/inside segmentation, LowerBoundary symmetry, zero-denominator ratios, repeated attempts, exact revision sequences, lifecycle freeze/reset, Centerline not-applicable, bid/ask variants, compatibility fail-closed, and deterministic replay were not all manually observed live; covered by automated tests. Core live gate (PARTIAL UpperBoundary evidence, finite ratios, geometric re-entry, Local POC displacement, observer-only) was live-verified.
+114. Live-accepted closeout DLL SHA-256: `1FDEBBB3E4E94497157FF6FA7D621760028AA516497BAB8800D88CF5C9E07249`. Tag: `gcae-p1f-acceptance-reentry-evidence-measurement-pass`.
+115. Acceptance/Re-entry Resolution, FAR/AAC, and Phase 2 Executed Orderflow remain **NOT STARTED**.

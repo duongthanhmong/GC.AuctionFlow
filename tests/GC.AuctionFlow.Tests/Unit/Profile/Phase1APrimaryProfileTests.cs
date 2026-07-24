@@ -277,10 +277,12 @@ public sealed class Phase1APrimaryProfileTests
         Assert.DoesNotMatch(new System.Text.RegularExpressions.Regex(@"^\s*this\s*\[\s*bar\s*\]\s*=", System.Text.RegularExpressions.RegexOptions.Multiline), src);
         Assert.Contains("EnableAuctionEpisodes = false", src, StringComparison.Ordinal);
         Assert.Contains("EnableStructuralReferences = false", src, StringComparison.Ordinal);
+        Assert.Contains("EnableAcceptanceReentryEvidence = false", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DirectionalAuction", src, StringComparison.Ordinal);
         Assert.DoesNotContain("ProductionThesis", src, StringComparison.Ordinal);
         Assert.DoesNotContain("FarAac", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("AcceptanceReentry", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableThesis", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("AcceptedOutside", src, StringComparison.Ordinal);
     }
 
     private static ProfileBarObservation Bar(

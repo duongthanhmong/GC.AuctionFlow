@@ -12,6 +12,7 @@ public sealed class AuctionEpisodeRegistry
     private readonly Dictionary<string, MutableEpisode> _active = new(StringComparer.Ordinal);
     private readonly Queue<AuctionEpisodeSnapshot> _recentlyClosed = new();
     private readonly EpisodeEventLedger _ledger = new();
+    private readonly List<EpisodeMeasurementEvent> _pendingMeasurements = new();
     private string _primaryAuctionId = "";
     private string _instrumentIdentity = "Unknown";
     private string _dataEpoch = "Unknown";
@@ -35,6 +36,16 @@ public sealed class AuctionEpisodeRegistry
     public bool AnyAggressorUnavailable => _anyAggressorUnavailable;
     public string PrimaryAuctionId => _primaryAuctionId;
 
+    /// <summary>Drain read-only measurement events for Phase 1F. Does not alter Episode state.</summary>
+    public IReadOnlyList<EpisodeMeasurementEvent> DrainMeasurementEvents()
+    {
+        if (_pendingMeasurements.Count == 0)
+            return Array.Empty<EpisodeMeasurementEvent>();
+        var arr = _pendingMeasurements.ToArray();
+        _pendingMeasurements.Clear();
+        return arr;
+    }
+
     public void Configure(decimal tickSize, string instrumentIdentity, string dataEpoch, string timestampPolicyVersion)
     {
         if (tickSize <= 0m) throw new ArgumentOutOfRangeException(nameof(tickSize));
@@ -51,6 +62,7 @@ public sealed class AuctionEpisodeRegistry
         _active.Clear();
         _recentlyClosed.Clear();
         _ledger.Clear();
+        _pendingMeasurements.Clear();
         _primaryAuctionId = "";
         _registryRevision = 0;
         _latestUpdated = null;
@@ -155,6 +167,8 @@ public sealed class AuctionEpisodeRegistry
                 ep = CreateNew(reference, role, evt, directionalProvenance, nowUtc, EpisodeState.Interacting, attemptCount: 0);
                 _active[key] = ep;
                 PublishLatest(ep);
+                EmitMeasurement(ep, evt, side, EpisodeState.Interacting, created: true,
+                    attemptIncremented: false, outsideOpened: false, outsideClosed: false, reentry: false);
                 return true;
             }
 
@@ -165,6 +179,8 @@ public sealed class AuctionEpisodeRegistry
                 ApplyOutsideMetrics(ep, evt, side, nowUtc, isNewOutsideSegment: true);
                 _active[key] = ep;
                 PublishLatest(ep);
+                EmitMeasurement(ep, evt, side, EpisodeState.OutsideAttempt, created: true,
+                    attemptIncremented: true, outsideOpened: true, outsideClosed: false, reentry: false);
                 return true;
             }
 
@@ -175,6 +191,7 @@ public sealed class AuctionEpisodeRegistry
         // Existing episode
         var prevSide = ep.LastSide;
         var prevState = ep.State;
+        var attemptBefore = ep.AttemptCount;
         ep.InteractionCount++;
         ep.LastProcessedEventId = evt.EventIdentity;
         ep.LastUpdatedAtUtc = nowUtc;
@@ -188,6 +205,9 @@ public sealed class AuctionEpisodeRegistry
 
         var semanticChanged = false;
         var metricChanged = false;
+        var outsideOpened = false;
+        var outsideClosed = false;
+        var reentry = false;
 
         if (role == ReferenceInteractionRole.Centerline)
         {
@@ -195,7 +215,8 @@ public sealed class AuctionEpisodeRegistry
         }
         else
         {
-            metricChanged |= UpdateBoundary(ep, evt, role, side, prevSide, ref semanticChanged);
+            metricChanged |= UpdateBoundary(ep, evt, role, side, prevSide, ref semanticChanged,
+                out outsideOpened, out outsideClosed, out reentry);
         }
 
         ep.LastSide = side;
@@ -212,7 +233,48 @@ public sealed class AuctionEpisodeRegistry
         }
 
         PublishLatest(ep);
+        EmitMeasurement(ep, evt, side, prevState, created: false,
+            attemptIncremented: ep.AttemptCount > attemptBefore,
+            outsideOpened: outsideOpened, outsideClosed: outsideClosed, reentry: reentry);
         return true;
+    }
+
+    private void EmitMeasurement(
+        MutableEpisode ep,
+        EpisodeTradeEvent evt,
+        ReferenceSidePosition side,
+        EpisodeState stateBefore,
+        bool created,
+        bool attemptIncremented,
+        bool outsideOpened,
+        bool outsideClosed,
+        bool reentry)
+    {
+        var dist = Math.Abs(evt.PriceTick - ep.ReferencePriceTick);
+        _pendingMeasurements.Add(new EpisodeMeasurementEvent(
+            ep.EpisodeId,
+            evt.EventIdentity,
+            evt.LocalMonotonicSequence,
+            evt.ReceiveUtc,
+            evt.PriceTick,
+            evt.Volume,
+            evt.IsAsk,
+            evt.IsBid,
+            evt.AggressorClassified,
+            ep.ReferenceId,
+            ep.ReferenceRole,
+            ep.ReferencePriceTick,
+            side,
+            stateBefore,
+            ep.State,
+            ep.AttemptCount,
+            dist,
+            attemptIncremented,
+            outsideOpened,
+            outsideClosed,
+            reentry,
+            created,
+            ep.EventRevision));
     }
 
     private bool UpdateCenterline(
@@ -272,11 +334,17 @@ public sealed class AuctionEpisodeRegistry
         ReferenceInteractionRole role,
         ReferenceSidePosition side,
         ReferenceSidePosition prevSide,
-        ref bool semanticChanged)
+        ref bool semanticChanged,
+        out bool outsideOpened,
+        out bool outsideClosed,
+        out bool geometricReentry)
     {
         var outside = ReferenceInteractionRoleMapper.CanonicalOutsideSide(role)!.Value;
         var inside = ReferenceInteractionRoleMapper.CanonicalInsideSide(role)!.Value;
         var changed = false;
+        outsideOpened = false;
+        outsideClosed = false;
+        geometricReentry = false;
 
         var wasOutside = prevSide == outside;
         var isOutside = side == outside;
@@ -297,6 +365,7 @@ public sealed class AuctionEpisodeRegistry
             ep.State = EpisodeState.OutsideAttempt;
             semanticChanged = true;
             ApplyOutsideMetrics(ep, evt, side, evt.ReceiveUtc, isNewOutsideSegment: true);
+            outsideOpened = true;
             changed = true;
         }
         else if (wasOutside && isOutside)
@@ -315,6 +384,8 @@ public sealed class AuctionEpisodeRegistry
             ep.CloseOutsideSegment(evt.ReceiveUtc);
             ep.State = EpisodeState.ReentryDeveloping;
             semanticChanged = true;
+            outsideClosed = true;
+            geometricReentry = true;
             changed = true;
         }
 
