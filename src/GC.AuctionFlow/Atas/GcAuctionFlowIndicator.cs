@@ -4,6 +4,7 @@ using ATAS.Indicators;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
@@ -42,6 +43,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private DirectionalContextHost? _directionalHost;
     /// <summary>Last input fingerprint successfully applied to the published Directional Context snapshot.</summary>
     private DirectionalInputFingerprint? _lastAppliedDirectionalFingerprint;
+    private AuctionEpisodeHost? _episodeHost;
+    private EpisodeInputFingerprint? _lastAppliedEpisodeFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -82,6 +85,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableDirectionalContext = false;
         ShowDirectionalContextDiagnostics = false;
         EnableOneTimeFraming = true;
+        EnableAuctionEpisodes = false;
+        ShowAuctionEpisodeDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -280,6 +285,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Completed TPO period OTF evidence when Directional Context enabled. Default true. Confirmed OTF reserved.")]
     public bool EnableOneTimeFraming { get; set; }
 
+    [Category("Auction Episodes")]
+    [DisplayName("Enable Auction Episodes")]
+    [Description("Geometric Reference Excursion observation (AUCTION_EPISODE_POLICY_V1). Default false. No Acceptance/Sweep/Long-Short.")]
+    public bool EnableAuctionEpisodes { get; set; }
+
+    [Category("Auction Episodes")]
+    [DisplayName("Show Auction Episode Diagnostics")]
+    [Description("Episode metrics and limitations. Default false. No Acceptance/FAR/AAC/alerts.")]
+    public bool ShowAuctionEpisodeDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -294,6 +309,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessComposite();
             ProcessStructuralReferences();
             ProcessDirectionalContext();
+            ProcessAuctionEpisodes();
             PublishRuntimeSnapshot();
         }
     }
@@ -333,6 +349,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTrade, probe.NextSequence(), key);
             probe.TryEnqueueNewTrade(obs, EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
             TryRecordNewTrade(trade, RecorderCallbackSource.OnNewTrade);
+            TryProcessEpisodeTrade(obs);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
         PublishRuntimeSnapshot();
@@ -369,6 +386,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     FeedProviderProvenance.ToString(),
                     probePerItem: (trade, _) =>
                     {
+                        // Episode admission is independent of TradeStreamProbe enable/gates.
+                        var obs = MapNormalizedNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, key);
+                        if (obs is not null)
+                            TryProcessEpisodeTrade(obs);
+
                         if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); return; }
                         var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
                         if (!gate.Accepted)
@@ -378,8 +400,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                             return;
                         }
 
-                        var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, probe.NextSequence(), key);
-                        probe.TryEnqueueNewTradeAlreadyCounted(obs);
+                        if (obs is not null)
+                            probe.TryEnqueueNewTradeAlreadyCounted(obs);
                     });
             }
             else
@@ -388,6 +410,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 foreach (var trade in trades)
                 {
                     if (trade is null) continue;
+
+                    // One normalization → Episode always; probe enqueue only when gated.
+                    var obs = MapNormalizedNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, key);
+                    if (obs is not null)
+                        TryProcessEpisodeTrade(obs);
+
                     if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); continue; }
                     var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
                     if (!gate.Accepted)
@@ -396,14 +424,27 @@ public sealed class GcAuctionFlowIndicator : Indicator
                         else probe.Counters.IncRejectedByModeGate();
                         continue;
                     }
-                    var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, probe.NextSequence(), key);
-                    probe.TryEnqueueNewTradeAlreadyCounted(obs);
+
+                    if (obs is not null)
+                        probe.TryEnqueueNewTradeAlreadyCounted(obs);
                 }
             }
         }
         catch { probe.Counters.IncNormalizationFailures(); }
         // P0-04B: do not call base.OnNewTrades
         PublishRuntimeSnapshot();
+    }
+
+    private NewTradeObservation? MapNormalizedNewTrade(
+        MarketDataArg trade,
+        TradeCallbackSource source,
+        string instrumentIdentityKey)
+    {
+        var probe = _tradeProbe;
+        var mapper = _tradeMapper;
+        if (probe is null || mapper is null || trade is null)
+            return null;
+        return mapper.MapNewTrade(trade, source, probe.NextSequence(), instrumentIdentityKey);
     }
 
     protected override void OnCumulativeTrade(CumulativeTrade trade)
@@ -642,9 +683,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _compositeHost = null;
                 _referenceHost = null;
                 _directionalHost = null;
+                _episodeHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
+                _lastAppliedEpisodeFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -998,6 +1041,76 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessAuctionEpisodes()
+    {
+        if (!EnableAuctionEpisodes || Volatile.Read(ref _disposed) != 0)
+        {
+            _episodeHost = null;
+            _lastAppliedEpisodeFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new EpisodePolicyConfig(enabled: true);
+            var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+            var references = EnableStructuralReferences ? _referenceHost?.Current : null;
+            var directional = EnableDirectionalContext ? _directionalHost?.Current : null;
+
+            _episodeHost ??= new AuctionEpisodeHost(tick, identity, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _episodeHost.Configure(tick, identity, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _episodeHost.RebuildContext(profiles, references, directional);
+
+            if (_episodeHost.Current is not null && _episodeHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedEpisodeFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void TryProcessEpisodeTrade(NewTradeObservation obs)
+    {
+        if (!EnableAuctionEpisodes || obs is null || Volatile.Read(ref _disposed) != 0)
+            return;
+        try
+        {
+            EnsureAuctionEpisodesInitializedForPublish();
+            var host = _episodeHost;
+            if (host is null)
+                return;
+
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var grid = new PriceGrid(tick);
+            var evt = EpisodeTradeEvent.TryFromNewTrade(
+                obs, tick, epoch, AtasTimestampNormalizer.PolicyVersion,
+                p => grid.TryToTickIndex(p, out var t) ? t : null);
+            if (evt is null)
+            {
+                host.NoteMappingReject("EPISODE_TICK_MAPPING_FAILED");
+                if (host.LastAppliedFingerprint is { } fpReject)
+                    _lastAppliedEpisodeFingerprint = fpReject;
+                return;
+            }
+
+            host.ProcessTrade(evt);
+            if (host.LastAppliedFingerprint is { } fp)
+                _lastAppliedEpisodeFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
     /// <summary>
     /// Ensure Structural Reference host matches current inputs before GPS publish.
     /// Rebuilds only when Current missing or input fingerprint changed.
@@ -1073,6 +1186,43 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessDirectionalContext();
     }
 
+    private void EnsureAuctionEpisodesInitializedForPublish()
+    {
+        if (!EnableAuctionEpisodes || Volatile.Read(ref _disposed) != 0)
+        {
+            _episodeHost = null;
+            _lastAppliedEpisodeFingerprint = null;
+            return;
+        }
+
+        var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var references = EnableStructuralReferences ? _referenceHost?.Current : null;
+        var directional = EnableDirectionalContext ? _directionalHost?.Current : null;
+        var current = EpisodeInputFingerprint.Build(
+            true,
+            profiles?.CurrentAuction?.AuctionId,
+            references,
+            directional,
+            "live",
+            tick,
+            epoch,
+            AtasTimestampNormalizer.PolicyVersion);
+
+        if (!EpisodePublishInitialization.ShouldProcess(
+                EnableAuctionEpisodes,
+                references,
+                _episodeHost,
+                _lastAppliedEpisodeFingerprint,
+                current))
+            return;
+
+        ProcessAuctionEpisodes();
+    }
+
     private CompositePolicyConfig BuildCompositePolicyFromSettings()
     {
         var excluded = (CompositeExcludedAuctionIds ?? "")
@@ -1146,11 +1296,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureCompositeSnapshotInitializedForPublish();
             EnsureStructuralReferencesInitializedForPublish();
             EnsureDirectionalContextInitializedForPublish();
+            EnsureAuctionEpisodesInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
             var references = EnableStructuralReferences ? _referenceHost?.Current : null;
             var directional = EnableDirectionalContext ? _directionalHost?.Current : null;
+            var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1174,7 +1326,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 structuralReferences: references,
                 showStructuralReferenceDiagnostics: ShowStructuralReferenceDiagnostics,
                 directionalContext: directional,
-                showDirectionalContextDiagnostics: ShowDirectionalContextDiagnostics);
+                showDirectionalContextDiagnostics: ShowDirectionalContextDiagnostics,
+                auctionEpisodes: episodes,
+                showAuctionEpisodeDiagnostics: ShowAuctionEpisodeDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

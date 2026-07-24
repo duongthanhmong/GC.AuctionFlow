@@ -117,5 +117,25 @@
 78. **Documented live diagnostic coverage limitation:** expanded diagnostic fields (auction IDs, transition count, component migrations, OTF streaks/counts, StateVersions, fingerprint) were not manually observed live; covered by automated tests. Core READY gate was live-verified.
 79. MBO remains blocked in the primary ATAS process.
 80. OAC contamination remains outside GCAE Phase 1D scope.
-81. **No Phase 1E behavior** (Episode / Acceptance / Orderflow / FAR/AAC / Thesis / Entry / Risk).
+81. ~~**No Phase 1E behavior**~~ — **superseded by Phase 1E Auction Episode Observation** (geometric only; still no Acceptance / Orderflow / FAR/AAC / Thesis / Entry / Risk).
 82. Live-accepted closeout DLL SHA-256: `9976E848578B9057503EC0D8A866C1593CED189EDC5EC04563940F605F0C6AFB`. Tag: `gcae-p1d-multi-horizon-directional-context-pass`.
+
+## Phase 1E Auction Episode Observation Foundation (LOCKED — FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION)
+
+83. **Confirmed references only.** Developing Current Primary, Developing Composite Preview, and moving Current Primary POC/VA/H/L do not create episodes (`DEVELOPING_REFERENCE_EPISODES_NOT_AUTHORIZED`).
+84. **No approach state emission.** ApproachingReference reserved; `APPROACH_DISTANCE_NOT_CALIBRATED`.
+85. **No intra-auction calibrated reset.** `INTRA_AUCTION_EPISODE_RESET_NOT_CALIBRATED` — same auction/reference remains one episode across re-entries.
+86. **No Acceptance / stable re-entry Resolution** (Phase 1F). Emitted resolutions: None / Expired / InvalidData only.
+87. **No FAR/AAC**, Orderflow interpretation, Long/Short, SweepDetector, thesis, entry/target/probability.
+88. **No Episode chart overlay or ATAS alerts** in Phase 1E.
+89. **Historical reconstruction is LIVE_ONLY** (`EPISODE_HISTORY: LIVE_ONLY`) — candle OHLC is never used to fabricate pre-start interactions.
+90. Bid/Ask / delta fields may be **unavailable** (Partial) without invalidating distance/time/volume/trade-count geometry; never fabricate zero aggressor evidence.
+91. **Local Value** (LocalValueLow/High) may remain unavailable (`EPISODE_LOCAL_VALUE_POLICY_NOT_AUTHORIZED`); LocalPoc when exact volume is measurement only — not acceptance.
+92. **Centerline has no canonical inside/outside semantics** — CrossCount and side excursions only; AttemptCount remains 0; never OutsideAttempt/ReentryDeveloping.
+93. **No MBO/DOM/OI dependency** for Episode creation; MBO remains blocked in the primary process.
+94. **DATA DEGRADED remains independent** of Episode Ready/Partial. No edge/probability claim.
+95. OAC contamination remains outside GCAE Phase 1E scope.
+96. **Live AWAITING TRADES wiring defect (fixed, D-P1E-002):** Episode admission must not depend on Trade Stream Probe enablement.
+97. **Documented live state-machine coverage limitation:** repeated-attempt / geometric re-entry / auction expiry / reference retirement / disable-reenable / stale ordering / exact revision sequences / history-live overlap / LocalPoc ties were not all manually observed live; covered by automated tests. Core live gate (PARTIAL, natural ACTIVE episodes, Centerline) was live-verified.
+98. **No Phase 1F behavior** (Acceptance / Re-entry Resolution / FAR/AAC / Orderflow / Thesis / Entry / Risk).
+99. Live-accepted closeout DLL SHA-256: `924DB65C4D719D831926C81392AF600A332CD6BFF81401C5B6FC9E30CDFACBC2`. Tag: `gcae-p1e-auction-episode-observation-pass`.

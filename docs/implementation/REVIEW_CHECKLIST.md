@@ -127,7 +127,7 @@
 - [x] GPS READY/PARTIAL/AWAITING + Developing label; no Long/Short/Buy/Sell/Thesis/Entry/Probability
 - [x] No Episode/Acceptance/Orderflow production dependency
 - [x] No directional chart arrows / duplicated reference lines
-- [x] Source-scope: Phase 1E not started
+- [x] Source-scope: Phase 1E not started *(historical at 1D lock; superseded by Phase 1E)*
 - [x] GCAE tests green (399 passed / 0 failed / 0 skipped)
 - [x] 0 build errors / 0 warnings
 - [x] Runtime schema 0.5.0; DIRECTIONAL_CONTEXT_POLICY_V1; assembly 0.0.6
@@ -149,3 +149,64 @@
 - [x] OTF streak/count diagnostics (**automated coverage**)
 - [x] Individual Directional StateVersion values (**automated coverage**)
 - [x] Input fingerprint/version diagnostics (**automated coverage**)
+
+## Phase 1E Auction Episode Observation — code/test
+
+- [x] Reference-role mapping (Upper/Lower/Centerline); Developing excluded
+- [x] Exact touch → Interacting; boundary cross → OutsideAttempt
+- [x] AttemptCount rules; continued outside does not increment
+- [x] Geometric ReentryDeveloping; second outside AttemptCount=2; one EpisodeId
+- [x] Duplicate trade / card republish idempotent
+- [x] Centerline CrossCount; never OutsideAttempt/ReentryDeveloping
+- [x] Reserved Acceptance/Unresolved states never emitted
+- [x] Outside metrics (distance/volume/trades/duration); inside excluded
+- [x] Aggressor unavailable remains unavailable (Partial), not zero
+- [x] LocalPoc deterministic when exact volume; not acceptance
+- [x] EpisodeId / StateVersion / EventRevision policies
+- [x] Per-auction dedup ledger; auction transition clears ledger + Expired
+- [x] LIVE_ONLY history mode; no candle fabrication
+- [x] Module default OFF; Ready does not clear DATA DEGRADED; MBO irrelevant
+- [x] GPS DISABLED/AWAITING/READY/PARTIAL; no Sweep/FAR/AAC/Long/Short/Acceptance wording
+- [x] Source-scope: Phase 1F Acceptance not started; no Episode overlay/alerts
+- [x] Prior Phase 1A–1D regressions green
+- [x] GCAE tests green (439 passed / 0 failed / 0 skipped)
+- [x] 0 build errors / 0 warnings
+- [x] Runtime schema 0.6.0; AUCTION_EPISODE_POLICY_V1; assembly 0.0.6
+- [x] OnNewTrades Episode admission independent of EnableTradeStreamProbe (D-P1E-002)
+- [x] Trade callback admission (`OnNewTrade` / `OnNewTrades`)
+- [x] Batch event forwarding
+- [x] Eligible Confirmed references only
+- [x] Deterministic EpisodeId; one active episode per key
+- [x] Event ordering and dedup
+- [x] Current Primary Auction reset
+- [x] Registry revisions; metrics; LocalPoc
+- [x] Runtime/card states; Data Gate independence; MBO independence
+
+## Phase 1E live acceptance (operator — focused first gate)
+
+- [x] GCQ6 / Rithmic Live; Primary + Composite READY; References READY; Directional ON; Auction Episodes ON; Episode Diagnostics ON; Preview OFF; MBO OFF
+- [x] Card: EPISODES PARTIAL; POLICY V1; ELIGIBLE REFERENCES 16; ACTIVE EPISODES 4; LATEST DEVELOPING
+- [x] After wiring fix: not AWAITING TRADES; live trade admission PASS
+- [x] Centerline live: PreviousPrimaryVpoc @ 4051.2; ROLE CENTERLINE; AttemptCount 0; MAX EXCURSION 60 ticks; DIRECTION DOWN
+- [x] History mode LIVE_ONLY; no Sweep/FAR/AAC/Acceptance/Long/Short; DATA DEGRADED independent; MBO BLOCKED
+- [x] Source/deployed DLL hashes match `924DB65C4D719D831926C81392AF600A332CD6BFF81401C5B6FC9E30CDFACBC2`
+- [x] FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION
+
+### Automated-only (not manually observed live)
+
+- [x] UpperBoundary first cross → OutsideAttempt (**automated coverage**)
+- [x] LowerBoundary first cross → OutsideAttempt (**automated coverage**)
+- [x] Continued outside trades do not increment AttemptCount (**automated coverage**)
+- [x] Geometric return → ReentryDeveloping (**automated coverage**)
+- [x] Second outside excursion → AttemptCount 2 (**automated coverage**)
+- [x] Repeated crossing retains same EpisodeId (**automated coverage**)
+- [x] Duplicate callbacks idempotent (**automated coverage**)
+- [x] Cumulative updates do not create attempts (**automated coverage**)
+- [x] Auction transition expires old episodes (**automated coverage**)
+- [x] Reference retirement expires episodes (**automated coverage**)
+- [x] Disable/re-enable clean lifecycle (**automated coverage**)
+- [x] True stale/out-of-order event rejection (**automated coverage**)
+- [x] LocalPoc deterministic tie handling (**automated coverage**)
+- [x] Individual StateVersion and EventRevision sequences (**automated coverage**)
+- [x] History/live overlap dedup (**automated coverage**)
+- [x] No-lookahead historical replay where exact events supported (**automated coverage**)

@@ -2,22 +2,24 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 1D FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION — LOCKED** |
+| Current phase | **Phase 1E FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION — LOCKED** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.5.0** (Directional Context fields) |
+| Runtime snapshot schema | **0.6.0** (Auction Episode fields) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
 | Overlay policy | **REFERENCE_OVERLAY_POLICY_V1** (unchanged) |
-| Directional policy | **DIRECTIONAL_CONTEXT_POLICY_V1** |
+| Directional policy | **DIRECTIONAL_CONTEXT_POLICY_V1** (unchanged) |
+| Episode policy | **AUCTION_EPISODE_POLICY_V1** |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
 | Phase 1A | **LOCKED** — `gcae-p1a-primary-tpo-volume-profile-pass` |
 | Phase 1B | **LOCKED FINAL PASS** — `gcae-p1b-composite-profile-foundation-pass` @ `787d0ba` |
 | Phase 1C | **LOCKED FINAL PASS WITH DOCUMENTED LIVE COVERAGE LIMITATION** — `gcae-p1c-structural-reference-foundation-pass` @ `cdb2974` |
-| Phase 1D | **FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION — COMMITTED + TAGGED** |
-| Phase 1E | **NOT STARTED** |
+| Phase 1D | **LOCKED FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION** — `gcae-p1d-multi-horizon-directional-context-pass` @ `dcfea72` |
+| Phase 1E | **FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION — COMMITTED + TAGGED** |
+| Phase 1F | **NOT STARTED** |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -39,22 +41,54 @@
 | OTF confirmation | **NOT CALIBRATED** — ConfirmedUp/ConfirmedDown reserved |
 | Final DLL SHA-256 | `9976E848578B9057503EC0D8A866C1593CED189EDC5EC04563940F605F0C6AFB` (source = deployed) |
 | Tag | `gcae-p1d-multi-horizon-directional-context-pass` |
-| Phase 1E | **NOT STARTED** |
+| Phase 1E | **authorized separately — see Phase 1E section** |
 
-### Documented live diagnostic coverage limitation (accepted)
+## Phase 1E final closeout (2026-07-24) — LOCKED
 
-Focused live screenshot proved core Directional Context READY publication and horizon separation. Expanded diagnostic fields were **not** manually observed live and remain covered by deterministic automated tests only:
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 439 passed / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live trade admission | **PASS** — left AWAITING TRADES after wiring fix (D-P1E-002) |
+| Live natural episodes | **PASS** — ACTIVE EPISODES: 4; LATEST DEVELOPING |
+| Centerline live | **PASS** — PreviousPrimaryVpoc @ 4051.2; CENTERLINE; AttemptCount 0; max excursion 60 ticks; Direction DOWN |
+| Final verdict | **FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION** |
+| History mode | **LIVE_ONLY** — no candle reconstruction of pre-start activity |
+| Runtime schema | `0.6.0` |
+| Policy | `AUCTION_EPISODE_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Final DLL SHA-256 | `924DB65C4D719D831926C81392AF600A332CD6BFF81401C5B6FC9E30CDFACBC2` (source = deployed) |
+| Tag | `gcae-p1e-auction-episode-observation-pass` |
+| Phase 1F | **NOT STARTED** |
 
-- current and previous auction IDs
-- completed-transition count
-- detailed TPO value relationship
-- detailed TPO POC migration
-- exact VPOC migration evidence
-- OTF completed-period count and streak counts
-- individual Directional StateVersion values
-- input fingerprint/version
+### Documented live state-machine coverage limitation (accepted)
 
-This limitation does not alter Directional semantics and does not require further operator toggle testing.
+Focused live gate proved Episode PARTIAL publication, live trade admission, Confirmed-reference eligibility, natural active episodes, and Centerline observation (AttemptCount 0; side excursion tracked). Repeated-attempt / geometric re-entry / auction-expiry / retirement / disable-reenable / stale-order / exact revision / history-overlap / LocalPoc-tie transitions were **not** all manually observed live and remain covered by deterministic automated tests only. This does not alter Episode semantics and does not require further operator-manufactured crossings.
+
+### Live AWAITING TRADES defect (fixed before closeout)
+
+- **Observed:** `TRADES: OBSERVED` while `EPISODES: AWAITING TRADES` with 16 eligible references.
+- **Root cause:** `OnNewTrades` gated Episode behind `EnableTradeStreamProbe` (default OFF).
+- **Fix (D-P1E-002):** normalize once; Episode admission always; probe gates only for probe enqueue.
+
+### Phase 1E present (locked)
+
+- Event-driven Auction Episode Observation from normalized `NewTradeObservation` (`OnNewTrade` / `OnNewTrades`)
+- Trade admission independent of Trade Stream Probe enablement
+- Confirmed Previous Primary + Confirmed Composite references only (Developing excluded)
+- One active episode per `(PrimaryAuctionId, ReferenceId)`; AttemptCount on boundary outside transitions
+- Centerline: CrossCount + side excursions; never OutsideAttempt/ReentryDeveloping; AttemptCount stays 0
+- Boundary geometric ReentryDeveloping only (no Acceptance)
+- Per-auction dedup ledger; Primary Auction change → Expired + ledger clear
+- GPS/card rows; diagnostics OFF by default; module default OFF
+- No Episode overlay, alerts, Sweep/FAR/AAC/Long-Short/thesis
+
+### Explicitly deferred (Phase 1F+)
+
+- Acceptance / stable re-entry Resolution
+- Approach distance / intra-auction calibrated reset
+- FAR / AAC / Orderflow interpretation / Thesis / Entry / Risk
+- Episode chart overlay / ATAS alerts
+- Exact historical trade reconstruction (unavailable on chart load)
 
 ### Phase 1D present (locked)
 
@@ -68,9 +102,10 @@ This limitation does not alter Directional semantics and does not require furthe
 - GPS card rows; diagnostics OFF by default; no Long/Short/Buy/Sell/Thesis/score
 - Module default OFF; Directional Ready does not clear global DATA DEGRADED
 
-### Explicitly deferred (Phase 1E+)
+### Explicitly deferred after Phase 1D (partially superseded)
 
-- Auction Episode / Acceptance / Re-entry
+- ~~Auction Episode~~ — **Phase 1E LOCKED**
+- Acceptance / Re-entry Resolution — Phase 1F
 - Orderflow interpretation / FAR/AAC / Thesis / Entry / Risk
 - Execution directional horizon
 - Calibrated OTF ConfirmedUp/ConfirmedDown threshold

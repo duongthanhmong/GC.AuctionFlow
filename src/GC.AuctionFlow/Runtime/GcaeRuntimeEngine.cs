@@ -1,6 +1,7 @@
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
@@ -52,7 +53,9 @@ public sealed class GcaeRuntimeEngine
         StructuralReferenceSetSnapshot? structuralReferences = null,
         bool showStructuralReferenceDiagnostics = false,
         DirectionalContextSetSnapshot? directionalContext = null,
-        bool showDirectionalContextDiagnostics = false)
+        bool showDirectionalContextDiagnostics = false,
+        AuctionEpisodeSetSnapshot? auctionEpisodes = null,
+        bool showAuctionEpisodeDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -70,6 +73,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("REFERENCES_STATUS=" + structuralReferences.ModuleState);
         if (directionalContext is not null)
             profileExtra.Add("DIRECTIONAL_STATUS=" + directionalContext.Status);
+        if (auctionEpisodes is not null)
+            profileExtra.Add("EPISODES_STATUS=" + auctionEpisodes.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -101,6 +106,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(structuralReferences.KnownLimitations);
         if (directionalContext?.Limitations is not null)
             limitations.AddRange(directionalContext.Limitations);
+        if (auctionEpisodes?.Limitations is not null)
+            limitations.AddRange(auctionEpisodes.Limitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -120,7 +127,9 @@ public sealed class GcaeRuntimeEngine
             structuralReferences,
             showStructuralReferenceDiagnostics,
             directionalContext,
-            showDirectionalContextDiagnostics);
+            showDirectionalContextDiagnostics,
+            auctionEpisodes,
+            showAuctionEpisodeDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;
@@ -241,6 +250,16 @@ public sealed class GcaeRuntimeEngine
             "DirectionalTacticalState",
             previous?.DirectionalContext?.TacticalContext.State.ToString(),
             next.DirectionalContext?.TacticalContext.State.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "EpisodeModuleState",
+            previous?.AuctionEpisodes?.ModuleState.ToString(),
+            next.AuctionEpisodes?.ModuleState.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "EpisodeActiveCount",
+            previous?.AuctionEpisodes?.ActiveEpisodes.Count.ToString(),
+            next.AuctionEpisodes?.ActiveEpisodes.Count.ToString() ?? "",
             next.DataGate.PrimaryReasonCode);
     }
 

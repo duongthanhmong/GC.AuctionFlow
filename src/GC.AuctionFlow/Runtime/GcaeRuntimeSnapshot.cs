@@ -1,5 +1,6 @@
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 
@@ -8,7 +9,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.5.0";
+    public const string SnapshotVersion = "0.6.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -28,7 +29,9 @@ public sealed class GcaeRuntimeSnapshot
         StructuralReferenceSetSnapshot? structuralReferences = null,
         bool showStructuralReferenceDiagnostics = false,
         DirectionalContextSetSnapshot? directionalContext = null,
-        bool showDirectionalContextDiagnostics = false)
+        bool showDirectionalContextDiagnostics = false,
+        AuctionEpisodeSetSnapshot? auctionEpisodes = null,
+        bool showAuctionEpisodeDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -48,6 +51,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowStructuralReferenceDiagnostics = showStructuralReferenceDiagnostics;
         DirectionalContext = directionalContext;
         ShowDirectionalContextDiagnostics = showDirectionalContextDiagnostics;
+        AuctionEpisodes = auctionEpisodes;
+        ShowAuctionEpisodeDiagnostics = showAuctionEpisodeDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -60,19 +65,17 @@ public sealed class GcaeRuntimeSnapshot
     public CompositeSetSnapshot? Composite { get; }
     public StructuralReferenceSetSnapshot? StructuralReferences { get; }
     public DirectionalContextSetSnapshot? DirectionalContext { get; }
+    public AuctionEpisodeSetSnapshot? AuctionEpisodes { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
     public string Version => SnapshotVersion;
     public IReadOnlyList<string> KnownLimitations { get; }
-    /// <summary>When true, GPS card includes bounded Classic TPO parity diagnostic rows. Default false.</summary>
     public bool EnableTpoParityDiagnostics { get; }
-    /// <summary>When true, GPS card includes bounded Composite diagnostic rows. Default false.</summary>
     public bool ShowCompositeDiagnostics { get; }
-    /// <summary>When true, GPS card includes bounded Structural Reference diagnostic rows. Default false.</summary>
     public bool ShowStructuralReferenceDiagnostics { get; }
-    /// <summary>When true, GPS card includes bounded Directional Context diagnostic rows. Default false.</summary>
     public bool ShowDirectionalContextDiagnostics { get; }
+    public bool ShowAuctionEpisodeDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

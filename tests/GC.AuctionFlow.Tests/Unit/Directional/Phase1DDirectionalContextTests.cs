@@ -411,7 +411,7 @@ public sealed class Phase1DDirectionalContextTests
             directionalContext: s1);
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Directional Ready must not force global Ready
-        Assert.Equal("0.5.0", snap.Version);
+        Assert.Equal("0.6.0", snap.Version);
         Assert.Equal(DirectionalPolicyConfig.PolicyVersion, s1.PolicyVersion);
 
         // Overlay cosmetic must not be in fingerprint — reference overlay absence unchanged.
@@ -423,7 +423,7 @@ public sealed class Phase1DDirectionalContextTests
     // --- G. UI / source scope ---
 
     [Fact]
-    public void G48_54_GpsRows_NoSignalWording_Phase1ENotStarted()
+    public void G48_54_GpsRows_NoSignalWording_Phase1FNotStarted()
     {
         var prev = MakeAuction("P", D(2), D(3), true, 100.5m, 99.5m, 100.0m, 100.2m, 99.8m, 100.0m, 100.2m, 99.8m);
         var a = MakeAuction("A", D(1), D(2), true, 99.5m, 98.5m, 99.0m, 99.2m, 98.8m, 99.0m, 99.2m, 98.8m);
@@ -462,16 +462,18 @@ public sealed class Phase1DDirectionalContextTests
         Assert.Contains("EPISODE: NOT AVAILABLE", text, StringComparison.Ordinal);
         Assert.Contains("MBO: BLOCKED", vm.MboLine, StringComparison.Ordinal);
 
+        // Phase 1E Episode Observation is authorized; Phase 1F Acceptance/Re-entry is not.
         var root = FindRepoRoot();
         var src = Path.Combine(root, "src", "GC.AuctionFlow");
-        Assert.False(Directory.Exists(Path.Combine(src, "Episode")));
+        Assert.True(Directory.Exists(Path.Combine(src, "Episode")));
         Assert.False(Directory.Exists(Path.Combine(src, "Acceptance")));
         Assert.False(Directory.Exists(Path.Combine(src, "Orderflow")));
         var indicator = File.ReadAllText(Path.Combine(src, "Atas", "GcAuctionFlowIndicator.cs"));
-        Assert.DoesNotContain("AuctionEpisode", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableAuctionEpisodes", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptanceReentry", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableDirectionalContext", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("class AuctionEpisode", Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
+        Assert.DoesNotContain("AcceptanceOutside", Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}Episode{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
             .Select(File.ReadAllText)
             .Aggregate("", (a, b) => a + b), StringComparison.Ordinal);
     }

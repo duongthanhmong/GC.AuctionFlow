@@ -275,7 +275,7 @@ public sealed class Phase1APrimaryProfileTests
         Assert.Contains("EnableCompositeProfile = false", src, StringComparison.Ordinal);
         Assert.Contains("EnableMboLifecycleProbe = false", src, StringComparison.Ordinal);
         Assert.DoesNotMatch(new System.Text.RegularExpressions.Regex(@"^\s*this\s*\[\s*bar\s*\]\s*=", System.Text.RegularExpressions.RegexOptions.Multiline), src);
-        Assert.DoesNotContain("AuctionEpisode", src, StringComparison.Ordinal);
+        Assert.Contains("EnableAuctionEpisodes = false", src, StringComparison.Ordinal);
         Assert.Contains("EnableStructuralReferences = false", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DirectionalAuction", src, StringComparison.Ordinal);
         Assert.DoesNotContain("ProductionThesis", src, StringComparison.Ordinal);

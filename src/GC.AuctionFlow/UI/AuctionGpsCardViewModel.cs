@@ -2,6 +2,7 @@ using System.Globalization;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Runtime;
@@ -164,6 +165,9 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildDirectionalContextLines(
             snapshot.DirectionalContext,
             snapshot.ShowDirectionalContextDiagnostics));
+        details.AddRange(BuildAuctionEpisodeLines(
+            snapshot.AuctionEpisodes,
+            snapshot.ShowAuctionEpisodeDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -175,7 +179,9 @@ public static class AuctionGpsCardMapper
                 snapshot.DirectionalContext is null
                     ? "LOCATION: NOT AVAILABLE"
                     : "LOCATION: " + snapshot.DirectionalContext.PriceLocation.CurrentPrimaryTpo,
-                "EPISODE: NOT AVAILABLE",
+                snapshot.AuctionEpisodes is null
+                    ? "EPISODE: NOT AVAILABLE"
+                    : "EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant(),
                 "THESIS: NOT AVAILABLE"
             }
             : new List<string>();
@@ -437,6 +443,113 @@ public static class AuctionGpsCardMapper
 
     private static string FormatOtfState(OneTimeFramingState state) =>
         state.ToString().ToUpperInvariant();
+
+    public static IReadOnlyList<string> BuildAuctionEpisodeLines(
+        AuctionEpisodeSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.ModuleState == EpisodeModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.ModuleState)
+        {
+            case EpisodeModuleState.AwaitingReferences:
+                rows.Add("EPISODES: AWAITING REFERENCES");
+                rows.Add("EPISODE POLICY: " + set.PolicyVersion);
+                break;
+            case EpisodeModuleState.AwaitingTrades:
+                rows.Add("EPISODES: AWAITING TRADES");
+                rows.Add("EPISODE POLICY: " + set.PolicyVersion);
+                rows.Add("ELIGIBLE REFERENCES: " + set.EligibleReferenceCount.ToString(CultureInfo.InvariantCulture));
+                break;
+            case EpisodeModuleState.Partial:
+                rows.Add("EPISODES: PARTIAL");
+                rows.Add("EPISODE POLICY: " + set.PolicyVersion);
+                AppendEpisodeCoreRows(rows, set);
+                break;
+            case EpisodeModuleState.Ready:
+                rows.Add("EPISODES: READY");
+                rows.Add("EPISODE POLICY: " + set.PolicyVersion);
+                AppendEpisodeCoreRows(rows, set);
+                break;
+            case EpisodeModuleState.Invalid:
+                rows.Add("EPISODES: INVALID");
+                rows.Add("EPISODE POLICY: " + set.PolicyVersion);
+                rows.Add("EPISODE LIMITATION: " + (set.Limitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("EPISODES: " + set.ModuleState.ToString().ToUpperInvariant());
+                break;
+        }
+
+        if (showDiagnostics
+            && set.ModuleState is EpisodeModuleState.Ready or EpisodeModuleState.Partial or EpisodeModuleState.AwaitingTrades)
+        {
+            rows.Add("EPISODE HISTORY: " + (set.HistoryMode == EpisodeHistoryMode.LiveOnly ? "LIVE_ONLY" : "EXACT_REPLAY"));
+            rows.Add("EPISODE AUCTION: " + (string.IsNullOrEmpty(set.PrimaryAuctionId) ? "—" : set.PrimaryAuctionId));
+            rows.Add("EPISODE REGISTRY REV: " + set.RegistryRevision.ToString(CultureInfo.InvariantCulture));
+            var latest = set.LatestUpdatedEpisode;
+            if (latest is not null)
+            {
+                rows.Add("EPISODE ID: " + Truncate(latest.EpisodeId, 96));
+                rows.Add("EPISODE REF ID: " + Truncate(latest.ReferenceId, 64));
+                rows.Add("EPISODE ATTEMPTS: " + latest.AttemptCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EPISODE CROSSES: " + latest.CrossCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EPISODE MAX ABOVE: " + latest.MaximumAboveDistanceTicks.ToString(CultureInfo.InvariantCulture) + "t");
+                rows.Add("EPISODE MAX BELOW: " + latest.MaximumBelowDistanceTicks.ToString(CultureInfo.InvariantCulture) + "t");
+                rows.Add("EPISODE OUT VOL: " + latest.CanonicalOutsideExecutedVolume.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EPISODE OUT TRADES: " + latest.CanonicalOutsideTradeCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EPISODE AGGRESSOR: " + latest.AggressorEvidenceAvailability);
+                rows.Add("EPISODE LOCAL POC: " + (latest.LocalPoc?.ToString(CultureInfo.InvariantCulture) ?? "—"));
+                rows.Add("EPISODE STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EPISODE EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
+            }
+
+            if (set.Limitations.Count > 0)
+                rows.Add("EPISODE LIMITATIONS: " + Truncate(string.Join(",", set.Limitations.Take(4)), 96));
+
+            rows.Add("EPISODE TRADE EVENTS SEEN: " + set.TradeEventsSeen.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE TRADE EVENTS ACCEPTED: " + set.TradeEventsAccepted.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE TRADE EVENTS DUPLICATE: " + set.TradeEventsDuplicate.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE TRADE EVENTS REJECTED: " + set.TradeEventsRejected.ToString(CultureInfo.InvariantCulture));
+            if (!string.IsNullOrEmpty(set.LastTradeRejectReason))
+                rows.Add("LAST EPISODE TRADE REJECT REASON: " + set.LastTradeRejectReason);
+            if (!string.IsNullOrEmpty(set.LastAcceptedTradeEventId))
+                rows.Add("LAST ACCEPTED TRADE EVENT ID: " + Truncate(set.LastAcceptedTradeEventId, 72));
+            if (set.LastAcceptedTradeSequence is long seq)
+                rows.Add("LAST ACCEPTED TRADE SEQUENCE: " + seq.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
+
+    private static void AppendEpisodeCoreRows(List<string> rows, AuctionEpisodeSetSnapshot set)
+    {
+        rows.Add("ELIGIBLE REFERENCES: " + set.EligibleReferenceCount.ToString(CultureInfo.InvariantCulture));
+        rows.Add("ACTIVE EPISODES: " + set.ActiveEpisodes.Count.ToString(CultureInfo.InvariantCulture));
+        var latest = set.LatestUpdatedEpisode;
+        rows.Add("LATEST EPISODE: " + (latest is null ? "NONE" : latest.State.ToString().ToUpperInvariant()));
+        if (latest is not null)
+        {
+            rows.Add("EPISODE REF: " + latest.ReferenceType + " @ " + latest.ReferencePrice.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE ROLE: " + FormatEpisodeRole(latest.ReferenceRole));
+            rows.Add("EPISODE STATE: " + latest.State.ToString().ToUpperInvariant());
+            rows.Add("EPISODE DIRECTION: " + latest.InteractionDirection.ToString().ToUpperInvariant());
+            rows.Add("ATTEMPTS: " + latest.AttemptCount.ToString(CultureInfo.InvariantCulture));
+            var maxExc = latest.MaximumCanonicalOutsideDistanceTicks
+                         ?? Math.Max(latest.MaximumAboveDistanceTicks, latest.MaximumBelowDistanceTicks);
+            rows.Add("MAX EXCURSION: " + maxExc.ToString(CultureInfo.InvariantCulture) + " ticks");
+        }
+    }
+
+    private static string FormatEpisodeRole(ReferenceInteractionRole role) => role switch
+    {
+        ReferenceInteractionRole.UpperBoundary => "UPPER_BOUNDARY",
+        ReferenceInteractionRole.LowerBoundary => "LOWER_BOUNDARY",
+        ReferenceInteractionRole.Centerline => "CENTERLINE",
+        _ => "UNSUPPORTED"
+    };
 
     private static string Truncate(string value, int max)
     {

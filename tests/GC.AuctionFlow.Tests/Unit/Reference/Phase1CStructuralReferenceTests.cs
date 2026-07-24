@@ -411,8 +411,8 @@ public sealed class Phase1CStructuralReferenceTests
             indicatorDisposed: false,
             profiles: profiles,
             structuralReferences: null);
-        Assert.Equal("0.5.0", GcaeRuntimeSnapshot.SnapshotVersion);
-        Assert.Equal("0.5.0", snap.Version);
+        Assert.Equal("0.6.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.6.0", snap.Version);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
         // Bid/Ask unknown keeps degraded independently of references.
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
@@ -545,13 +545,13 @@ public sealed class Phase1CStructuralReferenceTests
     // --- I. Regression / scope ---
 
     [Fact]
-    public void Source_scope_no_phase1d_production_wiring()
+    public void Source_scope_no_phase1f_acceptance_or_thesis_wiring()
     {
         var root = FindRepoRoot();
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableStructuralReferences = false", indicator, StringComparison.Ordinal);
         Assert.Contains("REFERENCE_POLICY_V1", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("AuctionEpisode", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableAuctionEpisodes = false", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("DirectionalAuction", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("ProductionThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("FarAacEngine", indicator, StringComparison.Ordinal);

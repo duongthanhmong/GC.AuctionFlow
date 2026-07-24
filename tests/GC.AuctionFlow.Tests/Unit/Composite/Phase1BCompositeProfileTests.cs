@@ -378,7 +378,7 @@ public sealed class Phase1BCompositeProfileTests
         Assert.Contains("EnableMboLifecycleProbe = false", src, StringComparison.Ordinal);
         Assert.Contains("EnsureCompositeSnapshotInitializedForPublish", src, StringComparison.Ordinal);
         Assert.Contains("CompositePublishInitialization.ShouldProcess", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("AuctionEpisode", src, StringComparison.Ordinal);
+        Assert.Contains("EnableAuctionEpisodes = false", src, StringComparison.Ordinal);
         Assert.Contains("EnableStructuralReferences = false", src, StringComparison.Ordinal);
         Assert.DoesNotContain("DirectionalAuction", src, StringComparison.Ordinal);
         Assert.DoesNotContain("ProductionThesis", src, StringComparison.Ordinal);
