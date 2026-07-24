@@ -1,3 +1,4 @@
+using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Profile;
 
 namespace GC.AuctionFlow.Runtime;
@@ -5,7 +6,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.2.0";
+    public const string SnapshotVersion = "0.3.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -19,7 +20,9 @@ public sealed class GcaeRuntimeSnapshot
         DateTime timestampUtc,
         long publicationSequence,
         IReadOnlyList<string> knownLimitations,
-        bool enableTpoParityDiagnostics = false)
+        bool enableTpoParityDiagnostics = false,
+        CompositeSetSnapshot? composite = null,
+        bool showCompositeDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -33,6 +36,8 @@ public sealed class GcaeRuntimeSnapshot
         PublicationSequence = publicationSequence;
         KnownLimitations = knownLimitations ?? Array.Empty<string>();
         EnableTpoParityDiagnostics = enableTpoParityDiagnostics;
+        Composite = composite;
+        ShowCompositeDiagnostics = showCompositeDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -42,6 +47,7 @@ public sealed class GcaeRuntimeSnapshot
     public ProfilePlaceholderState Profile { get; }
     public ReferencePlaceholderState Reference { get; }
     public PrimaryProfileSetSnapshot? Profiles { get; }
+    public CompositeSetSnapshot? Composite { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -49,6 +55,8 @@ public sealed class GcaeRuntimeSnapshot
     public IReadOnlyList<string> KnownLimitations { get; }
     /// <summary>When true, GPS card includes bounded Classic TPO parity diagnostic rows. Default false.</summary>
     public bool EnableTpoParityDiagnostics { get; }
+    /// <summary>When true, GPS card includes bounded Composite diagnostic rows. Default false.</summary>
+    public bool ShowCompositeDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

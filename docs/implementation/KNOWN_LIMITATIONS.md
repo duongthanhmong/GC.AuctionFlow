@@ -47,23 +47,40 @@
 
 ## P0-08A Runtime Data Gate / Auction GPS Card
 
-23. ~~Profile / TPO / Volume Profile not implemented~~ — **superseded by Phase 1A PASS** (Primary Intraday Classic TPO + VP present; Composite still deferred).
+23. ~~Profile / TPO / Volume Profile not implemented~~ ï¿½ **superseded by Phase 1A PASS** (Primary Intraday Classic TPO + VP present).
 24. RollState remains **Unknown** without next-contract volume or external roll-calendar evidence; ActiveRoll is never inferred in this slice.
 25. Bid/Ask classification is **Unknown** (not validated fidelity); DOM capability shown Unavailable; MBO remains **Blocked** / isolated-environment-only.
 26. Live Trade Recorder success is not promoted to exchange-feed completeness, historical fidelity, replay fidelity, or validated Bid/Ask/DOM fidelity.
 27. Auction GPS Card reserved rows (Structural/Tactical/Location/Episode/Thesis) are NOT AVAILABLE and hidden unless ShowAuctionGpsDiagnostics is enabled.
 28. No Production Thesis, FAR/AAC, Entry/Target, CFD mapping, Telegram, or trading/order execution in P0-08A.
-29. OnRender overlay uses OFT.Rendering; Exact Final vs LatestBar draw cadence is operator-confirmed on live ATAS (C?N XÁC MINH TRÊN ATAS TH?T for residual draw-cadence nuances).
+29. OnRender overlay uses OFT.Rendering; Exact Final vs LatestBar draw cadence is operator-confirmed on live ATAS (C?N Xï¿½C MINH TRï¿½N ATAS TH?T for residual draw-cadence nuances).
 
 ## Phase 1A Primary Intraday Profile
 
-30. ~~Unspecified Kind treated as America/New_York~~ — **superseded by D-P1A-002 / `ATAS_CANDLE_TIME_UTC_V1`** (LiveObserved UTC wall-clock).
+30. ~~Unspecified Kind treated as America/New_York~~ ï¿½ **superseded by D-P1A-002 / `ATAS_CANDLE_TIME_UTC_V1`** (LiveObserved UTC wall-clock).
 31. Volume Profile Unavailable when GetAllPriceLevels is empty/fails ? ProfileState Partial; TPO may still be Ready.
 32. ValueAreaFraction default 0.70 is a conventional configurable method default, not a calibrated GC edge or predictive threshold.
-33. Only current + immediately previous primary auctions are retained in runtime; no Composite / weekly / monthly profiles.
-34. Overlay lines are informational price levels only — not Structural References, support/resistance claims, or Entry/Target semantics.
-35. Global DataState may remain Degraded due BidAsk Unknown and Roll Unknown even when PROFILE READY.
+33. ~~Only current + immediately previous primary auctions~~ ï¿½ **superseded in part by Phase 1B**: Primary display remains current/previous; completed-auction list feeds Composite ledger only when Composite enabled.
+34. Overlay lines are informational price levels only ï¿½ not Structural References, support/resistance claims, or Entry/Target semantics.
+35. Global DataState may remain Degraded due BidAsk Unknown and Roll Unknown even when PROFILE READY or COMPOSITE READY.
 36. **ATAS TPO methodology difference (Phase 1A closeout):** ATAS built-in TPO POC did not match GCAE Classic TPO POC in the observed live comparison. GCAE timestamp normalization, bar-ledger accounting, deterministic TPO distribution and independent oracle were verified. ATAS proprietary methodology or exact benchmark settings remain unconfirmed. No GCAE algorithm was changed to force parity.
 37. TPO parity / forensic diagnostics (reference price, period coverage, ledger audit) are **disabled by default**, diagnostic-only, and must not influence TPO, POC, Value Area, or Production analysis.
 38. Unknown timestamp semantics still refuse silent conversion. Candle Time = bar start, LastTime = bar end (ATAS API names).
-39. Historical chart-add uses deferred profile rebuild (ingest-only until current bar) to avoid O(n²) load; final distribution equals eager rebuild.
+39. Historical chart-add uses deferred profile rebuild (ingest-only until current bar) to avoid O(nï¿½) load; final distribution equals eager rebuild.
+
+## Phase 1B Composite Profile Foundation (LOCKED FINAL PASS)
+
+40. **No hard N-day Production merge.** Confirmed composite requires OperatorAnchored + explicit anchor; missing anchor â†’ AWAITING ANCHOR (no silent choice).
+41. Merge/close thresholds (value-overlap, POC displacement, outside acceptance, etc.) are **uncalibrated**. ShadowEvidence defaults OFF; unset thresholds â†’ NotCalibrated / NOT CALIBRATED / NOT EVALUATED. Shadow never mutates confirmed composite.
+42. Developing composite preview is optional and separate; it must not alter confirmed CompositeId or membership.
+43. Composite Partial when any included contribution lacks exact volume-by-price; VPOC/Volume VA may be unavailable â€” never infer Bid/Ask from totals.
+44. History gaps between included local auction dates are reported; research history is not persisted in this phase.
+45. Structural Reference Lifecycle, StableBalance/Breaking/NewValue Production classification, Episode, FAR/AAC, Thesis remain **not implemented** (Phase 1C+).
+46. ATAS built-in multi-day profile remains a **benchmark only**; methodology equality is not required for Phase 1B acceptance.
+47. `EnableCompositeProfile` defaults **false**; enabling Composite must not redesign locked Phase 1A Primary engines or Trade Recorder.
+48. **Composite Ready does not clear global DATA DEGRADED.** Bid/Ask Unknown/Partial (and Roll Unknown) may keep DataState Degraded while COMPOSITE READY is valid.
+49. **MBO remains blocked** in the primary ATAS process (P0-06D operational lock).
+50. Anchor supplied but not loaded may still use AWAITING / Building status wording under current semantics; requested id must remain visible in diagnostics when supplied.
+51. Operator-configuration fingerprint rebuilds Composite on settings change only â€” ordinary trade/GPS publishes must not rebuild when fingerprint is unchanged.
+52. **OAC / non-GCAE tree contamination** (solution OAC projects, `src/Oac.*`, OAC docs) remains **outside GCAE Phase 1B scope** and is not part of this lock.
+53. Live-accepted closeout DLL SHA-256: `CA2157509B140D0752FB4FCEF70E1FCD863553053D6E133566B848BBDDB02B87`. Tag: `gcae-p1b-composite-profile-foundation-pass`.

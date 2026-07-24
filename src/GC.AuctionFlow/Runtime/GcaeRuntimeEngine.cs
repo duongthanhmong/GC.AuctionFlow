@@ -1,3 +1,4 @@
+using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -43,7 +44,9 @@ public sealed class GcaeRuntimeEngine
         bool indicatorDisposed,
         PrimaryProfileSetSnapshot? profiles = null,
         DateTime? timestampUtc = null,
-        bool enableTpoParityDiagnostics = false)
+        bool enableTpoParityDiagnostics = false,
+        CompositeSetSnapshot? composite = null,
+        bool showCompositeDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -55,6 +58,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("PRICE_VOLUME_DATA_UNAVAILABLE");
         if (profiles is null)
             profileExtra.Add("PROFILE_SET_ABSENT");
+        if (composite?.Confirmed is { } conf)
+            profileExtra.Add("COMPOSITE_STATUS=" + conf.CompositeStatus);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -80,6 +85,8 @@ public sealed class GcaeRuntimeEngine
         limitations.AddRange(gate.KnownLimitations);
         if (profiles?.KnownLimitations is not null)
             limitations.AddRange(profiles.KnownLimitations);
+        if (composite?.Confirmed.KnownLimitations is not null)
+            limitations.AddRange(composite.Confirmed.KnownLimitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -93,7 +100,9 @@ public sealed class GcaeRuntimeEngine
             now,
             seq,
             limitations.Distinct(StringComparer.Ordinal).ToArray(),
-            enableTpoParityDiagnostics);
+            enableTpoParityDiagnostics,
+            composite,
+            showCompositeDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;
@@ -157,6 +166,21 @@ public sealed class GcaeRuntimeEngine
             "ProviderModeGate",
             previous is null ? null : $"{previous.Capability.DataSourceMode}/{previous.Capability.FeedProvider}",
             $"{next.Capability.DataSourceMode}/{next.Capability.FeedProvider}",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "CompositeStatus",
+            previous?.Composite?.Confirmed.CompositeStatus.ToString(),
+            next.Composite?.Confirmed.CompositeStatus.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "CompositeId",
+            previous?.Composite?.Confirmed.CompositeId,
+            next.Composite?.Confirmed.CompositeId ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "CompositeEvidence",
+            previous?.Composite?.Confirmed.EvidenceState.ToString(),
+            next.Composite?.Confirmed.EvidenceState.ToString() ?? "",
             next.DataGate.PrimaryReasonCode);
     }
 

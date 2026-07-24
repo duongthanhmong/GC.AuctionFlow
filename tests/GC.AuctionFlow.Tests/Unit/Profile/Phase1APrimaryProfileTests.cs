@@ -272,11 +272,12 @@ public sealed class Phase1APrimaryProfileTests
     {
         var root = FindRepoRoot();
         var src = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
-        Assert.Contains("EnablePrimaryProfile = true", src, StringComparison.Ordinal);
+        Assert.Contains("EnableCompositeProfile = false", src, StringComparison.Ordinal);
         Assert.Contains("EnableMboLifecycleProbe = false", src, StringComparison.Ordinal);
         Assert.DoesNotMatch(new System.Text.RegularExpressions.Regex(@"^\s*this\s*\[\s*bar\s*\]\s*=", System.Text.RegularExpressions.RegexOptions.Multiline), src);
-        Assert.DoesNotContain("CompositeProfile", src, StringComparison.Ordinal);
         Assert.DoesNotContain("AuctionEpisode", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("StructuralReferenceEngine", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProductionThesis", src, StringComparison.Ordinal);
     }
 
     private static ProfileBarObservation Bar(

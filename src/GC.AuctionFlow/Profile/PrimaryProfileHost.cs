@@ -55,7 +55,7 @@ public sealed class PrimaryAuctionProfileSnapshot
 
 public sealed class PrimaryProfileSetSnapshot
 {
-    public const string SnapshotVersion = "1.0.1";
+    public const string SnapshotVersion = "1.0.2";
 
     public PrimaryProfileSetSnapshot(
         PrimaryAuctionProfileSnapshot? currentAuction,
@@ -64,7 +64,8 @@ public sealed class PrimaryProfileSetSnapshot
         int lastProcessedBarIndex,
         IReadOnlyList<string> knownLimitations,
         IReadOnlyList<string> revisionEvents,
-        ProfileTimestampDiagnostic? latestTimestampDiagnostic = null)
+        ProfileTimestampDiagnostic? latestTimestampDiagnostic = null,
+        IReadOnlyList<PrimaryAuctionProfileSnapshot>? completedAuctions = null)
     {
         CurrentAuction = currentAuction;
         PreviousAuction = previousAuction;
@@ -73,6 +74,7 @@ public sealed class PrimaryProfileSetSnapshot
         KnownLimitations = knownLimitations ?? Array.Empty<string>();
         RevisionEvents = revisionEvents ?? Array.Empty<string>();
         LatestTimestampDiagnostic = latestTimestampDiagnostic;
+        CompletedAuctions = completedAuctions ?? Array.Empty<PrimaryAuctionProfileSnapshot>();
     }
 
     public PrimaryAuctionProfileSnapshot? CurrentAuction { get; }
@@ -82,6 +84,8 @@ public sealed class PrimaryProfileSetSnapshot
     public IReadOnlyList<string> KnownLimitations { get; }
     public IReadOnlyList<string> RevisionEvents { get; }
     public ProfileTimestampDiagnostic? LatestTimestampDiagnostic { get; }
+    /// <summary>All completed primary auctions in loaded history (immutable snapshots for Composite Core).</summary>
+    public IReadOnlyList<PrimaryAuctionProfileSnapshot> CompletedAuctions { get; }
     public string Version => SnapshotVersion;
 }
 
@@ -266,27 +270,40 @@ public sealed class PrimaryProfileHost
 
         PrimaryAuctionProfileSnapshot? current = null;
         PrimaryAuctionProfileSnapshot? previous = null;
+        var completedAuctions = new List<PrimaryAuctionProfileSnapshot>();
 
         if (orderedAuctions.Count > 0)
         {
             var curPoint = orderedAuctions[^1];
-            var prevPoint = orderedAuctions.Count > 1 ? orderedAuctions[^2] : null;
+            var currentCompleted = evaluationUtc.UtcDateTime >= curPoint.AuctionEndUtc;
 
-            if (prevPoint is not null)
+            // Build every auction older than current as completed contributions (Composite feed).
+            long? rollingPrevTpo = null;
+            long? rollingPrevVol = null;
+            for (var i = 0; i < orderedAuctions.Count - 1; i++)
             {
-                previous = BuildAuction(
-                    prevPoint,
-                    byAuction[prevPoint.AuctionId],
+                var point = orderedAuctions[i];
+                var snap = BuildAuction(
+                    point,
+                    byAuction[point.AuctionId],
                     clock,
                     grid,
                     evaluationUtc,
                     isCompleted: true,
-                    previousTpoPocTick: null,
-                    previousVolPocTick: null);
-                if (previous.TpoProfile?.TpoPoc is decimal pp)
-                    _prevTpoPocTick = grid.ToTickIndex(pp);
-                if (previous.VolumeProfile?.VolumePoc is decimal vp)
-                    _prevVolPocTick = grid.ToTickIndex(vp);
+                    previousTpoPocTick: rollingPrevTpo,
+                    previousVolPocTick: rollingPrevVol);
+                completedAuctions.Add(snap);
+                if (snap.TpoProfile?.TpoPoc is decimal tp)
+                    rollingPrevTpo = grid.ToTickIndex(tp);
+                if (snap.VolumeProfile?.VolumePoc is decimal vp)
+                    rollingPrevVol = grid.ToTickIndex(vp);
+            }
+
+            if (orderedAuctions.Count > 1)
+            {
+                previous = completedAuctions[^1];
+                _prevTpoPocTick = rollingPrevTpo;
+                _prevVolPocTick = rollingPrevVol;
             }
 
             current = BuildAuction(
@@ -295,9 +312,12 @@ public sealed class PrimaryProfileHost
                 clock,
                 grid,
                 evaluationUtc,
-                isCompleted: evaluationUtc.UtcDateTime >= curPoint.AuctionEndUtc,
+                isCompleted: currentCompleted,
                 previousTpoPocTick: _prevTpoPocTick,
                 previousVolPocTick: _prevVolPocTick);
+
+            if (currentCompleted)
+                completedAuctions.Add(current);
         }
 
         var init = evaluationBarIndex >= bars.Max(b => b.BarIndex)
@@ -311,15 +331,16 @@ public sealed class PrimaryProfileHost
             evaluationBarIndex,
             new[]
             {
-                "CURRENT_PREVIOUS_ONLY",
-                "NO_COMPOSITE",
+                "CURRENT_PREVIOUS_DISPLAY",
+                "COMPLETED_AUCTIONS_FOR_COMPOSITE=" + completedAuctions.Count.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 "NO_STRUCTURAL_REFERENCES",
                 "TIMESTAMP_POLICY=" + AtasTimestampNormalizer.PolicyVersion,
                 "TIMESTAMP_SEMANTICS=" + AtasTimestampNormalizer.CandleTimeSemantics,
                 "TIMESTAMP_PROVENANCE=" + AtasTimestampNormalizer.CandleTimeProvenance
             },
             _revisionEvents.Count > 64 ? _revisionEvents.TakeLast(64).ToArray() : _revisionEvents.ToArray(),
-            _latestTimestampDiagnostic);
+            _latestTimestampDiagnostic,
+            completedAuctions);
         return _published;
     }
 

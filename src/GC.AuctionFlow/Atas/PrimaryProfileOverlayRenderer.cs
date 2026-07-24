@@ -64,6 +64,10 @@ public sealed class PrimaryProfileOverlayRenderer : IDisposable
         ProfileOverlayKind.TpoPoc => Color.FromArgb(255, 255, 200, 60),
         ProfileOverlayKind.Vpoc => Color.FromArgb(255, 80, 180, 255),
         ProfileOverlayKind.TpoVah or ProfileOverlayKind.TpoVal => Color.FromArgb(220, 180, 160, 80),
+        ProfileOverlayKind.CompositeTpoPoc => Color.FromArgb(255, 255, 140, 40),
+        ProfileOverlayKind.CompositeVpoc => Color.FromArgb(255, 40, 140, 220),
+        ProfileOverlayKind.CompositeTpoVah or ProfileOverlayKind.CompositeTpoVal => Color.FromArgb(200, 200, 120, 60),
+        ProfileOverlayKind.CompositeVolumeVah or ProfileOverlayKind.CompositeVolumeVal => Color.FromArgb(200, 100, 140, 180),
         _ => Color.FromArgb(220, 120, 160, 200)
     };
 

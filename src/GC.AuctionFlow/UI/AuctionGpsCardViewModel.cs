@@ -1,4 +1,5 @@
 using System.Globalization;
+using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Runtime;
@@ -153,6 +154,9 @@ public static class AuctionGpsCardMapper
         var (profileLine, profileDetails) = BuildProfileLines(
             cur, prev, showDiagnostics, snapshot.Profiles?.LatestTimestampDiagnostic, enableTpoParityDiagnostics);
 
+        var details = profileDetails.ToList();
+        details.AddRange(BuildCompositeLines(snapshot.Composite, snapshot.ShowCompositeDiagnostics));
+
         var diagnostics = showDiagnostics
             ? new List<string>
             {
@@ -181,7 +185,7 @@ public static class AuctionGpsCardMapper
             tradesLine: "TRADES: " + trades,
             bidAskLine: "BID/ASK: " + bidAsk,
             profileLine: profileLine,
-            profileDetailLines: profileDetails,
+            profileDetailLines: details,
             rollLine: "ROLL: " + roll,
             recorderLine: "RECORDER: " + recorder,
             mboLine: "MBO: BLOCKED",
@@ -189,6 +193,87 @@ public static class AuctionGpsCardMapper
             dataState: g.DataState,
             snapshotPublicationSequence: snapshot.PublicationSequence);
     }
+
+    public static IReadOnlyList<string> BuildCompositeLines(CompositeSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null)
+            return Array.Empty<string>();
+
+        var conf = set.Confirmed;
+        var rows = new List<string>();
+
+        switch (conf.CompositeStatus)
+        {
+            case CompositeStatus.Disabled:
+                rows.Add("COMPOSITE: DISABLED");
+                break;
+            case CompositeStatus.AwaitingAnchor:
+                rows.Add("COMPOSITE: AWAITING ANCHOR");
+                rows.Add("COMPOSITE POLICY: OPERATOR ANCHORED");
+                break;
+            case CompositeStatus.Building:
+                rows.Add("COMPOSITE: NOT READY");
+                break;
+            case CompositeStatus.Partial:
+                rows.Add("COMPOSITE: PARTIAL");
+                rows.Add("COMPOSITE ID: " + conf.CompositeId);
+                rows.Add("COMPOSITE AUCTIONS: " + conf.CompletedContributionCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("COMPOSITE RANGE: " + Fmt(conf.ProfileLow) + "-" + Fmt(conf.ProfileHigh));
+                rows.Add("COMPOSITE TPO POC: " + Fmt(conf.TpoPoc));
+                rows.Add("COMPOSITE VPOC: UNAVAILABLE");
+                rows.Add("COMPOSITE TPO VALUE: VAL " + Fmt(conf.TpoVal) + " / VAH " + Fmt(conf.TpoVah));
+                rows.Add("COMPOSITE LIMITATION: " + (conf.KnownLimitations.FirstOrDefault(l => l.Contains("VOLUME", StringComparison.Ordinal)) ?? "PARTIAL"));
+                break;
+            case CompositeStatus.Ready:
+                rows.Add("COMPOSITE: READY");
+                rows.Add("COMPOSITE ID: " + conf.CompositeId);
+                rows.Add("COMPOSITE AUCTIONS: " + conf.CompletedContributionCount.ToString(CultureInfo.InvariantCulture));
+                rows.Add("COMPOSITE RANGE: " + Fmt(conf.ProfileLow) + "-" + Fmt(conf.ProfileHigh));
+                rows.Add("COMPOSITE TPO POC: " + Fmt(conf.TpoPoc));
+                rows.Add("COMPOSITE VPOC: " + Fmt(conf.VolumePoc));
+                rows.Add("COMPOSITE TPO VALUE: VAL " + Fmt(conf.TpoVal) + " / VAH " + Fmt(conf.TpoVah));
+                rows.Add("COMPOSITE VOL VALUE: VAL " + Fmt(conf.VolumeVal) + " / VAH " + Fmt(conf.VolumeVah));
+                break;
+            case CompositeStatus.Invalid:
+                rows.Add("COMPOSITE: INVALID");
+                rows.Add("COMPOSITE LIMITATION: " + (conf.KnownLimitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("COMPOSITE: " + conf.CompositeStatus.ToString().ToUpperInvariant());
+                break;
+        }
+
+        if (conf.CompositeStatus is CompositeStatus.Ready or CompositeStatus.Partial)
+        {
+            rows.Add("COMPOSITE PREVIEW: " + (set.Preview is not null ? "ON" : "OFF"));
+            rows.Add("COMPOSITE EVIDENCE: " + FormatEvidence(conf.EvidenceState));
+        }
+
+        if (showDiagnostics && conf.CompositeStatus is not CompositeStatus.Disabled)
+        {
+            rows.Add("COMPOSITE ANCHOR: " + (conf.AnchorAuctionId ?? "—"));
+            rows.Add("COMPOSITE INCLUDED: " + (conf.IncludedAuctionIds.Count == 0 ? "—" : string.Join(",", conf.IncludedAuctionIds)));
+            rows.Add("COMPOSITE EXCLUDED: " + (conf.ExcludedAuctionIds.Count == 0 ? "—" : string.Join(",", conf.ExcludedAuctionIds)));
+            rows.Add("COMPOSITE POLICY VER: " + conf.PolicyVersion);
+            rows.Add("COMPOSITE SNAPSHOT: " + conf.Version);
+            if (set.MergeEvidence.Count > 0 && set.MergeEvidence[^1].TpoValueOverlapRatio is decimal ov)
+                rows.Add("COMPOSITE LAST TPO OVERLAP: " + ov.ToString("0.000", CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
+
+    private static string FormatEvidence(CompositeEvidenceState state) => state switch
+    {
+        CompositeEvidenceState.NotCalibrated => "NOT CALIBRATED",
+        CompositeEvidenceState.NotEvaluated => "NOT EVALUATED",
+        CompositeEvidenceState.InsufficientData => "SHADOW INSUFFICIENT",
+        CompositeEvidenceState.MergeEvidencePresent => "SHADOW MERGE",
+        CompositeEvidenceState.SeparationEvidencePresent => "SHADOW SEPARATION",
+        CompositeEvidenceState.Conflicted => "SHADOW CONFLICTED",
+        CompositeEvidenceState.Invalid => "INVALID",
+        _ => state.ToString().ToUpperInvariant()
+    };
 
     private static (string Line, IReadOnlyList<string> Details) BuildProfileLines(
         PrimaryAuctionProfileSnapshot? cur,

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using ATAS.DataFeedsCore;
 using ATAS.Indicators;
+using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -30,6 +31,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private AuctionGpsCardRenderer? _gpsRenderer;
     private PrimaryProfileOverlayRenderer? _overlayRenderer;
     private PrimaryProfileHost? _profileHost;
+    private CompositeProfileHost? _compositeHost;
+    /// <summary>Last operator fingerprint successfully applied to the published Composite snapshot.</summary>
+    private CompositeOperatorConfiguration? _lastAppliedCompositeConfiguration;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -56,6 +60,14 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableTpoParityDiagnostics = false;
         EnableTpoParityReferencePrice = false;
         TpoParityReferencePrice = 0m;
+        EnableCompositeProfile = false;
+        CompositeAnchorAuctionId = "";
+        IncludeThroughLatestCompletedAuction = true;
+        CompositeExcludedAuctionIds = "";
+        EnableDevelopingCompositePreview = false;
+        EnableCompositeOverlay = true;
+        ShowCompositeDiagnostics = false;
+        EnableShadowCompositeEvidence = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -187,6 +199,43 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Anchor Minute Local (ET)")]
     public int AnchorMinuteLocal { get; set; }
 
+    [Category("Composite Profile")]
+    [DisplayName("Enable Composite Profile")]
+    [Description("OperatorAnchored confirmed composite. Default false. No hard N-day merge.")]
+    public bool EnableCompositeProfile { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Composite Anchor Auction Id")]
+    [Description("e.g. PI-2026-07-20. Empty = COMPOSITE AWAITING ANCHOR.")]
+    public string CompositeAnchorAuctionId { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Include Through Latest Completed")]
+    public bool IncludeThroughLatestCompletedAuction { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Excluded Auction Ids")]
+    [Description("Comma-separated AuctionIds excluded from confirmed composite.")]
+    public string CompositeExcludedAuctionIds { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Enable Developing Composite Preview")]
+    [Description("Preview only — does not mutate confirmed composite.")]
+    public bool EnableDevelopingCompositePreview { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Enable Composite Overlay")]
+    public bool EnableCompositeOverlay { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Show Composite Diagnostics")]
+    public bool ShowCompositeDiagnostics { get; set; }
+
+    [Category("Composite Profile")]
+    [DisplayName("Enable Shadow Composite Evidence")]
+    [Description("Research/Shadow-only. Without calibrated thresholds → NOT CALIBRATED. Never mutates confirmed.")]
+    public bool EnableShadowCompositeEvidence { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -196,9 +245,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
         TrySubscribeMboOnce();
         TryExecuteDeferredSnapshotPull();
         ProcessProfileBar(bar);
-        // Historical bulk: skip per-bar GPS/runtime publish (O(n) UI work). Publish on live/current bar only.
         if (bar >= CurrentBar)
+        {
+            ProcessComposite();
             PublishRuntimeSnapshot();
+        }
     }
 
     protected override void OnRender(RenderContext context, DrawingLayouts drawingLayouts)
@@ -542,6 +593,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _gpsRenderer = null;
                 _overlayRenderer = null;
                 _profileHost = null;
+                _compositeHost = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -787,6 +839,88 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessComposite()
+    {
+        if (!EnableCompositeProfile || Volatile.Read(ref _disposed) != 0)
+        {
+            _compositeHost = null;
+            _lastAppliedCompositeConfiguration = null;
+            return;
+        }
+
+        try
+        {
+            var profiles = _profileHost?.Current;
+            if (profiles is null)
+                return;
+
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var frac = ValueAreaFraction > 0m && ValueAreaFraction <= 1m
+                ? ValueAreaFraction
+                : PrimaryAuctionClockConfig.DefaultValueAreaFraction;
+            var policy = BuildCompositePolicyFromSettings();
+
+            _compositeHost ??= new CompositeProfileHost(tick, frac, policy);
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            _compositeHost.Configure(tick, frac, identity, epoch, policy);
+
+            var developing = profiles.CurrentAuction is { IsCompleted: false } cur ? cur : null;
+            _compositeHost.Rebuild(profiles.CompletedAuctions, developing);
+
+            // Fingerprint advances only after a published snapshot exists.
+            if (_compositeHost.Current is not null)
+                _lastAppliedCompositeConfiguration = CompositeOperatorConfiguration.FromPolicy(policy);
+        }
+        catch
+        {
+            // Contained — do not advance fingerprint.
+        }
+    }
+
+    private CompositePolicyConfig BuildCompositePolicyFromSettings()
+    {
+        var excluded = (CompositeExcludedAuctionIds ?? "")
+            .Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return new CompositePolicyConfig(
+            mode: CompositePolicyMode.OperatorAnchored,
+            anchorAuctionId: CompositeAnchorAuctionId,
+            includeThroughLatestCompletedAuction: IncludeThroughLatestCompletedAuction,
+            excludedAuctionIds: excluded,
+            enableDevelopingCompositePreview: EnableDevelopingCompositePreview,
+            enableShadowEvidence: EnableShadowCompositeEvidence);
+    }
+
+    /// <summary>
+    /// Ensure Composite host matches current operator settings before GPS publish.
+    /// Rebuilds only when Current missing or normalized operator fingerprint changed.
+    /// </summary>
+    private void EnsureCompositeSnapshotInitializedForPublish()
+    {
+        if (!EnableCompositeProfile || Volatile.Read(ref _disposed) != 0)
+        {
+            _compositeHost = null;
+            _lastAppliedCompositeConfiguration = null;
+            return;
+        }
+
+        var profiles = _profileHost?.Current;
+        if (profiles is null)
+            return;
+
+        var current = CompositeOperatorConfiguration.FromPolicy(BuildCompositePolicyFromSettings());
+        if (!CompositePublishInitialization.ShouldProcess(
+                EnableCompositeProfile,
+                profiles,
+                _compositeHost,
+                _lastAppliedCompositeConfiguration,
+                current))
+            return;
+
+        ProcessComposite();
+    }
+
     private void NoteTradeCallback()
     {
         _tradeObserved = true;
@@ -814,7 +948,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 ? 0L
                 : Interlocked.Read(ref recorder.Counters.RecorderStartupFailures);
 
+            // Trade-style publishes: init or rebuild only when host/Current missing or operator config changed.
+            EnsureCompositeSnapshotInitializedForPublish();
+
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+            var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -832,7 +970,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 recorderSessionPresent: recorder?.Session is not null,
                 indicatorDisposed: disposed,
                 profiles: profiles,
-                enableTpoParityDiagnostics: EnableTpoParityDiagnostics);
+                enableTpoParityDiagnostics: EnableTpoParityDiagnostics,
+                composite: composite,
+                showCompositeDiagnostics: ShowCompositeDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
@@ -847,7 +987,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (EnablePrimaryProfileOverlay && overlay is not null)
             {
-                var ovm = PrimaryProfileOverlayViewModel.FromProfiles(profiles, ShowPreviousProfileLevels);
+                var ovm = PrimaryProfileOverlayViewModel.FromProfiles(
+                    profiles,
+                    ShowPreviousProfileLevels,
+                    composite,
+                    EnableCompositeOverlay,
+                    showCompositePreview: EnableDevelopingCompositePreview);
                 overlay.Update(ovm);
             }
             else
