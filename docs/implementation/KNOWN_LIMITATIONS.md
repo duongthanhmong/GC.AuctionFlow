@@ -154,7 +154,22 @@
 109. Phase 1F does **not mutate** Episode State, Resolution, or AttemptCount.
 110. Module Ready/Partial does **not clear** global DATA DEGRADED. MBO/DOM/OI not required; MBO remains blocked.
 111. OAC contamination remains outside GCAE Phase 1F scope.
-112. **No Phase 2 Executed Orderflow** interpretation.
+112. ~~**No Phase 2 Executed Orderflow**~~ — **superseded by Phase 2A raw feature foundation** (still no interpretation / Trade Facilitation / Resolution / FAR/AAC).
 113. **Documented live evidence-lifecycle coverage limitation:** full outside/inside segmentation, LowerBoundary symmetry, zero-denominator ratios, repeated attempts, exact revision sequences, lifecycle freeze/reset, Centerline not-applicable, bid/ask variants, compatibility fail-closed, and deterministic replay were not all manually observed live; covered by automated tests. Core live gate (PARTIAL UpperBoundary evidence, finite ratios, geometric re-entry, Local POC displacement, observer-only) was live-verified.
 114. Live-accepted closeout DLL SHA-256: `1FDEBBB3E4E94497157FF6FA7D621760028AA516497BAB8800D88CF5C9E07249`. Tag: `gcae-p1f-acceptance-reentry-evidence-measurement-pass`.
-115. Acceptance/Re-entry Resolution, FAR/AAC, and Phase 2 Executed Orderflow remain **NOT STARTED**.
+115. Acceptance/Re-entry Resolution, FAR/AAC remain **NOT STARTED**. Phase 2A raw Orderflow is separate (see Phase 2A section).
+
+## Phase 2A Executed Orderflow Raw Feature Foundation (LOCKED — FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION)
+
+116. **Raw ≠ interpretation.** No imbalance / stacked imbalance / Big Trade / extreme Delta/Volume / tape-speed labels.
+117. **LIVE_ONLY** history when exact chart-load prints unavailable; no candle or ATAS visual reconstruction. Current live scope began **LIVEONLYMIDAUCTION**.
+118. Bid/Ask classification may be **Partial/Unavailable**; Unknown aggressor volume remains explicit; Ask/Bid are never fabricated.
+119. Classified Delta/CVD cover the classified subset only — never invent tick-rule aggressor. CVD is not position data; no OI position inference.
+120. Cumulative callbacks are **not** authoritative for executed totals (`CUMULATIVE_CALLBACKS_NOT_AUTHORITATIVE_FOR_EXECUTED_TOTALS`).
+121. **No absorption/exhaustion/Effort vs Result/Trade Facilitation.**
+122. **No Resolution/FAR/AAC**, Thesis, Long/Short, probability/confidence, alerts, or Orderflow overlay.
+123. No MBO/DOM/OI dependency; MBO remains blocked. Module Ready/Partial does **not clear** global DATA DEGRADED.
+124. OAC contamination remains outside GCAE Phase 2A scope.
+125. **Documented live raw-feature coverage limitation:** Ask/Bid classified paths, complete READY, mixed-side reconciliation, nonzero Delta/CVD, full per-price ledger, complete Episode aggregates, timing metrics, cumulative revision replacement, auction/epoch/disable–re-enable resets, LiveOnlyFromAuctionStart, revision sequences, out-of-order rejection, and deterministic replay were not all manually observed live; covered by automated tests. Core live gate (PARTIAL MidAuction Unknown-only accounting, volume/trades, coverage safety, Probe independence) was live-verified.
+126. Live-accepted closeout DLL SHA-256: `F92538852AD2478002F6FCB89B052FC9ACBD3773746F733C31548BF77B5356D2`. Tag: `gcae-p2a-executed-orderflow-raw-feature-foundation-pass`.
+127. Phase 2B Trade Facilitation, Effort vs Result, Acceptance/Re-entry Resolution, FAR/AAC remain **NOT STARTED**.

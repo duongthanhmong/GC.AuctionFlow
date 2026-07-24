@@ -3,6 +3,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
+using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
@@ -58,7 +59,9 @@ public sealed class GcaeRuntimeEngine
         AuctionEpisodeSetSnapshot? auctionEpisodes = null,
         bool showAuctionEpisodeDiagnostics = false,
         AcceptanceReentryEvidenceSetSnapshot? acceptanceReentryEvidence = null,
-        bool showAcceptanceReentryEvidenceDiagnostics = false)
+        bool showAcceptanceReentryEvidenceDiagnostics = false,
+        ExecutedOrderflowSetSnapshot? executedOrderflow = null,
+        bool showExecutedOrderflowDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -80,6 +83,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("EPISODES_STATUS=" + auctionEpisodes.ModuleState);
         if (acceptanceReentryEvidence is not null)
             profileExtra.Add("EVIDENCE_STATUS=" + acceptanceReentryEvidence.ModuleState);
+        if (executedOrderflow is not null)
+            profileExtra.Add("ORDERFLOW_STATUS=" + executedOrderflow.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -115,6 +120,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(auctionEpisodes.Limitations);
         if (acceptanceReentryEvidence?.Limitations is not null)
             limitations.AddRange(acceptanceReentryEvidence.Limitations);
+        if (executedOrderflow?.Limitations is not null)
+            limitations.AddRange(executedOrderflow.Limitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -138,7 +145,9 @@ public sealed class GcaeRuntimeEngine
             auctionEpisodes,
             showAuctionEpisodeDiagnostics,
             acceptanceReentryEvidence,
-            showAcceptanceReentryEvidenceDiagnostics);
+            showAcceptanceReentryEvidenceDiagnostics,
+            executedOrderflow,
+            showExecutedOrderflowDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

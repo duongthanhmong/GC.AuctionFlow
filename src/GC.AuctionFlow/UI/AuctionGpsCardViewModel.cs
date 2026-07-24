@@ -4,6 +4,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
+using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Runtime;
@@ -172,6 +173,9 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildAcceptanceReentryEvidenceLines(
             snapshot.AcceptanceReentryEvidence,
             snapshot.ShowAcceptanceReentryEvidenceDiagnostics));
+        details.AddRange(BuildExecutedOrderflowLines(
+            snapshot.ExecutedOrderflow,
+            snapshot.ShowExecutedOrderflowDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -189,6 +193,9 @@ public static class AuctionGpsCardMapper
                 snapshot.AcceptanceReentryEvidence is null
                     ? "ACCEPTANCE/REENTRY EVIDENCE: NOT AVAILABLE"
                     : "ACCEPTANCE/REENTRY EVIDENCE: " + snapshot.AcceptanceReentryEvidence.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.ExecutedOrderflow is null
+                    ? "ORDERFLOW: NOT AVAILABLE"
+                    : "ORDERFLOW: " + snapshot.ExecutedOrderflow.ModuleState.ToString().ToUpperInvariant(),
                 "THESIS: NOT AVAILABLE"
             }
             : new List<string>();
@@ -614,6 +621,109 @@ public static class AuctionGpsCardMapper
         }
 
         return rows;
+    }
+
+    public static IReadOnlyList<string> BuildExecutedOrderflowLines(
+        ExecutedOrderflowSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.ModuleState == OrderflowModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.ModuleState)
+        {
+            case OrderflowModuleState.AwaitingTrades:
+                rows.Add("ORDERFLOW: AWAITING TRADES");
+                rows.Add("ORDERFLOW POLICY: " + set.PolicyVersion);
+                break;
+            case OrderflowModuleState.Partial:
+                rows.Add("ORDERFLOW: PARTIAL");
+                rows.Add("ORDERFLOW POLICY: " + set.PolicyVersion);
+                AppendOrderflowCoreRows(rows, set);
+                break;
+            case OrderflowModuleState.Ready:
+                rows.Add("ORDERFLOW: READY");
+                rows.Add("ORDERFLOW POLICY: " + set.PolicyVersion);
+                AppendOrderflowCoreRows(rows, set);
+                break;
+            case OrderflowModuleState.Invalid:
+                rows.Add("ORDERFLOW: INVALID");
+                rows.Add("ORDERFLOW POLICY: " + set.PolicyVersion);
+                rows.Add("ORDERFLOW LIMITATION: " + (set.Limitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("ORDERFLOW: " + set.ModuleState.ToString().ToUpperInvariant());
+                break;
+        }
+
+        rows.Add("ORDERFLOW HISTORY: LIVE_ONLY");
+
+        if (showDiagnostics
+            && set.ModuleState is OrderflowModuleState.Ready or OrderflowModuleState.Partial or OrderflowModuleState.AwaitingTrades)
+        {
+            var a = set.CurrentAuction;
+            if (a is not null)
+            {
+                rows.Add("ORDERFLOW SNAPSHOT ID: " + Truncate(a.SnapshotId, 96));
+                rows.Add("ORDERFLOW STATE VER: " + a.StateVersion.ToString(CultureInfo.InvariantCulture));
+                rows.Add("ORDERFLOW EVENT REV: " + a.EventRevision.ToString(CultureInfo.InvariantCulture));
+                rows.Add("ORDERFLOW PRICE LEVELS: " + set.PriceLevels.Count.ToString(CultureInfo.InvariantCulture));
+                if (a.MinimumTradeInterval is TimeSpan min)
+                    rows.Add("ORDERFLOW MIN INTERVAL: " + min.TotalMilliseconds.ToString("0.###", CultureInfo.InvariantCulture) + "ms");
+                if (a.LatestTradeInterval is TimeSpan latest)
+                    rows.Add("ORDERFLOW LATEST INTERVAL: " + latest.TotalMilliseconds.ToString("0.###", CultureInfo.InvariantCulture) + "ms");
+            }
+
+            rows.Add("ORDERFLOW EVENTS SEEN: " + set.EventsSeen.ToString(CultureInfo.InvariantCulture));
+            rows.Add("ORDERFLOW EVENTS ACCEPTED: " + set.EventsAccepted.ToString(CultureInfo.InvariantCulture));
+            rows.Add("ORDERFLOW EVENTS DUP: " + set.EventsDuplicated.ToString(CultureInfo.InvariantCulture));
+            rows.Add("ORDERFLOW EVENTS REJECTED: " + set.EventsRejected.ToString(CultureInfo.InvariantCulture));
+            if (!string.IsNullOrEmpty(set.LastRejectionReason))
+                rows.Add("ORDERFLOW LAST REJECT: " + set.LastRejectionReason);
+            if (set.Limitations.Count > 0)
+                rows.Add("ORDERFLOW LIMITATIONS: " + Truncate(string.Join(",", set.Limitations.Take(4)), 96));
+        }
+
+        return rows;
+    }
+
+    private static void AppendOrderflowCoreRows(List<string> rows, ExecutedOrderflowSetSnapshot set)
+    {
+        var a = set.CurrentAuction;
+        rows.Add("ORDERFLOW COVERAGE: " + (a?.CoverageMode.ToString().ToUpperInvariant() ?? "UNKNOWN"));
+        rows.Add("EXECUTED VOLUME: " + (a?.ExecutedVolume.ToString(CultureInfo.InvariantCulture) ?? "0"));
+        rows.Add("TRADES: " + (a?.TradeCount.ToString(CultureInfo.InvariantCulture) ?? "0"));
+        if (a is null)
+            return;
+
+        var complete = a.AggressorClassificationStatus == AggressorClassificationStatus.Complete;
+        rows.Add("ASK VOLUME: " + (complete || a.AskVolume > 0m
+            ? a.AskVolume.ToString(CultureInfo.InvariantCulture)
+            : (a.AggressorClassificationStatus == AggressorClassificationStatus.Unavailable ? "unavailable" : a.AskVolume.ToString(CultureInfo.InvariantCulture))));
+        rows.Add("BID VOLUME: " + (complete || a.BidVolume > 0m
+            ? a.BidVolume.ToString(CultureInfo.InvariantCulture)
+            : (a.AggressorClassificationStatus == AggressorClassificationStatus.Unavailable ? "unavailable" : a.BidVolume.ToString(CultureInfo.InvariantCulture))));
+        rows.Add("UNKNOWN AGGRESSOR VOLUME: " + a.UnknownAggressorVolume.ToString(CultureInfo.InvariantCulture));
+        rows.Add((complete ? "DELTA: " : "CLASSIFIED DELTA: ") + a.ClassifiedDelta.ToString(CultureInfo.InvariantCulture)
+                 + (complete ? " (COMPLETE)" : ""));
+        rows.Add("CLASSIFIED CVD: " + a.ClassifiedCvd.ToString(CultureInfo.InvariantCulture));
+        rows.Add("AGGRESSOR COVERAGE: " + FormatRatio(a.AggressorCoverageRatio));
+
+        var ep = set.ActiveEpisodeAggregates.FirstOrDefault();
+        if (ep is not null)
+        {
+            rows.Add("EPISODE ORDERFLOW: " + (ep.DataQuality == OrderflowDataQuality.Complete ? "READY" : "PARTIAL"));
+            rows.Add("EPISODE REF: " + ep.ReferenceRole + " / " + Truncate(ep.ReferenceId, 48));
+            rows.Add("EPISODE EXECUTED VOLUME: " + ep.ExecutedVolume.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE TRADES: " + ep.TradeCount.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE ASK/BID/UNKNOWN: "
+                     + ep.AskVolume.ToString(CultureInfo.InvariantCulture) + "/"
+                     + ep.BidVolume.ToString(CultureInfo.InvariantCulture) + "/"
+                     + ep.UnknownAggressorVolume.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE CLASSIFIED DELTA: " + ep.ClassifiedDelta.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE PRICE PROGRESS: " + (ep.NetPriceProgressTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable") + " ticks");
+        }
     }
 
     private static void AppendEvidenceCoreRows(List<string> rows, AcceptanceReentryEvidenceSetSnapshot set)

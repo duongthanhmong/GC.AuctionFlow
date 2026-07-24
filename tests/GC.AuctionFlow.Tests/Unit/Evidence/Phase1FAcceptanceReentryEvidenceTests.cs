@@ -489,7 +489,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: ep.Current, acceptanceReentryEvidence: ev.Current);
-        Assert.Equal("0.7.0", snap.Version);
+        Assert.Equal("0.8.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(ev.Current, snap.AcceptanceReentryEvidence);
 
@@ -539,13 +539,16 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
 
         var root = FindRepoRoot();
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Orderflow")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Aac")));
+        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "TradeFacilitation")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableAcceptanceReentryEvidence", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableExecutedOrderflow", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableFar", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptedOutside", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("StableReaccepted", indicator, StringComparison.Ordinal);
     }
@@ -570,7 +573,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
     public void Policy_VersionAndLimitations()
     {
         Assert.Equal("ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1", AcceptanceReentryEvidencePolicyConfig.PolicyVersion);
-        Assert.Equal("0.7.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.8.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.Equal("CENTERLINE_ACCEPTANCE_GEOMETRY_NOT_APPLICABLE",
             AcceptanceReentryEvidencePolicyConfig.LimitationCenterlineNotApplicable);
     }

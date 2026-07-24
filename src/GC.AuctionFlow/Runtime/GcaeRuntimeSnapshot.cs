@@ -2,6 +2,7 @@ using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
+using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 
@@ -10,7 +11,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.7.0";
+    public const string SnapshotVersion = "0.8.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -34,7 +35,9 @@ public sealed class GcaeRuntimeSnapshot
         AuctionEpisodeSetSnapshot? auctionEpisodes = null,
         bool showAuctionEpisodeDiagnostics = false,
         AcceptanceReentryEvidenceSetSnapshot? acceptanceReentryEvidence = null,
-        bool showAcceptanceReentryEvidenceDiagnostics = false)
+        bool showAcceptanceReentryEvidenceDiagnostics = false,
+        ExecutedOrderflowSetSnapshot? executedOrderflow = null,
+        bool showExecutedOrderflowDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -58,6 +61,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowAuctionEpisodeDiagnostics = showAuctionEpisodeDiagnostics;
         AcceptanceReentryEvidence = acceptanceReentryEvidence;
         ShowAcceptanceReentryEvidenceDiagnostics = showAcceptanceReentryEvidenceDiagnostics;
+        ExecutedOrderflow = executedOrderflow;
+        ShowExecutedOrderflowDiagnostics = showExecutedOrderflowDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -72,6 +77,7 @@ public sealed class GcaeRuntimeSnapshot
     public DirectionalContextSetSnapshot? DirectionalContext { get; }
     public AuctionEpisodeSetSnapshot? AuctionEpisodes { get; }
     public AcceptanceReentryEvidenceSetSnapshot? AcceptanceReentryEvidence { get; }
+    public ExecutedOrderflowSetSnapshot? ExecutedOrderflow { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -83,6 +89,7 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowDirectionalContextDiagnostics { get; }
     public bool ShowAuctionEpisodeDiagnostics { get; }
     public bool ShowAcceptanceReentryEvidenceDiagnostics { get; }
+    public bool ShowExecutedOrderflowDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

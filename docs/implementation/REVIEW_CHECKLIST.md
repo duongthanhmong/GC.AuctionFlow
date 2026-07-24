@@ -259,3 +259,40 @@
 - [x] Episode expiry freeze; Primary Auction close; disable/re-enable (**automated**)
 - [x] Stale revision rejection; deterministic replay (**automated**)
 - [x] Centerline not-applicable; bid/ask variants; invalid epoch/tick/timestamp fail-closed (**automated**)
+
+## Phase 2A Executed Orderflow Raw Feature — code/test (LOCKED)
+
+- [x] Authoritative trade normalization (`TradeStreamAtasMapper.MapNewTrade`)
+- [x] OnNewTrade admission; OnNewTrades batch admission
+- [x] Callback-overlap deduplication; cumulative not authoritative for totals
+- [x] Probe independence; Recorder independence; MBO independence
+- [x] Total executed volume; unique trade count
+- [x] Ask/Bid/Unknown accounting; Classified Delta; Classified CVD
+- [x] Aggressor coverage ratio; ratio mathematical safety
+- [x] Current-auction aggregate; per-price raw ledger; Episode raw aggregate
+- [x] Identity stability; revision ownership; auction/epoch reset
+- [x] Timing raw only; LIVE_ONLY coverage modes
+- [x] Runtime schema 0.8.0; EXECUTED_ORDERFLOW_POLICY_V1; assembly 0.0.6
+- [x] GPS/card integration; Data Gate independence
+- [x] No imbalance/absorption/Trade Facilitation/FAR/AAC/Long-Short wording
+- [x] GCAE tests green (469 passed / 0 failed / 0 skipped)
+- [x] 0 build errors / 0 warnings
+- [x] Source/deployed DLL SHA-256 exact match
+
+## Phase 2A live acceptance (LOCKED — focused core gate PASS)
+
+- [x] GCQ6 / Rithmic Live; prior modules READY; Episodes ON; Evidence ON; Executed Orderflow ON; Orderflow Diagnostics ON; Preview OFF; MBO OFF; Probe/Recorder OFF permitted
+- [x] Card: ORDERFLOW PARTIAL; POLICY EXECUTED_ORDERFLOW_POLICY_V1; COVERAGE LIVEONLYMIDAUCTION; HISTORY LIVE_ONLY
+- [x] Executed volume 113 / trades 103; Unknown 113; Ask/Bid unavailable; CLASSIFIED DELTA 0 / CVD 0; coverage 0
+- [x] EPISODE ORDERFLOW PARTIAL; no absorption/exhaustion/trapped/sweep; DATA DEGRADED independent; MBO BLOCKED
+- [x] Final verdict: FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION
+- [x] Tag: `gcae-p2a-executed-orderflow-raw-feature-foundation-pass`
+
+### Phase 2A automated-only (not all live-observed)
+
+- [x] Nonzero Ask/Bid classified paths; complete classification READY; mixed-side reconciliation (**automated**)
+- [x] Nonzero Classified Delta/CVD; zero-denominator coverage unavailable (**automated**)
+- [x] Full per-price ledger; complete Episode raw aggregates; Centerline Episode input (**automated**)
+- [x] Timing min/max/mean/latest; duplicate timing idempotence; out-of-order rejection (**automated**)
+- [x] Cumulative revision replacement; auction/epoch/disable–re-enable; LiveOnlyFromAuctionStart (**automated**)
+- [x] StateVersion/EventRevision sequences; stale revision rejection; deterministic replay (**automated**)

@@ -251,10 +251,11 @@ public sealed class P008ARuntimeDataGateTests
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
         Assert.Equal(DataState.Invalid, vm.DataState);
         Assert.Equal("DATA: INVALID", vm.DataLine);
-        Assert.Equal(5, vm.DiagnosticRows.Count);
+        Assert.Equal(6, vm.DiagnosticRows.Count);
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("THESIS:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("ACCEPTANCE/REENTRY EVIDENCE:", StringComparison.Ordinal));
-        Assert.Equal(vm.AllLines(false).Count + 5, vm.AllLines(true).Count);
+        Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("ORDERFLOW:", StringComparison.Ordinal));
+        Assert.Equal(vm.AllLines(false).Count + 6, vm.AllLines(true).Count);
     }
 
     [Fact]

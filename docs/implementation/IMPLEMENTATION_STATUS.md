@@ -2,17 +2,18 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 1F FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION — LOCKED** |
+| Current phase | **Phase 2A LOCKED — FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.7.0** (Acceptance/Re-entry Evidence fields) |
+| Runtime snapshot schema | **0.8.0** (Executed Orderflow fields) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
 | Overlay policy | **REFERENCE_OVERLAY_POLICY_V1** (unchanged) |
 | Directional policy | **DIRECTIONAL_CONTEXT_POLICY_V1** (unchanged) |
 | Episode policy | **AUCTION_EPISODE_POLICY_V1** (unchanged) |
-| Evidence policy | **ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1** |
+| Evidence policy | **ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1** (unchanged) |
+| Orderflow policy | **EXECUTED_ORDERFLOW_POLICY_V1** |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
 | Phase 1A | **LOCKED** — `gcae-p1a-primary-tpo-volume-profile-pass` |
@@ -20,7 +21,9 @@
 | Phase 1C | **LOCKED FINAL PASS WITH DOCUMENTED LIVE COVERAGE LIMITATION** — `gcae-p1c-structural-reference-foundation-pass` @ `cdb2974` |
 | Phase 1D | **LOCKED FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION** — `gcae-p1d-multi-horizon-directional-context-pass` @ `dcfea72` |
 | Phase 1E | **LOCKED FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION** — `gcae-p1e-auction-episode-observation-pass` @ `9772e48` |
-| Phase 1F | **FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION — COMMITTED + TAGGED** |
+| Phase 1F | **LOCKED FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION** — `gcae-p1f-acceptance-reentry-evidence-measurement-pass` @ `bd892ea` |
+| Phase 2A | **LOCKED FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** — `gcae-p2a-executed-orderflow-raw-feature-foundation-pass` |
+| Phase 2B | **NOT STARTED** |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -111,7 +114,53 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 | Tag | `gcae-p1f-acceptance-reentry-evidence-measurement-pass` |
 | Acceptance/Re-entry Resolution | **NOT STARTED** |
 | FAR/AAC | **NOT STARTED** |
-| Phase 2 Executed Orderflow | **NOT STARTED** |
+| Phase 2 Executed Orderflow | **authorized separately — see Phase 2A section** |
+
+## Phase 2A final closeout (2026-07-24) — LOCKED
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 469 passed / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Focused live gate | **PASS** — GCQ6 / Rithmic Live |
+| Ordinary trade admission | **PASS** — Trade Stream Probe OFF; Recorder OFF permitted |
+| Raw volume / trade count | **PASS** — EXECUTED VOLUME 113; TRADES 103 |
+| Unknown-aggressor accounting | **PASS** — Unknown 113; Ask/Bid unavailable; no fabricated Ask/Bid |
+| Classified Delta/CVD safety | **PASS** — CLASSIFIED DELTA 0; CLASSIFIED CVD 0 (classified subset empty) |
+| Aggressor coverage | **PASS** — 0 finite and in [0,1] |
+| Coverage mode live | **PASS** — LIVEONLYMIDAUCTION |
+| Episode Orderflow | **PASS** — EPISODE ORDERFLOW PARTIAL observed |
+| Data Gate independence | **PASS** — DATA DEGRADED remains independent |
+| MBO | **BLOCKED** |
+| Final verdict | **FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** |
+| History mode | **LIVE_ONLY** — no candle / ATAS visual reconstruction |
+| Runtime schema | `0.8.0` |
+| Policy | `EXECUTED_ORDERFLOW_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Final DLL SHA-256 | `F92538852AD2478002F6FCB89B052FC9ACBD3773746F733C31548BF77B5356D2` (source = deployed) |
+| Tag | `gcae-p2a-executed-orderflow-raw-feature-foundation-pass` |
+| Phase 2B Trade Facilitation | **NOT STARTED** |
+| Effort vs Result | **NOT STARTED** |
+| Acceptance/Re-entry Resolution | **NOT STARTED** |
+| FAR/AAC | **NOT STARTED** |
+
+### Documented live raw-feature coverage limitation (accepted)
+
+Focused live gate proved Orderflow PARTIAL publication, ordinary trade admission with Probe OFF, truthful Unknown-aggressor accounting (Ask/Bid unavailable), mathematically safe Classified Delta/CVD/coverage, LIVEONLYMIDAUCTION coverage, Episode Orderflow PARTIAL, DATA DEGRADED independence, and MBO BLOCKED. Ask/Bid classified paths, complete classification READY, mixed-side reconciliation, nonzero Delta/CVD, full per-price ledger, complete Episode aggregates, timing metrics, cumulative revision replacement, auction/epoch/disable–re-enable resets, LiveOnlyFromAuctionStart transition, revision sequences, out-of-order rejection, and deterministic replay remain **automated-only** coverage. This does not alter raw Orderflow semantics and does not require further operator-manufactured aggressor events.
+
+### Phase 2A present (locked)
+
+- One authoritative `TradeStreamAtasMapper.MapNewTrade` → `ExecutedTradeEvent` path
+- Cumulative callbacks not authoritative for executed totals (`CUMULATIVE_CALLBACKS_NOT_AUTHORITATIVE_FOR_EXECUTED_TOTALS`)
+- Current-auction aggregate + per-price ledger + Episode raw aggregate
+- Classified Delta/CVD; Unknown aggressor explicit; timing raw only
+- Module default OFF; GPS rows; diagnostics OFF by default; no overlay/alerts
+- Does not mutate Profile/Composite/Reference/Directional/Episode/Evidence
+
+### Explicitly deferred (Phase 2B+)
+
+- Imbalance / stacked imbalance / Big Trade classification
+- Absorption / exhaustion / Effort vs Result / Trade Facilitation
+- Acceptance/Re-entry Resolution / FAR / AAC / Thesis / Entry / Risk
 
 ### Documented live evidence-lifecycle coverage limitation (accepted)
 
@@ -134,7 +183,7 @@ Focused live gate proved Evidence PARTIAL publication, natural UpperBoundary evi
 - Stable Reacceptance / Reentry Failed
 - FAR / AAC / Thesis / Entry / Risk / Long-Short
 - OutsideCloseRatio / TPO outside / Local Value rebuild / OldValueReclaimFailure / RetestHoldQuality
-- Opposite-aggression effectiveness / Orderflow interpretation
+- Opposite-aggression effectiveness
 - Invented acceptance/maintenance/stable-reentry thresholds
 
 ### Phase 1D present (locked)
@@ -152,7 +201,8 @@ Focused live gate proved Evidence PARTIAL publication, natural UpperBoundary evi
 ### Explicitly deferred after Phase 1D (partially superseded)
 
 - ~~Auction Episode~~ — **Phase 1E LOCKED**
-- Acceptance / Re-entry Resolution — Phase 1F
+- Acceptance / Re-entry Resolution — **Phase 1F LOCKED (measurement only; Resolution still NOT STARTED)**
+- ~~Orderflow raw features~~ — **Phase 2A LOCKED**
 - Orderflow interpretation / FAR/AAC / Thesis / Entry / Risk
 - Execution directional horizon
 - Calibrated OTF ConfirmedUp/ConfirmedDown threshold

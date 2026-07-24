@@ -6,6 +6,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
+using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
@@ -48,6 +49,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private EpisodeInputFingerprint? _lastAppliedEpisodeFingerprint;
     private AcceptanceReentryEvidenceHost? _evidenceHost;
     private EvidenceInputFingerprint? _lastAppliedEvidenceFingerprint;
+    private ExecutedOrderflowHost? _orderflowHost;
+    private OrderflowInputFingerprint? _lastAppliedOrderflowFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -92,6 +95,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowAuctionEpisodeDiagnostics = false;
         EnableAcceptanceReentryEvidence = false;
         ShowAcceptanceReentryEvidenceDiagnostics = false;
+        EnableExecutedOrderflow = false;
+        ShowExecutedOrderflowDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -310,6 +315,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Evidence vector diagnostics. Default false. No Established Acceptance/Stable Reacceptance wording.")]
     public bool ShowAcceptanceReentryEvidenceDiagnostics { get; set; }
 
+    [Category("Executed Orderflow")]
+    [DisplayName("Enable Executed Orderflow")]
+    [Description("Raw executed Orderflow features (EXECUTED_ORDERFLOW_POLICY_V1). Default false. No imbalance/absorption/Trade Facilitation.")]
+    public bool EnableExecutedOrderflow { get; set; }
+
+    [Category("Executed Orderflow")]
+    [DisplayName("Show Executed Orderflow Diagnostics")]
+    [Description("Orderflow provenance and rejection diagnostics. Default false. No Buy/Sell/absorption wording.")]
+    public bool ShowExecutedOrderflowDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -326,6 +341,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessDirectionalContext();
             ProcessAuctionEpisodes();
             ProcessAcceptanceReentryEvidence();
+            ProcessExecutedOrderflow();
             PublishRuntimeSnapshot();
         }
     }
@@ -366,6 +382,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             probe.TryEnqueueNewTrade(obs, EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
             TryRecordNewTrade(trade, RecorderCallbackSource.OnNewTrade);
             TryProcessEpisodeTrade(obs);
+            if (EnableExecutedOrderflow && !EnableAuctionEpisodes)
+                TryProcessOrderflowTrade(obs);
         }
         catch { probe.Counters.IncNormalizationFailures(); }
         PublishRuntimeSnapshot();
@@ -405,7 +423,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                         // Episode admission is independent of TradeStreamProbe enable/gates.
                         var obs = MapNormalizedNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, key);
                         if (obs is not null)
+                        {
                             TryProcessEpisodeTrade(obs);
+                            if (EnableExecutedOrderflow && !EnableAuctionEpisodes)
+                                TryProcessOrderflowTrade(obs);
+                        }
 
                         if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); return; }
                         var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
@@ -430,7 +452,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     // One normalization → Episode always; probe enqueue only when gated.
                     var obs = MapNormalizedNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, key);
                     if (obs is not null)
+                    {
                         TryProcessEpisodeTrade(obs);
+                        if (EnableExecutedOrderflow && !EnableAuctionEpisodes)
+                            TryProcessOrderflowTrade(obs);
+                    }
 
                     if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); continue; }
                     var gate = probe.EvaluateGates(EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
@@ -701,11 +727,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _directionalHost = null;
                 _episodeHost = null;
                 _evidenceHost = null;
+                _orderflowHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
                 _lastAppliedEpisodeFingerprint = null;
                 _lastAppliedEvidenceFingerprint = null;
+                _lastAppliedOrderflowFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -1123,13 +1151,61 @@ public sealed class GcAuctionFlowIndicator : Indicator
             if (host.LastAppliedFingerprint is { } fp)
                 _lastAppliedEpisodeFingerprint = fp;
 
+            var measurements = host.DrainMeasurementEvents();
             if (EnableAcceptanceReentryEvidence)
             {
                 EnsureAcceptanceReentryEvidenceInitializedForPublish();
-                var measurements = host.DrainMeasurementEvents();
                 if (measurements.Count > 0)
                     _evidenceHost?.ProcessMeasurementEvents(measurements, host.Current);
             }
+
+            if (EnableExecutedOrderflow)
+                TryProcessOrderflowTrade(obs, measurements);
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void TryProcessOrderflowTrade(
+        NewTradeObservation obs,
+        IReadOnlyList<EpisodeMeasurementEvent>? measurements = null)
+    {
+        if (!EnableExecutedOrderflow || obs is null || Volatile.Read(ref _disposed) != 0)
+            return;
+        try
+        {
+            EnsureExecutedOrderflowInitializedForPublish();
+            var host = _orderflowHost;
+            if (host is null)
+                return;
+
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var auctionId = _profileHost?.Current?.CurrentAuction?.AuctionId
+                            ?? _episodeHost?.Current?.PrimaryAuctionId
+                            ?? "";
+            var grid = new PriceGrid(tick);
+            var episodeIds = measurements?
+                .Select(m => m.EpisodeId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray()
+                ?? Array.Empty<string>();
+
+            var evt = ExecutedTradeEvent.TryFromNewTrade(
+                obs, tick, epoch, auctionId, AtasTimestampNormalizer.PolicyVersion,
+                p => grid.TryToTickIndex(p, out var t) ? t : null,
+                episodeIds);
+            if (evt is null)
+                return;
+
+            host.ProcessTrade(evt, EnableAuctionEpisodes ? _episodeHost?.Current : null);
+            if (host.LastAppliedFingerprint is { } fp)
+                _lastAppliedOrderflowFingerprint = fp;
         }
         catch
         {
@@ -1166,6 +1242,67 @@ public sealed class GcAuctionFlowIndicator : Indicator
         {
             // Contained.
         }
+    }
+
+    private void ProcessExecutedOrderflow()
+    {
+        if (!EnableExecutedOrderflow || Volatile.Read(ref _disposed) != 0)
+        {
+            _orderflowHost = null;
+            _lastAppliedOrderflowFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new ExecutedOrderflowPolicyConfig(enabled: true);
+            var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+            var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+
+            _orderflowHost ??= new ExecutedOrderflowHost(tick, identity, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _orderflowHost.Configure(tick, identity, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _orderflowHost.RebuildContext(profiles, episodes);
+
+            if (_orderflowHost.Current is not null && _orderflowHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedOrderflowFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureExecutedOrderflowInitializedForPublish()
+    {
+        if (!EnableExecutedOrderflow || Volatile.Read(ref _disposed) != 0)
+        {
+            _orderflowHost = null;
+            _lastAppliedOrderflowFingerprint = null;
+            return;
+        }
+
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var auctionId = _profileHost?.Current?.CurrentAuction?.AuctionId
+                        ?? _episodeHost?.Current?.PrimaryAuctionId
+                        ?? "";
+        var current = OrderflowInputFingerprint.Build(
+            true, auctionId, tick, epoch, AtasTimestampNormalizer.PolicyVersion);
+
+        if (!OrderflowPublishInitialization.ShouldProcess(
+                EnableExecutedOrderflow,
+                _orderflowHost,
+                _lastAppliedOrderflowFingerprint,
+                current))
+            return;
+
+        ProcessExecutedOrderflow();
     }
 
     private void EnsureAcceptanceReentryEvidenceInitializedForPublish()
@@ -1383,6 +1520,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureDirectionalContextInitializedForPublish();
             EnsureAuctionEpisodesInitializedForPublish();
             EnsureAcceptanceReentryEvidenceInitializedForPublish();
+            EnsureExecutedOrderflowInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -1390,6 +1528,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var directional = EnableDirectionalContext ? _directionalHost?.Current : null;
             var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
             var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+            var orderflow = EnableExecutedOrderflow ? _orderflowHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1417,7 +1556,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 auctionEpisodes: episodes,
                 showAuctionEpisodeDiagnostics: ShowAuctionEpisodeDiagnostics,
                 acceptanceReentryEvidence: evidence,
-                showAcceptanceReentryEvidenceDiagnostics: ShowAcceptanceReentryEvidenceDiagnostics);
+                showAcceptanceReentryEvidenceDiagnostics: ShowAcceptanceReentryEvidenceDiagnostics,
+                executedOrderflow: orderflow,
+                showExecutedOrderflowDiagnostics: ShowExecutedOrderflowDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
