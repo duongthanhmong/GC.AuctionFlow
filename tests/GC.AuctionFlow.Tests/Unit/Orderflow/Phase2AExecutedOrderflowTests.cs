@@ -235,7 +235,7 @@ public sealed class Phase2AExecutedOrderflowTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), executedOrderflow: host.Current);
-        Assert.Equal("0.8.0", snap.Version);
+        Assert.Equal("0.9.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(host.Current, snap.ExecutedOrderflow);
     }
@@ -272,11 +272,13 @@ public sealed class Phase2AExecutedOrderflowTests
 
         var root = FindRepoRoot();
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Orderflow")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Cluster")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "TradeFacilitation")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableExecutedOrderflow = false", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableClusterRawFeatures = false", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("ImbalanceThreshold", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
@@ -286,7 +288,7 @@ public sealed class Phase2AExecutedOrderflowTests
     public void Policy_Version()
     {
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
-        Assert.Equal("0.8.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.9.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     private static string FindRepoRoot()

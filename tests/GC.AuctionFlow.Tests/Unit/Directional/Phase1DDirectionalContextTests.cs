@@ -411,7 +411,7 @@ public sealed class Phase1DDirectionalContextTests
             directionalContext: s1);
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Directional Ready must not force global Ready
-        Assert.Equal("0.8.0", snap.Version);
+        Assert.Equal("0.9.0", snap.Version);
         Assert.Equal(DirectionalPolicyConfig.PolicyVersion, s1.PolicyVersion);
 
         // Overlay cosmetic must not be in fingerprint — reference overlay absence unchanged.
@@ -464,25 +464,28 @@ public sealed class Phase1DDirectionalContextTests
         Assert.Contains("ORDERFLOW: NOT AVAILABLE", text, StringComparison.Ordinal);
         Assert.Contains("MBO: BLOCKED", vm.MboLine, StringComparison.Ordinal);
 
-        // Phase 2A Orderflow raw is authorized; Trade Facilitation / Thesis / FAR / AAC are not.
+        // Phase 2B Cluster Raw is authorized; Trade Facilitation / Thesis / FAR / AAC are not.
         var root = FindRepoRoot();
         var src = Path.Combine(root, "src", "GC.AuctionFlow");
         Assert.True(Directory.Exists(Path.Combine(src, "Episode")));
         Assert.True(Directory.Exists(Path.Combine(src, "Evidence")));
         Assert.True(Directory.Exists(Path.Combine(src, "Orderflow")));
+        Assert.True(Directory.Exists(Path.Combine(src, "Cluster")));
         Assert.False(Directory.Exists(Path.Combine(src, "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(src, "TradeFacilitation")));
         var indicator = File.ReadAllText(Path.Combine(src, "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableAuctionEpisodes", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableAcceptanceReentryEvidence", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableExecutedOrderflow", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableClusterRawFeatures", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableDirectionalContext", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptanceOutside", Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
             .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}Episode{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                      && !p.Contains($"{Path.DirectorySeparatorChar}Evidence{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
-                     && !p.Contains($"{Path.DirectorySeparatorChar}Orderflow{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+                     && !p.Contains($"{Path.DirectorySeparatorChar}Orderflow{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !p.Contains($"{Path.DirectorySeparatorChar}Cluster{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
             .Select(File.ReadAllText)
             .Aggregate("", (a, b) => a + b), StringComparison.Ordinal);
     }

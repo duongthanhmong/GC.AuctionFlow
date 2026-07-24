@@ -1,4 +1,5 @@
 using System.Globalization;
+using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
@@ -176,6 +177,9 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildExecutedOrderflowLines(
             snapshot.ExecutedOrderflow,
             snapshot.ShowExecutedOrderflowDiagnostics));
+        details.AddRange(BuildClusterRawLines(
+            snapshot.ClusterRaw,
+            snapshot.ShowClusterRawDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -196,6 +200,9 @@ public static class AuctionGpsCardMapper
                 snapshot.ExecutedOrderflow is null
                     ? "ORDERFLOW: NOT AVAILABLE"
                     : "ORDERFLOW: " + snapshot.ExecutedOrderflow.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.ClusterRaw is null
+                    ? "CLUSTER RAW: NOT AVAILABLE"
+                    : "CLUSTER RAW: " + snapshot.ClusterRaw.ModuleState.ToString().ToUpperInvariant(),
                 "THESIS: NOT AVAILABLE"
             }
             : new List<string>();
@@ -687,6 +694,127 @@ public static class AuctionGpsCardMapper
 
         return rows;
     }
+
+    public static IReadOnlyList<string> BuildClusterRawLines(
+        ClusterRawSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.ModuleState == ClusterRawModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.ModuleState)
+        {
+            case ClusterRawModuleState.AwaitingOrderflow:
+                rows.Add("CLUSTER RAW: AWAITING ORDERFLOW");
+                rows.Add("CLUSTER RAW POLICY: " + set.PolicyVersion);
+                break;
+            case ClusterRawModuleState.Partial:
+                rows.Add("CLUSTER RAW: PARTIAL");
+                rows.Add("CLUSTER RAW POLICY: " + set.PolicyVersion);
+                AppendClusterRawCoreRows(rows, set);
+                break;
+            case ClusterRawModuleState.Ready:
+                rows.Add("CLUSTER RAW: READY");
+                rows.Add("CLUSTER RAW POLICY: " + set.PolicyVersion);
+                AppendClusterRawCoreRows(rows, set);
+                break;
+            case ClusterRawModuleState.Invalid:
+                rows.Add("CLUSTER RAW: INVALID");
+                rows.Add("CLUSTER RAW POLICY: " + set.PolicyVersion);
+                rows.Add("CLUSTER RAW LIMITATION: " + (set.Limitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("CLUSTER RAW: " + set.ModuleState.ToString().ToUpperInvariant());
+                break;
+        }
+
+        rows.Add("CLUSTER RAW HISTORY: LIVE_ONLY");
+
+        if (showDiagnostics
+            && set.ModuleState is ClusterRawModuleState.Ready or ClusterRawModuleState.Partial or ClusterRawModuleState.AwaitingOrderflow)
+        {
+            var a = set.CurrentAuction;
+            if (a is not null)
+            {
+                rows.Add("CLUSTER RAW SNAPSHOT ID: " + Truncate(a.SnapshotId, 96));
+                rows.Add("CLUSTER RAW OFLOW ID: " + Truncate(a.OrderflowAuctionSnapshotId, 96));
+                rows.Add("CLUSTER RAW STATE VER: " + a.StateVersion.ToString(CultureInfo.InvariantCulture));
+                rows.Add("CLUSTER RAW EVENT REV: " + a.EventRevision.ToString(CultureInfo.InvariantCulture));
+                rows.Add("CLUSTER RAW RANK METHOD: " + set.RankMethod);
+            }
+
+            rows.Add("CLUSTER RAW INPUT OFLOW REV: " + set.InputOrderflowEventRevision.ToString(CultureInfo.InvariantCulture));
+            if (!string.IsNullOrEmpty(set.LastRejectionReason))
+                rows.Add("CLUSTER RAW LAST REJECT: " + set.LastRejectionReason);
+            if (set.RejectedStaleRevisionCount > 0)
+                rows.Add("CLUSTER RAW STALE REJECTS: " + set.RejectedStaleRevisionCount.ToString(CultureInfo.InvariantCulture));
+            if (set.Limitations.Count > 0)
+                rows.Add("CLUSTER RAW LIMITATIONS: " + Truncate(string.Join(",", set.Limitations.Take(4)), 96));
+        }
+
+        return rows;
+    }
+
+    private static void AppendClusterRawCoreRows(List<string> rows, ClusterRawSetSnapshot set)
+    {
+        var a = set.CurrentAuction;
+        rows.Add("CLUSTER RAW COVERAGE: " + (a?.CoverageMode.ToString().ToUpperInvariant() ?? "UNKNOWN"));
+        rows.Add("CLUSTER PRICE LEVELS: " + (a?.PriceLevelCount.ToString(CultureInfo.InvariantCulture) ?? "0"));
+        rows.Add("CLASSIFIED LEVELS: " + (a?.ClassifiedLevelCount.ToString(CultureInfo.InvariantCulture) ?? "0"));
+        rows.Add("UNKNOWN-ONLY LEVELS: " + (a?.UnknownOnlyLevelCount.ToString(CultureInfo.InvariantCulture) ?? "0"));
+        rows.Add("CLUSTER CLASSIFICATION: NOT CALIBRATED");
+
+        if (a is null || a.PriceLevels.Count == 0)
+            return;
+
+        ClusterRawPriceLevelSnapshot? latest = null;
+        if (!string.IsNullOrEmpty(a.LatestUpdatedLevelId))
+            latest = a.PriceLevels.FirstOrDefault(l => string.Equals(l.LevelId, a.LatestUpdatedLevelId, StringComparison.Ordinal));
+        latest ??= a.LatestPriceTick.HasValue
+            ? a.PriceLevels.FirstOrDefault(l => l.PriceTick == a.LatestPriceTick.Value)
+            : a.PriceLevels[^1];
+
+        if (latest is not null)
+        {
+            rows.Add("LATEST CLUSTER TICK: " + latest.PriceTick.ToString(CultureInfo.InvariantCulture)
+                     + " (" + latest.DecimalPrice.ToString(CultureInfo.InvariantCulture) + ")");
+            rows.Add("LEVEL EXECUTED VOLUME: " + latest.ExecutedVolume.ToString(CultureInfo.InvariantCulture));
+            rows.Add("LEVEL TRADES: " + latest.TradeCount.ToString(CultureInfo.InvariantCulture));
+            rows.Add("LEVEL ASK/BID/UNKNOWN: "
+                     + FormatOptionalVolume(latest.AskVolume) + "/"
+                     + FormatOptionalVolume(latest.BidVolume) + "/"
+                     + latest.UnknownAggressorVolume.ToString(CultureInfo.InvariantCulture));
+            rows.Add("LEVEL CLASSIFIED DELTA: " + latest.ClassifiedDelta.ToString(CultureInfo.InvariantCulture));
+            rows.Add("RAW DOMINANT SIDE: " + latest.RawDominantSide.ToString().ToUpperInvariant());
+            rows.Add("SAME-PRICE A/B RATIO: " + FormatOptionalRatio(latest.SamePriceAskToBidRatio));
+            rows.Add("DIAGONAL A/B RATIO: " + FormatOptionalRatio(latest.DiagonalAskToBidBelowRatio));
+            rows.Add("VOLUME RANK: " + latest.VolumeRank.ToString(CultureInfo.InvariantCulture)
+                     + "/" + latest.VolumeRankPopulation.ToString(CultureInfo.InvariantCulture));
+            rows.Add("ABS DELTA RANK: " + (latest.AbsoluteDeltaRank.HasValue
+                ? latest.AbsoluteDeltaRank.Value.ToString(CultureInfo.InvariantCulture) + "/" + latest.VolumeRankPopulation.ToString(CultureInfo.InvariantCulture)
+                : "unavailable"));
+            rows.Add("VISITS / REVISITS: "
+                     + latest.VisitCount.ToString(CultureInfo.InvariantCulture) + "/"
+                     + latest.RevisitCount.ToString(CultureInfo.InvariantCulture));
+        }
+
+        var ep = a.ActiveEpisodeSnapshots.FirstOrDefault();
+        if (ep is not null)
+        {
+            rows.Add("EPISODE CLUSTER RAW: " + (ep.DataQuality == ClusterRawDataQuality.Complete ? "READY" : "PARTIAL"));
+            rows.Add("EPISODE PRICE LEVELS: " + ep.PriceLevelCount.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EPISODE MAX VOLUME TICK: " + (ep.MaximumVolumePriceTick?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"));
+            rows.Add("EPISODE MAX ABS DELTA TICK: " + (ep.MaximumAbsoluteDeltaPriceTick?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"));
+            rows.Add("EPISODE REVISITED LEVELS: " + ep.RevisitedLevelCount.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    private static string FormatOptionalVolume(decimal? v) =>
+        v.HasValue ? v.Value.ToString(CultureInfo.InvariantCulture) : "unavailable";
+
+    private static string FormatOptionalRatio(decimal? r) =>
+        r.HasValue ? r.Value.ToString(CultureInfo.InvariantCulture) : "unavailable";
 
     private static void AppendOrderflowCoreRows(List<string> rows, ExecutedOrderflowSetSnapshot set)
     {

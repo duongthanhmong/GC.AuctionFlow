@@ -172,4 +172,21 @@
 124. OAC contamination remains outside GCAE Phase 2A scope.
 125. **Documented live raw-feature coverage limitation:** Ask/Bid classified paths, complete READY, mixed-side reconciliation, nonzero Delta/CVD, full per-price ledger, complete Episode aggregates, timing metrics, cumulative revision replacement, auction/epoch/disable–re-enable resets, LiveOnlyFromAuctionStart, revision sequences, out-of-order rejection, and deterministic replay were not all manually observed live; covered by automated tests. Core live gate (PARTIAL MidAuction Unknown-only accounting, volume/trades, coverage safety, Probe independence) was live-verified.
 126. Live-accepted closeout DLL SHA-256: `F92538852AD2478002F6FCB89B052FC9ACBD3773746F733C31548BF77B5356D2`. Tag: `gcae-p2a-executed-orderflow-raw-feature-foundation-pass`.
-127. Phase 2B Trade Facilitation, Effort vs Result, Acceptance/Re-entry Resolution, FAR/AAC remain **NOT STARTED**.
+127. Effort vs Result, Trade Facilitation, Acceptance/Re-entry Resolution, FAR/AAC remain **NOT STARTED**. Phase 2B Cluster Raw is separate (see Phase 2B section).
+
+## Phase 2B Cluster Raw Feature Measurement Foundation (LOCKED — FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION)
+
+128. **Raw measurements only.** No Bid/Ask Imbalance, Stacked Imbalance, Extreme Delta/Volume, Big Trade, or Repeated Extreme Tests classification.
+129. Same-price / diagonal ratios are descriptive; unavailable Ask/Bid / opposing tick / zero denom → unavailable (never fabricated zero). Absolute-Delta rank may be unavailable.
+130. RawDominantSide and consecutive dominance are not imbalance / stacked-imbalance / buyer-seller-control labels.
+131. EMPIRICAL_MIDRANK_V1 ranks/percentiles are descriptive — not Extreme labels or probabilities; no percentile threshold.
+132. Visits/revisits are not Repeated Extreme Tests; no time-gap threshold.
+133. **CLOSE_POSITION_INPUT_UNAVAILABLE** — no Close Position without exact authorized bar-cluster input.
+134. Unknown-only Phase 2A levels remain valid Cluster Raw **Partial**; CLUSTER CLASSIFICATION **NOT CALIBRATED**.
+135. LIVE_ONLY history; no candle / chart-color / ATAS footprint / Cluster Search reconstruction. Coverage inherited from Phase 2A (live: LIVEONLYFROMAUCTIONSTART).
+136. **No Absorption/Exhaustion / Effort vs Result / Trade Facilitation / Resolution / FAR / AAC**, Thesis, Long/Short, probability/edge, alerts, or cluster overlay.
+137. Module Ready/Partial does **not clear** global DATA DEGRADED. MBO/DOM/OI not required; MBO remains blocked.
+138. OAC contamination remains outside GCAE Phase 2B scope.
+139. **Documented live classified-cluster coverage limitation:** classified Ask/Bid ratios, diagonal classified paths, classified dominant sides/runs, absolute-Delta rank, percentile ties, multi-visit lifecycle, classified Episode aggregates, Centerline, auction/epoch/disable resets, revision sequences, stale rejection, and deterministic replay were not all manually observed live; covered by automated tests. Core live gate (two-snapshot Unknown-only Partial update, Volume Rank, NOT CALIBRATED) was live-verified.
+140. Live-accepted closeout DLL SHA-256: `A15CC6A85AA9562E59CA8B66140AAD017E957F96E96C7BBF47E620E6E0E71A39`. Tag: `gcae-p2b-cluster-raw-feature-measurement-pass`.
+141. Imbalance / Stacked Imbalance / Extreme Delta/Volume / Big Trade / Effort vs Result / Trade Facilitation / Acceptance/Re-entry Resolution / FAR / AAC remain **NOT STARTED**.

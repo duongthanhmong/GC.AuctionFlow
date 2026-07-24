@@ -6,6 +6,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
+using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -51,6 +52,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private EvidenceInputFingerprint? _lastAppliedEvidenceFingerprint;
     private ExecutedOrderflowHost? _orderflowHost;
     private OrderflowInputFingerprint? _lastAppliedOrderflowFingerprint;
+    private ClusterRawHost? _clusterHost;
+    private ClusterRawInputFingerprint? _lastAppliedClusterFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -97,6 +100,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowAcceptanceReentryEvidenceDiagnostics = false;
         EnableExecutedOrderflow = false;
         ShowExecutedOrderflowDiagnostics = false;
+        EnableClusterRawFeatures = false;
+        ShowClusterRawDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -325,6 +330,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Orderflow provenance and rejection diagnostics. Default false. No Buy/Sell/absorption wording.")]
     public bool ShowExecutedOrderflowDiagnostics { get; set; }
 
+    [Category("Cluster Raw Features")]
+    [DisplayName("Enable Cluster Raw Features")]
+    [Description("Raw cluster measurements over Phase 2A ledger (CLUSTER_RAW_FEATURE_POLICY_V1). Default false. No imbalance/extreme/absorption.")]
+    public bool EnableClusterRawFeatures { get; set; }
+
+    [Category("Cluster Raw Features")]
+    [DisplayName("Show Cluster Raw Diagnostics")]
+    [Description("Cluster Raw provenance and limitations. Default false. No Bid/Ask Imbalance or Extreme wording.")]
+    public bool ShowClusterRawDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -342,6 +357,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessAuctionEpisodes();
             ProcessAcceptanceReentryEvidence();
             ProcessExecutedOrderflow();
+            ProcessClusterRawFeatures();
             PublishRuntimeSnapshot();
         }
     }
@@ -728,12 +744,14 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _episodeHost = null;
                 _evidenceHost = null;
                 _orderflowHost = null;
+                _clusterHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
                 _lastAppliedEpisodeFingerprint = null;
                 _lastAppliedEvidenceFingerprint = null;
                 _lastAppliedOrderflowFingerprint = null;
+                _lastAppliedClusterFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -1206,6 +1224,19 @@ public sealed class GcAuctionFlowIndicator : Indicator
             host.ProcessTrade(evt, EnableAuctionEpisodes ? _episodeHost?.Current : null);
             if (host.LastAppliedFingerprint is { } fp)
                 _lastAppliedOrderflowFingerprint = fp;
+
+            if (EnableClusterRawFeatures && host.Current is not null)
+            {
+                EnsureClusterRawInitializedForPublish();
+                _clusterHost?.ProcessOrderflowUpdate(
+                    host.Current,
+                    evt.NormalizedPriceTick,
+                    evt.EventId,
+                    evt.EventSequence,
+                    evt.ReceiveTimestampUtc ?? evt.ExchangeTimestampUtc);
+                if (_clusterHost?.LastAppliedFingerprint is { } cfp)
+                    _lastAppliedClusterFingerprint = cfp;
+            }
         }
         catch
         {
@@ -1274,6 +1305,67 @@ public sealed class GcAuctionFlowIndicator : Indicator
         {
             // Contained.
         }
+    }
+
+    private void ProcessClusterRawFeatures()
+    {
+        if (!EnableClusterRawFeatures || Volatile.Read(ref _disposed) != 0)
+        {
+            _clusterHost = null;
+            _lastAppliedClusterFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new ClusterRawFeaturePolicyConfig(enabled: true);
+            var orderflow = EnableExecutedOrderflow ? _orderflowHost?.Current : null;
+
+            _clusterHost ??= new ClusterRawHost(tick, identity, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _clusterHost.Configure(tick, identity, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _clusterHost.RebuildFromOrderflow(orderflow);
+
+            if (_clusterHost.Current is not null && _clusterHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedClusterFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureClusterRawInitializedForPublish()
+    {
+        if (!EnableClusterRawFeatures || Volatile.Read(ref _disposed) != 0)
+        {
+            _clusterHost = null;
+            _lastAppliedClusterFingerprint = null;
+            return;
+        }
+
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var auctionId = _orderflowHost?.Current?.CurrentAuction?.PrimaryAuctionId
+                        ?? _profileHost?.Current?.CurrentAuction?.AuctionId
+                        ?? "";
+        var ofRev = _orderflowHost?.Current?.CurrentAuction?.EventRevision ?? 0L;
+        var current = ClusterRawInputFingerprint.Build(
+            true, auctionId, tick, epoch, AtasTimestampNormalizer.PolicyVersion, ofRev);
+
+        if (!ClusterRawPublishInitialization.ShouldProcess(
+                EnableClusterRawFeatures,
+                _clusterHost,
+                _lastAppliedClusterFingerprint,
+                current))
+            return;
+
+        ProcessClusterRawFeatures();
     }
 
     private void EnsureExecutedOrderflowInitializedForPublish()
@@ -1521,6 +1613,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureAuctionEpisodesInitializedForPublish();
             EnsureAcceptanceReentryEvidenceInitializedForPublish();
             EnsureExecutedOrderflowInitializedForPublish();
+            EnsureClusterRawInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -1529,6 +1622,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
             var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
             var orderflow = EnableExecutedOrderflow ? _orderflowHost?.Current : null;
+            var cluster = EnableClusterRawFeatures ? _clusterHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1558,7 +1652,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 acceptanceReentryEvidence: evidence,
                 showAcceptanceReentryEvidenceDiagnostics: ShowAcceptanceReentryEvidenceDiagnostics,
                 executedOrderflow: orderflow,
-                showExecutedOrderflowDiagnostics: ShowExecutedOrderflowDiagnostics);
+                showExecutedOrderflowDiagnostics: ShowExecutedOrderflowDiagnostics,
+                clusterRaw: cluster,
+                showClusterRawDiagnostics: ShowClusterRawDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

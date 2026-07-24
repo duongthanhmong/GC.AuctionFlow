@@ -1,3 +1,4 @@
+using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Episode;
@@ -11,7 +12,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.8.0";
+    public const string SnapshotVersion = "0.9.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -37,7 +38,9 @@ public sealed class GcaeRuntimeSnapshot
         AcceptanceReentryEvidenceSetSnapshot? acceptanceReentryEvidence = null,
         bool showAcceptanceReentryEvidenceDiagnostics = false,
         ExecutedOrderflowSetSnapshot? executedOrderflow = null,
-        bool showExecutedOrderflowDiagnostics = false)
+        bool showExecutedOrderflowDiagnostics = false,
+        ClusterRawSetSnapshot? clusterRaw = null,
+        bool showClusterRawDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -63,6 +66,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowAcceptanceReentryEvidenceDiagnostics = showAcceptanceReentryEvidenceDiagnostics;
         ExecutedOrderflow = executedOrderflow;
         ShowExecutedOrderflowDiagnostics = showExecutedOrderflowDiagnostics;
+        ClusterRaw = clusterRaw;
+        ShowClusterRawDiagnostics = showClusterRawDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -78,6 +83,7 @@ public sealed class GcaeRuntimeSnapshot
     public AuctionEpisodeSetSnapshot? AuctionEpisodes { get; }
     public AcceptanceReentryEvidenceSetSnapshot? AcceptanceReentryEvidence { get; }
     public ExecutedOrderflowSetSnapshot? ExecutedOrderflow { get; }
+    public ClusterRawSetSnapshot? ClusterRaw { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -90,6 +96,7 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowAuctionEpisodeDiagnostics { get; }
     public bool ShowAcceptanceReentryEvidenceDiagnostics { get; }
     public bool ShowExecutedOrderflowDiagnostics { get; }
+    public bool ShowClusterRawDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

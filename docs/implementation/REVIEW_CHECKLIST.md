@@ -296,3 +296,40 @@
 - [x] Timing min/max/mean/latest; duplicate timing idempotence; out-of-order rejection (**automated**)
 - [x] Cumulative revision replacement; auction/epoch/disable–re-enable; LiveOnlyFromAuctionStart (**automated**)
 - [x] StateVersion/EventRevision sequences; stale revision rejection; deterministic replay (**automated**)
+
+## Phase 2B Cluster Raw Feature Measurement — code/test (LOCKED)
+
+- [x] Phase 2A remains authoritative; no second trade normalization
+- [x] Version-gated rebuild; changed-tick downstream path
+- [x] Module default OFF; Awaiting/Ready/Partial/Invalid
+- [x] Deterministic auction/level/Episode snapshot identities
+- [x] Same-price / diagonal raw ratios; null-safe denominator; no NaN/Infinity
+- [x] RawDominantSide Ask/Bid/Equal/Unknown; neighboring dominance; no missing-tick bridging
+- [x] EMPIRICAL_MIDRANK_V1; Volume / Trade Count / Absolute Delta ranks
+- [x] VisitCount/RevisitCount; auction + Episode aggregation
+- [x] Availability policy; Unknown-only Partial truthful
+- [x] Revisions/lifecycle; runtime/card; Data Gate independence; MBO independence
+- [x] CLUSTER CLASSIFICATION NOT CALIBRATED; no thresholds; no prohibited wording
+- [x] Runtime schema 0.9.0; CLUSTER_RAW_FEATURE_POLICY_V1; assembly 0.0.6
+- [x] GCAE tests green (482 passed ×2 / 0 failed / 0 skipped); Probe/Recorder 139 green
+- [x] 0 build errors / 0 warnings
+- [x] Source/deployed DLL SHA-256 exact match
+
+## Phase 2B live acceptance (LOCKED — focused core gate PASS)
+
+- [x] GCQ6 / Rithmic Live; Orderflow ON; Cluster Raw ON; Cluster Diagnostics ON; Probe/Recorder OFF permitted; MBO OFF
+- [x] Two-snapshot update: volume 318→324; trades 258→264; levels 5→6; Unknown-only; CLASSIFICATION NOT CALIBRATED
+- [x] Ask/Bid ratios unavailable (not zero); Volume Rank 4/5→6/6; Abs Delta rank unavailable; Visits 1/0
+- [x] Episode Cluster Raw PARTIAL; HISTORY LIVE_ONLY; COVERAGE LIVEONLYFROMAUCTIONSTART
+- [x] No imbalance/stacked/extreme/Big Trade/absorption/EffortResult/Trade Facilitation; DATA DEGRADED independent; MBO BLOCKED
+- [x] Final verdict: FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION
+- [x] Tag: `gcae-p2b-cluster-raw-feature-measurement-pass`
+
+### Phase 2B automated-only (not all live-observed)
+
+- [x] Classified Ask/Bid same-price and diagonal ratios; numerator-zero / denom-zero / missing adjacent (**automated**)
+- [x] Classified Ask/Bid/Equal RawDominantSide; adjacent runs; Unknown/Equal/gap termination (**automated**)
+- [x] Absolute-Delta rank; EMPIRICAL_MIDRANK_V1 ties; percentile bounds; collection-order independence (**automated**)
+- [x] Multi-visit/revisit lifecycle; duplicate/revision/stale visit idempotence (**automated**)
+- [x] Classified Episode aggregates; max abs-Delta tick; Centerline Episode input (**automated**)
+- [x] Auction/epoch/disable–re-enable; StateVersion/EventRevision; stale Phase 2A rejection; replay (**automated**)

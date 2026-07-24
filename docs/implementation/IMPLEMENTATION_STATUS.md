@@ -2,10 +2,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2A LOCKED — FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** |
+| Current phase | **Phase 2B LOCKED — FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.8.0** (Executed Orderflow fields) |
+| Runtime snapshot schema | **0.9.0** (Cluster Raw fields) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -13,7 +13,8 @@
 | Directional policy | **DIRECTIONAL_CONTEXT_POLICY_V1** (unchanged) |
 | Episode policy | **AUCTION_EPISODE_POLICY_V1** (unchanged) |
 | Evidence policy | **ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1** (unchanged) |
-| Orderflow policy | **EXECUTED_ORDERFLOW_POLICY_V1** |
+| Orderflow policy | **EXECUTED_ORDERFLOW_POLICY_V1** (unchanged) |
+| Cluster Raw policy | **CLUSTER_RAW_FEATURE_POLICY_V1** |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
 | Phase 1A | **LOCKED** — `gcae-p1a-primary-tpo-volume-profile-pass` |
@@ -22,8 +23,8 @@
 | Phase 1D | **LOCKED FINAL PASS WITH DOCUMENTED LIVE DIAGNOSTIC COVERAGE LIMITATION** — `gcae-p1d-multi-horizon-directional-context-pass` @ `dcfea72` |
 | Phase 1E | **LOCKED FINAL PASS WITH DOCUMENTED LIVE STATE-MACHINE COVERAGE LIMITATION** — `gcae-p1e-auction-episode-observation-pass` @ `9772e48` |
 | Phase 1F | **LOCKED FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION** — `gcae-p1f-acceptance-reentry-evidence-measurement-pass` @ `bd892ea` |
-| Phase 2A | **LOCKED FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** — `gcae-p2a-executed-orderflow-raw-feature-foundation-pass` |
-| Phase 2B | **NOT STARTED** |
+| Phase 2A | **LOCKED FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** — `gcae-p2a-executed-orderflow-raw-feature-foundation-pass` @ `1603dfa` |
+| Phase 2B | **LOCKED FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION** — `gcae-p2b-cluster-raw-feature-measurement-pass` |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -143,6 +144,52 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 | Acceptance/Re-entry Resolution | **NOT STARTED** |
 | FAR/AAC | **NOT STARTED** |
 
+## Phase 2B final closeout (2026-07-25) — LOCKED
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 482 passed / 0 failed / 0 skipped (×2 full runs); Probe/Recorder 139 green; 0 errors / 0 warnings |
+| Focused live gate | **PASS** — GCQ6 / Rithmic Live (two snapshots ~2s apart) |
+| Phase 2A authoritative | **PASS** — no second trade normalization |
+| Live update propagation | **PASS** — volume 318→324; trades 258→264; levels 5→6; Unknown 318→324 |
+| Unknown-only Partial | **PASS** — Classified levels 0; Ask/Bid ratios unavailable (not zero) |
+| Empirical Volume Rank | **PASS** — 4/5 → 6/6; latest tick 4071.0 → 4070.7 |
+| ClassificationState | **PASS** — NOT CALIBRATED |
+| Coverage live | **PASS** — LIVEONLYFROMAUCTIONSTART |
+| History | **PASS** — LIVE_ONLY |
+| Data Gate / MBO | **PASS** — DATA DEGRADED independent; MBO BLOCKED |
+| Final verdict | **FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION** |
+| Runtime schema | `0.9.0` |
+| Policy | `CLUSTER_RAW_FEATURE_POLICY_V1` |
+| Rank method | `EMPIRICAL_MIDRANK_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Final DLL SHA-256 | `A15CC6A85AA9562E59CA8B66140AAD017E957F96E96C7BBF47E620E6E0E71A39` (source = deployed) |
+| Tag | `gcae-p2b-cluster-raw-feature-measurement-pass` |
+| Imbalance / Stacked Imbalance | **NOT STARTED** |
+| Extreme Delta / Extreme Volume | **NOT STARTED** |
+| Big Trade | **NOT STARTED** |
+| Effort vs Result | **NOT STARTED** |
+| Trade Facilitation | **NOT STARTED** |
+| Resolution/FAR/AAC | **NOT STARTED** |
+
+### Documented live classified-cluster coverage limitation (accepted)
+
+Focused live gate proved Cluster Raw PARTIAL publication, Phase 2A→2B revision propagation across two live snapshots, Unknown-only level growth, truthful unavailable Ask/Bid ratios, empirical Volume Rank updates, ClassificationState NOT CALIBRATED, Episode Cluster Raw PARTIAL, DATA DEGRADED independence, and MBO BLOCKED. LEVEL TRADES 90→84 is not a decrement — latest displayed tick changed (4071.0→4070.7). Classified Ask/Bid ratios, diagonal classified paths, classified dominant sides/runs, absolute-Delta rank, percentile ties, multi-visit lifecycle, classified Episode aggregates, Centerline, auction/epoch/disable resets, revision sequences, stale rejection, and deterministic replay remain **automated-only** coverage. This does not alter Cluster Raw semantics and does not require further Ask/Bid event hunting.
+
+### Phase 2B present (locked)
+
+- Cluster Raw host over Phase 2A snapshots; version-gated rebuild; visit tracking via changed tick
+- Same-price / diagonal raw ratios; RawDominantSide; consecutive dominance (no stacked label)
+- EMPIRICAL_MIDRANK_V1 ranks/percentiles; visits/revisits; Episode/auction cluster summaries
+- Module default OFF; GPS rows; diagnostics OFF by default; no overlay/alerts/thresholds
+- Does not mutate Orderflow/Profile/Composite/Reference/Directional/Episode/Evidence
+
+### Explicitly deferred after Phase 2B
+
+- Bid/Ask / stacked imbalance classification; Extreme Delta/Volume; Big Trade; tape-speed
+- Absorption / exhaustion / Effort vs Result / Trade Facilitation
+- Acceptance/Re-entry Resolution / FAR / AAC / Thesis / Entry / Risk
+
 ### Documented live raw-feature coverage limitation (accepted)
 
 Focused live gate proved Orderflow PARTIAL publication, ordinary trade admission with Probe OFF, truthful Unknown-aggressor accounting (Ask/Bid unavailable), mathematically safe Classified Delta/CVD/coverage, LIVEONLYMIDAUCTION coverage, Episode Orderflow PARTIAL, DATA DEGRADED independence, and MBO BLOCKED. Ask/Bid classified paths, complete classification READY, mixed-side reconciliation, nonzero Delta/CVD, full per-price ledger, complete Episode aggregates, timing metrics, cumulative revision replacement, auction/epoch/disable–re-enable resets, LiveOnlyFromAuctionStart transition, revision sequences, out-of-order rejection, and deterministic replay remain **automated-only** coverage. This does not alter raw Orderflow semantics and does not require further operator-manufactured aggressor events.
@@ -158,6 +205,7 @@ Focused live gate proved Orderflow PARTIAL publication, ordinary trade admission
 
 ### Explicitly deferred (Phase 2B+)
 
+- ~~Cluster Raw Feature Measurement~~ — **Phase 2B LOCKED**
 - Imbalance / stacked imbalance / Big Trade classification
 - Absorption / exhaustion / Effort vs Result / Trade Facilitation
 - Acceptance/Re-entry Resolution / FAR / AAC / Thesis / Entry / Risk
