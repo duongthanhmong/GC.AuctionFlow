@@ -75,7 +75,7 @@
 42. Developing composite preview is optional and separate; it must not alter confirmed CompositeId or membership.
 43. Composite Partial when any included contribution lacks exact volume-by-price; VPOC/Volume VA may be unavailable — never infer Bid/Ask from totals.
 44. History gaps between included local auction dates are reported; research history is not persisted in this phase.
-45. Structural Reference Lifecycle, StableBalance/Breaking/NewValue Production classification, Episode, FAR/AAC, Thesis remain **not implemented** (Phase 1C+).
+45. StableBalance/Breaking/NewValue Production classification, Episode, FAR/AAC, Thesis remain **not implemented** (Phase 1D+). Phase 1C Structural References are profile-derived foundation only (see Phase 1C section).
 46. ATAS built-in multi-day profile remains a **benchmark only**; methodology equality is not required for Phase 1B acceptance.
 47. `EnableCompositeProfile` defaults **false**; enabling Composite must not redesign locked Phase 1A Primary engines or Trade Recorder.
 48. **Composite Ready does not clear global DATA DEGRADED.** Bid/Ask Unknown/Partial (and Roll Unknown) may keep DataState Degraded while COMPOSITE READY is valid.
@@ -84,3 +84,20 @@
 51. Operator-configuration fingerprint rebuilds Composite on settings change only — ordinary trade/GPS publishes must not rebuild when fingerprint is unchanged.
 52. **OAC / non-GCAE tree contamination** (solution OAC projects, `src/Oac.*`, OAC docs) remains **outside GCAE Phase 1B scope** and is not part of this lock.
 53. Live-accepted closeout DLL SHA-256: `CA2157509B140D0752FB4FCEF70E1FCD863553053D6E133566B848BBDDB02B87`. Tag: `gcae-p1b-composite-profile-foundation-pass`.
+
+## Phase 1C Structural Reference Foundation (LOCKED — FINAL PASS WITH DOCUMENTED LIVE COVERAGE LIMITATION)
+
+54. **Profile-derived references only.** No weekly/monthly/IB/VWAP/swing/launch base/single prints/HVN/LVN/nPOC/poor high-low/origin/event/DOM-derived levels in Production.
+55. **No approach/interacting/acceptance lifecycle** at runtime. Reserved enum members must not be emitted. TestCount = 0 / NotEvaluated; ReactionHistory / ExecutedActivity = NotEvaluated.
+56. **Exact-tick confluence only** — no tolerance band, ATR buffer, percentage width, or fuzzy approach distance.
+57. **No hierarchy score / probability / edge / expectancy** claims. Component metadata only.
+58. Developing Composite Preview does **not** contribute Structural References.
+59. **Reference Ready does not clear global DATA DEGRADED.** Bid/Ask may remain Unknown/Partial.
+60. MBO remains blocked; OI is not a Production Core dependency.
+61. Single-price references use `ZoneLow == ZoneHigh` on the instrument tick grid.
+62. **No Phase 1D behavior** (Directional Auction / Episode / FAR/AAC / Thesis / Entry / Risk / Telegram).
+63. OAC contamination remains outside GCAE Phase 1C scope.
+64. **Overlay readability (`REFERENCE_OVERLAY_POLICY_V1`):** while Structural Reference Overlay is ON, Primary/Composite visual levels are suppressed to avoid duplicate constituent labels; dense labels may be collision-suppressed while lines remain. Engine registry membership is unchanged.
+65. **Developing StateVersion:** registry-owned monotonic revision. Reconcile drafts use `RegistryAssignedStateVersion = 0`. Authoritative lower external revisions still fail closed (`STALE_REVISION`).
+66. **Documented live coverage limitation:** complete module disable, remove/add after final revision fix, live MIXED confluence display, and per-reference StateVersion visuals were not separately repeated as final live manual gates (operator ended further toggle testing). Covered by automated tests; does not alter Reference semantics.
+67. Live-accepted closeout DLL SHA-256: `9CAE06B9091D23854DA60A425E45884D2CC0D5C50E501A4E9EB1B12A58FAF3CA`. Tag: `gcae-p1c-structural-reference-foundation-pass`.

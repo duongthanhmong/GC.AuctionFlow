@@ -379,7 +379,10 @@ public sealed class Phase1BCompositeProfileTests
         Assert.Contains("EnsureCompositeSnapshotInitializedForPublish", src, StringComparison.Ordinal);
         Assert.Contains("CompositePublishInitialization.ShouldProcess", src, StringComparison.Ordinal);
         Assert.DoesNotContain("AuctionEpisode", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("StructuralReferenceEngine", src, StringComparison.Ordinal);
+        Assert.Contains("EnableStructuralReferences = false", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("DirectionalAuction", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProductionThesis", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("FarAac", src, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

@@ -6,6 +6,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
+using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Runtime;
 using GC.AuctionFlow.UI;
 using OFT.Rendering.Context;
@@ -34,6 +35,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private CompositeProfileHost? _compositeHost;
     /// <summary>Last operator fingerprint successfully applied to the published Composite snapshot.</summary>
     private CompositeOperatorConfiguration? _lastAppliedCompositeConfiguration;
+    private StructuralReferenceHost? _referenceHost;
+    /// <summary>Last input fingerprint successfully applied to the published Structural Reference snapshot.</summary>
+    private ReferenceInputFingerprint? _lastAppliedReferenceFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -68,6 +72,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableCompositeOverlay = true;
         ShowCompositeDiagnostics = false;
         EnableShadowCompositeEvidence = false;
+        EnableStructuralReferences = false;
+        EnableStructuralReferenceOverlay = true;
+        ShowStructuralReferenceDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -143,7 +150,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     [Category("Auction GPS Card")]
     [DisplayName("Show Auction GPS Diagnostics")]
-    [Description("When true, shows reserved NOT AVAILABLE rows (Structural/Tactical/Location/Episode/Thesis).")]
+    [Description("When true, shows reserved NOT AVAILABLE rows (Tactical/Location/Episode/Thesis).")]
     public bool ShowAuctionGpsDiagnostics { get; set; }
 
     [Category("Auction GPS Card")]
@@ -236,6 +243,21 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Research/Shadow-only. Without calibrated thresholds → NOT CALIBRATED. Never mutates confirmed.")]
     public bool EnableShadowCompositeEvidence { get; set; }
 
+    [Category("Structural References")]
+    [DisplayName("Enable Structural References")]
+    [Description("Profile-derived Structural References (REFERENCE_POLICY_V1). Default false. No score/tolerance/Episode.")]
+    public bool EnableStructuralReferences { get; set; }
+
+    [Category("Structural References")]
+    [DisplayName("Enable Structural Reference Overlay")]
+    [Description("Effective only when Structural References enabled. Default true.")]
+    public bool EnableStructuralReferenceOverlay { get; set; }
+
+    [Category("Structural References")]
+    [DisplayName("Show Structural Reference Diagnostics")]
+    [Description("Nearest above/below and registry diagnostics. Default false. No Long/Short/Episode/Thesis.")]
+    public bool ShowStructuralReferenceDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -248,6 +270,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         if (bar >= CurrentBar)
         {
             ProcessComposite();
+            ProcessStructuralReferences();
             PublishRuntimeSnapshot();
         }
     }
@@ -594,6 +617,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _overlayRenderer = null;
                 _profileHost = null;
                 _compositeHost = null;
+                _referenceHost = null;
+                _lastAppliedCompositeConfiguration = null;
+                _lastAppliedReferenceFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -879,6 +905,76 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessStructuralReferences()
+    {
+        if (!EnableStructuralReferences || Volatile.Read(ref _disposed) != 0)
+        {
+            _referenceHost = null;
+            _lastAppliedReferenceFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var profiles = _profileHost?.Current;
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new ReferencePolicyConfig(enabled: true);
+            var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
+
+            _referenceHost ??= new StructuralReferenceHost(tick, identity, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _referenceHost.Configure(tick, identity, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _referenceHost.Rebuild(profiles, composite);
+
+            if (_referenceHost.Current is not null && _referenceHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedReferenceFingerprint = fp;
+        }
+        catch
+        {
+            // Contained — do not advance fingerprint.
+        }
+    }
+
+    /// <summary>
+    /// Ensure Structural Reference host matches current inputs before GPS publish.
+    /// Rebuilds only when Current missing or input fingerprint changed.
+    /// </summary>
+    private void EnsureStructuralReferencesInitializedForPublish()
+    {
+        if (!EnableStructuralReferences || Volatile.Read(ref _disposed) != 0)
+        {
+            _referenceHost = null;
+            _lastAppliedReferenceFingerprint = null;
+            return;
+        }
+
+        var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
+        var current = ReferenceInputFingerprint.Build(
+            true,
+            profiles,
+            composite,
+            tick,
+            epoch,
+            AtasTimestampNormalizer.PolicyVersion);
+
+        if (!ReferencePublishInitialization.ShouldProcess(
+                EnableStructuralReferences,
+                profiles,
+                _referenceHost,
+                _lastAppliedReferenceFingerprint,
+                current))
+            return;
+
+        ProcessStructuralReferences();
+    }
+
     private CompositePolicyConfig BuildCompositePolicyFromSettings()
     {
         var excluded = (CompositeExcludedAuctionIds ?? "")
@@ -950,9 +1046,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             // Trade-style publishes: init or rebuild only when host/Current missing or operator config changed.
             EnsureCompositeSnapshotInitializedForPublish();
+            EnsureStructuralReferencesInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
+            var references = EnableStructuralReferences ? _referenceHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -972,7 +1070,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 profiles: profiles,
                 enableTpoParityDiagnostics: EnableTpoParityDiagnostics,
                 composite: composite,
-                showCompositeDiagnostics: ShowCompositeDiagnostics);
+                showCompositeDiagnostics: ShowCompositeDiagnostics,
+                structuralReferences: references,
+                showStructuralReferenceDiagnostics: ShowStructuralReferenceDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
@@ -992,7 +1092,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     ShowPreviousProfileLevels,
                     composite,
                     EnableCompositeOverlay,
-                    showCompositePreview: EnableDevelopingCompositePreview);
+                    showCompositePreview: EnableDevelopingCompositePreview,
+                    structuralReferences: references,
+                    enableStructuralReferenceOverlay: EnableStructuralReferences && EnableStructuralReferenceOverlay);
                 overlay.Update(ovm);
             }
             else

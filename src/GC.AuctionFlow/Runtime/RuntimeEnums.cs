@@ -62,7 +62,16 @@ public enum ProfilePlaceholderState
     Invalid = 3
 }
 
+/// <summary>
+/// Coarse Structural Reference module gate mirrored onto the runtime snapshot.
+/// Detailed objects live on <see cref="StructuralReferenceSetSnapshot"/>.
+/// </summary>
 public enum ReferencePlaceholderState
 {
-    NotAvailable = 0
+    NotAvailable = 0,
+    Disabled = 1,
+    AwaitingPrimary = 2,
+    Ready = 3,
+    Partial = 4,
+    Invalid = 5
 }

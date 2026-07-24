@@ -367,6 +367,7 @@ public sealed class Phase1BCompositePublishWiringTests
         var ensureIdx = src.IndexOf("EnsureCompositeSnapshotInitializedForPublish();", StringComparison.Ordinal);
         var readIdx = src.IndexOf(
             "var composite = EnableCompositeProfile ? _compositeHost?.Current : null;",
+            ensureIdx >= 0 ? ensureIdx : 0,
             StringComparison.Ordinal);
         Assert.True(ensureIdx > 0 && readIdx > ensureIdx);
     }

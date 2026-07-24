@@ -2,6 +2,7 @@ using System.Globalization;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Profile;
+using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Runtime;
 
 namespace GC.AuctionFlow.UI;
@@ -156,11 +157,13 @@ public static class AuctionGpsCardMapper
 
         var details = profileDetails.ToList();
         details.AddRange(BuildCompositeLines(snapshot.Composite, snapshot.ShowCompositeDiagnostics));
+        details.AddRange(BuildStructuralReferenceLines(
+            snapshot.StructuralReferences,
+            snapshot.ShowStructuralReferenceDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
             {
-                "STRUCTURAL CONTEXT: NOT AVAILABLE",
                 "TACTICAL CONTEXT: NOT AVAILABLE",
                 "LOCATION: NOT AVAILABLE",
                 "EPISODE: NOT AVAILABLE",
@@ -261,6 +264,98 @@ public static class AuctionGpsCardMapper
         }
 
         return rows;
+    }
+
+    public static IReadOnlyList<string> BuildStructuralReferenceLines(
+        StructuralReferenceSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.ModuleState == StructuralReferenceModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.ModuleState)
+        {
+            case StructuralReferenceModuleState.AwaitingPrimary:
+                rows.Add("REFERENCES: AWAITING PRIMARY");
+                rows.Add("REFERENCE POLICY: " + set.PolicyVersion);
+                break;
+            case StructuralReferenceModuleState.Partial:
+                rows.Add("REFERENCES: PARTIAL");
+                rows.Add("REFERENCE POLICY: " + set.PolicyVersion);
+                rows.Add("CONFIRMED REFERENCES: " + set.ConfirmedReferences.Count.ToString(CultureInfo.InvariantCulture));
+                rows.Add("DEVELOPING REFERENCES: " + set.DevelopingReferences.Count.ToString(CultureInfo.InvariantCulture));
+                rows.Add("CONFLUENCE GROUPS: " + set.ConfluenceGroups.Count.ToString(CultureInfo.InvariantCulture));
+                break;
+            case StructuralReferenceModuleState.Ready:
+                rows.Add("REFERENCES: READY");
+                rows.Add("REFERENCE POLICY: " + set.PolicyVersion);
+                rows.Add("CONFIRMED REFERENCES: " + set.ConfirmedReferences.Count.ToString(CultureInfo.InvariantCulture));
+                rows.Add("DEVELOPING REFERENCES: " + set.DevelopingReferences.Count.ToString(CultureInfo.InvariantCulture));
+                rows.Add("CONFLUENCE GROUPS: " + set.ConfluenceGroups.Count.ToString(CultureInfo.InvariantCulture));
+                break;
+            case StructuralReferenceModuleState.Invalid:
+                rows.Add("REFERENCES: INVALID");
+                rows.Add("REFERENCE POLICY: " + set.PolicyVersion);
+                rows.Add("REFERENCE LIMITATION: " + (set.KnownLimitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("REFERENCES: " + set.ModuleState.ToString().ToUpperInvariant());
+                break;
+        }
+
+        if (showDiagnostics
+            && set.ModuleState is StructuralReferenceModuleState.Ready or StructuralReferenceModuleState.Partial)
+        {
+            var nearest = set.Nearest;
+            if (nearest is not null)
+            {
+                if (nearest.NearestBelow.Count > 0)
+                {
+                    var b = nearest.NearestBelow[0];
+                    rows.Add(
+                        "REF NEAREST BELOW: " + b.ReferenceId + " | " + b.ReferenceType + " | " +
+                        Fmt(b.ZoneLow) + " | " + (nearest.DistanceBelowTicks?.ToString(CultureInfo.InvariantCulture) ?? "—") + "t");
+                }
+                else
+                {
+                    rows.Add("REF NEAREST BELOW: —");
+                }
+
+                if (nearest.NearestAbove.Count > 0)
+                {
+                    var a = nearest.NearestAbove[0];
+                    rows.Add(
+                        "REF NEAREST ABOVE: " + a.ReferenceId + " | " + a.ReferenceType + " | " +
+                        Fmt(a.ZoneLow) + " | " + (nearest.DistanceAboveTicks?.ToString(CultureInfo.InvariantCulture) ?? "—") + "t");
+                }
+                else
+                {
+                    rows.Add("REF NEAREST ABOVE: —");
+                }
+
+                if (nearest.ContainingExact.Count > 0)
+                {
+                    rows.Add(
+                        "REF AT PRICE: " +
+                        string.Join(",", nearest.ContainingExact.Select(x => x.ReferenceId)));
+                }
+            }
+
+            if (set.UnavailableVolumeReasons.Count > 0)
+                rows.Add("REF VOLUME UNAVAILABLE: " + string.Join(",", set.UnavailableVolumeReasons));
+            rows.Add("REF REGISTRY REV: " + set.RegistryRevision.ToString(CultureInfo.InvariantCulture));
+            rows.Add("REF INPUT: " + Truncate(set.InputFingerprint, 96));
+        }
+
+        return rows;
+    }
+
+    private static string Truncate(string value, int max)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length <= max)
+            return value;
+        return value[..max] + "…";
     }
 
     private static string FormatEvidence(CompositeEvidenceState state) => state switch

@@ -2,6 +2,7 @@ using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
+using GC.AuctionFlow.Reference;
 
 namespace GC.AuctionFlow.Runtime;
 
@@ -46,7 +47,9 @@ public sealed class GcaeRuntimeEngine
         DateTime? timestampUtc = null,
         bool enableTpoParityDiagnostics = false,
         CompositeSetSnapshot? composite = null,
-        bool showCompositeDiagnostics = false)
+        bool showCompositeDiagnostics = false,
+        StructuralReferenceSetSnapshot? structuralReferences = null,
+        bool showStructuralReferenceDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -60,6 +63,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("PROFILE_SET_ABSENT");
         if (composite?.Confirmed is { } conf)
             profileExtra.Add("COMPOSITE_STATUS=" + conf.CompositeStatus);
+        if (structuralReferences is not null)
+            profileExtra.Add("REFERENCES_STATUS=" + structuralReferences.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -87,6 +92,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(profiles.KnownLimitations);
         if (composite?.Confirmed.KnownLimitations is not null)
             limitations.AddRange(composite.Confirmed.KnownLimitations);
+        if (structuralReferences?.KnownLimitations is not null)
+            limitations.AddRange(structuralReferences.KnownLimitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -94,7 +101,7 @@ public sealed class GcaeRuntimeEngine
             capability,
             ParticipationRegimePlaceholderState.NotAvailable,
             RuntimeCapabilitySnapshotBuilder.MapPlaceholder(auctionState),
-            ReferencePlaceholderState.NotAvailable,
+            MapReferencePlaceholder(structuralReferences),
             profiles,
             recorderSummary,
             now,
@@ -102,13 +109,27 @@ public sealed class GcaeRuntimeEngine
             limitations.Distinct(StringComparer.Ordinal).ToArray(),
             enableTpoParityDiagnostics,
             composite,
-            showCompositeDiagnostics);
+            showCompositeDiagnostics,
+            structuralReferences,
+            showStructuralReferenceDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;
         _publisher.Publish(snapshot);
         return snapshot;
     }
+
+    private static ReferencePlaceholderState MapReferencePlaceholder(StructuralReferenceSetSnapshot? refs) =>
+        refs?.ModuleState switch
+        {
+            null => ReferencePlaceholderState.NotAvailable,
+            StructuralReferenceModuleState.Disabled => ReferencePlaceholderState.Disabled,
+            StructuralReferenceModuleState.AwaitingPrimary => ReferencePlaceholderState.AwaitingPrimary,
+            StructuralReferenceModuleState.Ready => ReferencePlaceholderState.Ready,
+            StructuralReferenceModuleState.Partial => ReferencePlaceholderState.Partial,
+            StructuralReferenceModuleState.Invalid => ReferencePlaceholderState.Invalid,
+            _ => ReferencePlaceholderState.NotAvailable
+        };
 
     public void Stop()
     {
@@ -181,6 +202,21 @@ public sealed class GcaeRuntimeEngine
             "CompositeEvidence",
             previous?.Composite?.Confirmed.EvidenceState.ToString(),
             next.Composite?.Confirmed.EvidenceState.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "ReferenceModuleState",
+            previous?.StructuralReferences?.ModuleState.ToString() ?? previous?.Reference.ToString(),
+            next.StructuralReferences?.ModuleState.ToString() ?? next.Reference.ToString(),
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "ReferenceConfirmedCount",
+            previous?.StructuralReferences?.ConfirmedReferences.Count.ToString(),
+            next.StructuralReferences?.ConfirmedReferences.Count.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "ReferenceDevelopingCount",
+            previous?.StructuralReferences?.DevelopingReferences.Count.ToString(),
+            next.StructuralReferences?.DevelopingReferences.Count.ToString() ?? "",
             next.DataGate.PrimaryReasonCode);
     }
 

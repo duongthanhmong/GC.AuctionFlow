@@ -1,12 +1,13 @@
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Profile;
+using GC.AuctionFlow.Reference;
 
 namespace GC.AuctionFlow.Runtime;
 
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.3.0";
+    public const string SnapshotVersion = "0.4.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -22,7 +23,9 @@ public sealed class GcaeRuntimeSnapshot
         IReadOnlyList<string> knownLimitations,
         bool enableTpoParityDiagnostics = false,
         CompositeSetSnapshot? composite = null,
-        bool showCompositeDiagnostics = false)
+        bool showCompositeDiagnostics = false,
+        StructuralReferenceSetSnapshot? structuralReferences = null,
+        bool showStructuralReferenceDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -38,6 +41,8 @@ public sealed class GcaeRuntimeSnapshot
         EnableTpoParityDiagnostics = enableTpoParityDiagnostics;
         Composite = composite;
         ShowCompositeDiagnostics = showCompositeDiagnostics;
+        StructuralReferences = structuralReferences;
+        ShowStructuralReferenceDiagnostics = showStructuralReferenceDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -48,6 +53,7 @@ public sealed class GcaeRuntimeSnapshot
     public ReferencePlaceholderState Reference { get; }
     public PrimaryProfileSetSnapshot? Profiles { get; }
     public CompositeSetSnapshot? Composite { get; }
+    public StructuralReferenceSetSnapshot? StructuralReferences { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -57,6 +63,8 @@ public sealed class GcaeRuntimeSnapshot
     public bool EnableTpoParityDiagnostics { get; }
     /// <summary>When true, GPS card includes bounded Composite diagnostic rows. Default false.</summary>
     public bool ShowCompositeDiagnostics { get; }
+    /// <summary>When true, GPS card includes bounded Structural Reference diagnostic rows. Default false.</summary>
+    public bool ShowStructuralReferenceDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>
