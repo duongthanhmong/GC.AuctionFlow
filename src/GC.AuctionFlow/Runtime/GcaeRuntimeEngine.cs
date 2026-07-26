@@ -1,7 +1,10 @@
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
+using GC.AuctionFlow.DayStructure;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Entry;
+using GC.AuctionFlow.Execution;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
@@ -96,7 +99,11 @@ public sealed class GcaeRuntimeEngine
         PriceMemorySetSnapshot? priceMemory = null,
         bool showPriceMemoryDiagnostics = false,
         ImbalanceSetSnapshot? imbalance = null,
-        bool showImbalanceDiagnostics = false)
+        bool showImbalanceDiagnostics = false,
+        DayStructureSnapshot? dayStructure = null,
+        EntryPolicySnapshot? entryPolicy = null,
+        CfdMappingSnapshot? cfdMapping = null,
+        RiskSnapshot? risk = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -144,6 +151,14 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("PRICE_MEMORY_STATUS=" + priceMemory.ModuleState);
         if (imbalance is not null)
             profileExtra.Add("IMBALANCE_STATUS=" + imbalance.ModuleState);
+        if (dayStructure is not null)
+            profileExtra.Add("DAY_STRUCTURE_STATUS=" + dayStructure.ModuleState);
+        if (entryPolicy is not null)
+            profileExtra.Add("ENTRY_PLAN=" + entryPolicy.SelectedPlan);
+        if (cfdMapping is not null)
+            profileExtra.Add("CFD_MAP=" + cfdMapping.State);
+        if (risk is not null)
+            profileExtra.Add("RISK_STATE=" + risk.RiskState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -205,6 +220,14 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(priceMemory.Limitations);
         if (imbalance?.Limitations is not null)
             limitations.AddRange(imbalance.Limitations);
+        if (dayStructure?.Limitations is not null)
+            limitations.AddRange(dayStructure.Limitations);
+        if (entryPolicy?.Limitations is not null)
+            limitations.AddRange(entryPolicy.Limitations);
+        if (cfdMapping?.Limitations is not null)
+            limitations.AddRange(cfdMapping.Limitations);
+        if (risk?.Limitations is not null)
+            limitations.AddRange(risk.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -260,7 +283,11 @@ public sealed class GcaeRuntimeEngine
             priceMemory,
             showPriceMemoryDiagnostics,
             imbalance,
-            showImbalanceDiagnostics);
+            showImbalanceDiagnostics,
+            dayStructure,
+            entryPolicy,
+            cfdMapping,
+            risk);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

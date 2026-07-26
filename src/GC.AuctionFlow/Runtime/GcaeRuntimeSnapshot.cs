@@ -1,6 +1,9 @@
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
+using GC.AuctionFlow.DayStructure;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Entry;
+using GC.AuctionFlow.Execution;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
@@ -22,7 +25,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.23.0";
+    public const string SnapshotVersion = "0.24.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -72,7 +75,11 @@ public sealed class GcaeRuntimeSnapshot
         PriceMemorySetSnapshot? priceMemory = null,
         bool showPriceMemoryDiagnostics = false,
         ImbalanceSetSnapshot? imbalance = null,
-        bool showImbalanceDiagnostics = false)
+        bool showImbalanceDiagnostics = false,
+        DayStructureSnapshot? dayStructure = null,
+        EntryPolicySnapshot? entryPolicy = null,
+        CfdMappingSnapshot? cfdMapping = null,
+        RiskSnapshot? risk = null)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -122,6 +129,10 @@ public sealed class GcaeRuntimeSnapshot
         ShowPriceMemoryDiagnostics = showPriceMemoryDiagnostics;
         Imbalance = imbalance;
         ShowImbalanceDiagnostics = showImbalanceDiagnostics;
+        DayStructure = dayStructure;
+        EntryPolicy = entryPolicy;
+        CfdMapping = cfdMapping;
+        Risk = risk;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -155,6 +166,10 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowPriceMemoryDiagnostics { get; }
     public ImbalanceSetSnapshot? Imbalance { get; }
     public bool ShowImbalanceDiagnostics { get; }
+    public DayStructureSnapshot? DayStructure { get; }
+    public EntryPolicySnapshot? EntryPolicy { get; }
+    public CfdMappingSnapshot? CfdMapping { get; }
+    public RiskSnapshot? Risk { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }

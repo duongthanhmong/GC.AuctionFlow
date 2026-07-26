@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 4B CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **SKELETON COMPLETE — LIVE ACCEPTANCE PENDING (batched)** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.23.0** (Phase 2H: Imbalance) |
+| Runtime snapshot schema | **0.24.0** (execution readiness published) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -31,6 +31,8 @@
 | Imbalance policy | **IMBALANCE_POLICY_V1** (Phase 2H) |
 | Day Structure policy | **DAY_STRUCTURE_POLICY_V1** (Phase 1H, RESEARCH_ONLY) |
 | Entry policy | **ENTRY_POLICY_V1** (Phase 4B, ObserveOnly only) |
+| CFD mapping policy | **CFD_MAPPING_POLICY_V1** (Phase 4C, INVALID — no CFD feed) |
+| Risk policy | **RISK_POLICY_V1** (Phase 4A, no size emitted) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
@@ -40,8 +42,10 @@
 | Phase 2H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Imbalance context + gate (`IMBALANCE_POLICY_V1`) |
 | Phase 1H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Day Structure Classifier, RESEARCH_ONLY (`DAY_STRUCTURE_POLICY_V1`) |
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
-| Test count | **1199** passed / 0 failed / 0 skipped |
-| GPS diagnostic rows | **17** |
+| Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
+| Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
+| Test count | **1226** passed / 0 failed / 0 skipped |
+| GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
@@ -345,6 +349,67 @@ that build, and the hash now matches.
 **Change to the closeout procedure:** the SHA-256 check must be preceded by a clean
 rebuild (`rm -rf bin obj` then build), otherwise it can certify an artifact that no
 longer corresponds to the source.
+
+## Skeleton complete (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1226 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Runtime schema | `0.23.0` -> `0.24.0` |
+| Clean-rebuild DLL SHA-256 | `6D06A940EB828F5440EE888BA4DEA83D0D089816B5B797A703BAED5F11AE8441` |
+| GPS rows | **21** (was 17) |
+| Modules published | **21/21** — every module now reaches the runtime snapshot |
+
+### Why publication mattered more than more modules
+
+The operator intends to run **one** live acceptance covering everything. A module that
+does not reach the GPS card cannot be validated in that run. Two were unpublished —
+Day Structure (1H) and Entry Policy (4B) — so both were wired before adding anything new.
+All 21 modules now surface.
+
+### Phase 4C — CFD Mapping (v1.2 §34)
+
+`Basis = CFD Price − GC Price`. ATAS delivers GC only, so basis is unmeasurable and the
+map is **INVALID**, carrying the v1.2 §34.5 message verbatim:
+
+> `GC ANALYSIS VALID / CFD EXECUTION MAP INVALID`
+
+That is a safety output, not a failure: the auction analysis stands while the mechanical
+translation to the broker does not. Basis is `null`, never `0` — zero basis would assert
+the two markets trade identically (test A04). A disabled module reports INVALID rather
+than failing open (A10). A single observation **degrades** rather than validates: one
+sample is not a distribution (A06).
+
+### Phase 4A — Position Sizing and Account Risk (v1.2 §35-36)
+
+v1.2 §35 fixes the order and forbids reversing it:
+
+```
+Thesis -> Structural Invalidation -> Stop Distance
+      -> CFD Effective Stop Distance -> Risk Per Lot -> Allowed Size
+```
+
+The chain breaks at **step two**: invalidation is calibration-gated (Phase 3C), so there
+is no stop distance and nothing downstream exists. Eleven operator inputs are also absent
+and the CFD map is INVALID.
+
+The module emits **no size** — not zero, not a default; the field does not exist (B08).
+The GPS card names where the chain broke: `SIZING BLOCKED AT: STRUCTURAL INVALIDATION`.
+`NEVER_TIGHTEN_STOP_TO_FIT_ACCOUNT` is carried in every snapshot, because §35.2's
+prohibition is worth nothing if it lives only in a document.
+
+### Skeleton status against v1.2 §64
+
+| Roadmap phase | State |
+|---|---|
+| Phase 0 Capability & Recorder | **COMPLETE** |
+| Phase 1 Auction Core | **COMPLETE** |
+| Phase 2 Executed Orderflow | **COMPLETE** |
+| Phase 3 Thesis & Planning | **COMPLETE** — FAR/AAC, Maturity, Entry Policy, Invalidation, PLAR, CFD Mapping, Risk |
+| Phase 4 UI | GPS Card complete; Telegram/alerts not started |
+| Phase 5 Historical Scanner | **NOT STARTED — this is the single remaining unlock** |
+| Phase 6 ATAS Ultra Microstructure | blocked on MBO |
+| Phase 7 Advanced Research | not started |
 
 ## Phase 4B code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

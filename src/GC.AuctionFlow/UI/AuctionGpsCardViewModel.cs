@@ -3,6 +3,9 @@ using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Execution;
+using GC.AuctionFlow.Entry;
+using GC.AuctionFlow.DayStructure;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Facilitation;
@@ -212,6 +215,7 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildPlarLines(snapshot.Plar, snapshot.ShowPlarDiagnostics));
         details.AddRange(BuildPriceMemoryLines(snapshot.PriceMemory, snapshot.ShowPriceMemoryDiagnostics));
         details.AddRange(BuildImbalanceLines(snapshot.Imbalance, snapshot.ShowImbalanceDiagnostics));
+        details.AddRange(BuildExecutionLines(snapshot.EntryPolicy, snapshot.CfdMapping, snapshot.Risk));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -267,7 +271,19 @@ public static class AuctionGpsCardMapper
                     : "MEMORY: " + snapshot.PriceMemory.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.Imbalance is null
                     ? "IMBALANCE: NOT AVAILABLE"
-                    : "IMBALANCE: " + snapshot.Imbalance.ModuleState.ToString().ToUpperInvariant()
+                    : "IMBALANCE: " + snapshot.Imbalance.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.DayStructure is null
+                    ? "DAY STRUCTURE: NOT AVAILABLE"
+                    : "DAY STRUCTURE: " + snapshot.DayStructure.State.ToString().ToUpperInvariant(),
+                snapshot.EntryPolicy is null
+                    ? "ENTRY PLAN: NOT AVAILABLE"
+                    : "ENTRY PLAN: " + snapshot.EntryPolicy.SelectedPlan.ToString().ToUpperInvariant(),
+                snapshot.CfdMapping is null
+                    ? "CFD MAP: NOT AVAILABLE"
+                    : "CFD MAP: " + snapshot.CfdMapping.State.ToString().ToUpperInvariant(),
+                snapshot.Risk is null
+                    ? "RISK: NOT AVAILABLE"
+                    : "RISK: " + snapshot.Risk.RiskState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1841,6 +1857,48 @@ public static class AuctionGpsCardMapper
                      + " VOL " + l.ClassifiedVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
                      + " UNK " + l.UnknownAggressorVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
                      + " [" + l.Qualification.ToString().ToUpperInvariant() + "]");
+
+        return rows;
+    }
+
+    /// <summary>
+    /// Execution readiness rows (Phases 4A-4C).
+    /// The point of these rows is to make the blocked chain visible: the operator must
+    /// be able to see that the auction analysis is valid while execution is not.
+    /// </summary>
+    public static IReadOnlyList<string> BuildExecutionLines(
+        EntryPolicySnapshot? entry, CfdMappingSnapshot? cfd, RiskSnapshot? risk)
+    {
+        var rows = new List<string>();
+        if (entry is null && cfd is null && risk is null) return rows;
+
+        if (entry is not null)
+        {
+            rows.Add("ENTRY PLAN: " + entry.SelectedPlan.ToString().ToUpperInvariant());
+            rows.Add("ENTRY SELECTOR: " + entry.UsableInputCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + "/" + EntryPolicyConfig.RequiredSelectorInputs.ToString(System.Globalization.CultureInfo.InvariantCulture) + " INPUTS");
+        }
+
+        if (cfd is not null)
+        {
+            rows.Add("CFD MAP: " + cfd.State.ToString().ToUpperInvariant());
+            rows.Add("BASIS: " + (cfd.CurrentBasis.HasValue
+                ? cfd.CurrentBasis.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                : "unavailable"));
+            if (cfd.State != CfdMappingState.Valid)
+                rows.Add(cfd.OperatorMessage);
+        }
+
+        if (risk is not null)
+        {
+            rows.Add("RISK STATE: " + risk.RiskState.ToString().ToUpperInvariant());
+            rows.Add("POSITION SIZE: NOT AVAILABLE");
+            rows.Add("SIZING CHAIN: " + (risk.SizingChainIntact ? "INTACT" : "BROKEN"));
+            if (!risk.InvalidationDistanceAvailable)
+                rows.Add("SIZING BLOCKED AT: STRUCTURAL INVALIDATION");
+            rows.Add("RISK INPUTS MISSING: " + risk.MissingOperatorInputs.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + "/" + RiskPolicyConfig.RequiredOperatorInputs.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
 
         return rows;
     }

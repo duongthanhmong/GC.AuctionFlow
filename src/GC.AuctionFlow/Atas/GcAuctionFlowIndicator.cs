@@ -10,6 +10,9 @@ using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
+using GC.AuctionFlow.DayStructure;
+using GC.AuctionFlow.Entry;
+using GC.AuctionFlow.Execution;
 using GC.AuctionFlow.Imbalance;
 using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Orderflow;
@@ -80,6 +83,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private PlarHost? _plarHost;
     private PriceMemoryHost? _priceMemoryHost;
     private ImbalanceHost? _imbalanceHost;
+    private DayStructureHost? _dayStructureHost;
+    private EntryPolicyHost? _entryPolicyHost;
+    private CfdMappingHost? _cfdMappingHost;
+    private RiskHost? _riskHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -148,6 +155,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowPriceMemoryDiagnostics = false;
         EnableImbalance = false;
         ShowImbalanceDiagnostics = false;
+        EnableExecutionReadiness = false;
         ShowThesisContractDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
@@ -492,6 +500,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Show per-level dominant side, classified volume and unknown-aggressor volume on the GPS card.")]
     public bool ShowImbalanceDiagnostics { get; set; }
 
+    [Category("Execution Readiness")]
+    [DisplayName("Enable Execution Readiness")]
+    [Description("Phases 1H/4A/4B/4C. Day structure, entry plan, CFD map and risk. All produce ObserveOnly / NOT CALIBRATED and no order, price or size.")]
+    public bool EnableExecutionReadiness { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -520,6 +533,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessImbalance();
             ProcessSignalMaturity();
             ProcessThesisContract();
+            ProcessExecutionReadiness();
             PublishRuntimeSnapshot();
         }
     }
@@ -1799,6 +1813,48 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessSignalMaturity();
     }
 
+    private void ProcessExecutionReadiness()
+    {
+        if (!EnableExecutionReadiness || Volatile.Read(ref _disposed) != 0)
+        {
+            _dayStructureHost = null;
+            _entryPolicyHost = null;
+            _cfdMappingHost = null;
+            _riskHost = null;
+            return;
+        }
+
+        try
+        {
+            var profiles = _profileHost?.Current;
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var periods = profiles?.CurrentAuction?.TpoProfile?.CompletedPeriods;
+
+            _dayStructureHost ??= new DayStructureHost(new DayStructurePolicyConfig(enabled: true));
+            _dayStructureHost.Configure(new DayStructurePolicyConfig(enabled: true));
+            _dayStructureHost.Rebuild(profiles?.CurrentAuction, periods, tick);
+
+            _entryPolicyHost ??= new EntryPolicyHost(new EntryPolicyConfig(enabled: true));
+            _entryPolicyHost.Configure(new EntryPolicyConfig(enabled: true));
+            _entryPolicyHost.Rebuild(
+                EnableSignalMaturity ? _signalMaturityHost?.Current : null,
+                mboActive: false);
+
+            _cfdMappingHost ??= new CfdMappingHost(new CfdMappingPolicyConfig(enabled: true));
+            _cfdMappingHost.Configure(new CfdMappingPolicyConfig(enabled: true));
+            // No CFD price feed reaches the indicator, so no CFD price is passed.
+            _cfdMappingHost.Rebuild(profiles?.CurrentAuction?.LastObservedPrice, null);
+
+            _riskHost ??= new RiskHost(new RiskPolicyConfig(enabled: true));
+            _riskHost.Configure(new RiskPolicyConfig(enabled: true));
+            _riskHost.Rebuild(_entryPolicyHost.Current, _cfdMappingHost.Current);
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
     private void ProcessImbalance()
     {
         if (!EnableImbalance || Volatile.Read(ref _disposed) != 0)
@@ -2308,6 +2364,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var plarSetForPublish = EnablePlar ? _plarHost?.Current : null;
             var priceMemory = EnablePriceMemory ? _priceMemoryHost?.Current : null;
             var imbalance = EnableImbalance ? _imbalanceHost?.Current : null;
+            var dayStructure = EnableExecutionReadiness ? _dayStructureHost?.Current : null;
+            var entryPolicy = EnableExecutionReadiness ? _entryPolicyHost?.Current : null;
+            var cfdMapping = EnableExecutionReadiness ? _cfdMappingHost?.Current : null;
+            var risk = EnableExecutionReadiness ? _riskHost?.Current : null;
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
@@ -2364,7 +2424,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 priceMemory: priceMemory,
                 showPriceMemoryDiagnostics: ShowPriceMemoryDiagnostics,
                 imbalance: imbalance,
-                showImbalanceDiagnostics: ShowImbalanceDiagnostics);
+                showImbalanceDiagnostics: ShowImbalanceDiagnostics,
+                dayStructure: dayStructure,
+                entryPolicy: entryPolicy,
+                cfdMapping: cfdMapping,
+                risk: risk);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
