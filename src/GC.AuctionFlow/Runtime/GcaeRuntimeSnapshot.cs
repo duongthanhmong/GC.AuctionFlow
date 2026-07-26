@@ -7,6 +7,7 @@ using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
+using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Plar;
@@ -20,7 +21,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.21.0";
+    public const string SnapshotVersion = "0.22.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -66,7 +67,9 @@ public sealed class GcaeRuntimeSnapshot
         ThesisContractSetSnapshot? thesisContract = null,
         bool showThesisContractDiagnostics = false,
         PlarSetSnapshot? plar = null,
-        bool showPlarDiagnostics = false)
+        bool showPlarDiagnostics = false,
+        PriceMemorySetSnapshot? priceMemory = null,
+        bool showPriceMemoryDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -112,6 +115,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowThesisContractDiagnostics = showThesisContractDiagnostics;
         Plar = plar;
         ShowPlarDiagnostics = showPlarDiagnostics;
+        PriceMemory = priceMemory;
+        ShowPriceMemoryDiagnostics = showPriceMemoryDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -141,6 +146,8 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowThesisContractDiagnostics { get; }
     public PlarSetSnapshot? Plar { get; }
     public bool ShowPlarDiagnostics { get; }
+    public PriceMemorySetSnapshot? PriceMemory { get; }
+    public bool ShowPriceMemoryDiagnostics { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }

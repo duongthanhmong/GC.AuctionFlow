@@ -7,6 +7,7 @@ using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
+using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
@@ -208,6 +209,7 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildSignalMaturityLines(snapshot.SignalMaturity, snapshot.ShowSignalMaturityDiagnostics));
         details.AddRange(BuildThesisContractLines(snapshot.ThesisContract, snapshot.ShowThesisContractDiagnostics));
         details.AddRange(BuildPlarLines(snapshot.Plar, snapshot.ShowPlarDiagnostics));
+        details.AddRange(BuildPriceMemoryLines(snapshot.PriceMemory, snapshot.ShowPriceMemoryDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -257,7 +259,10 @@ public static class AuctionGpsCardMapper
                     : "CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.Plar is null
                     ? "PATH: NOT AVAILABLE"
-                    : "PATH: " + snapshot.Plar.ModuleState.ToString().ToUpperInvariant()
+                    : "PATH: " + snapshot.Plar.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.PriceMemory is null
+                    ? "MEMORY: NOT AVAILABLE"
+                    : "MEMORY: " + snapshot.PriceMemory.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1729,4 +1734,60 @@ public static class AuctionGpsCardMapper
         TargetSpaceAvailability.NoTargetAhead => "NONE AHEAD (VETO)",
         _ => "NOT MEASURABLE"
     };
+
+    /// <summary>
+    /// Price memory rows (Phase 1I). Reports how often references have been tested.
+    /// It never states that a reference has weakened or strengthened - G-REF-001.
+    /// </summary>
+    public static IReadOnlyList<string> BuildPriceMemoryLines(
+        PriceMemorySetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case MemoryModuleState.Disabled:
+                rows.Add("MEMORY: DISABLED");
+                return rows;
+            case MemoryModuleState.AwaitingEpisodes:
+                rows.Add("MEMORY: AWAITING EPISODES");
+                rows.Add("MEMORY POLICY: " + set.PolicyVersion);
+                return rows;
+            case MemoryModuleState.Invalid:
+                rows.Add("MEMORY: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == MemoryModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("MEMORY: " + state + " (" + set.TrackedReferenceCount.ToString(System.Globalization.CultureInfo.InvariantCulture) + " REFS)");
+        rows.Add("MEMORY POLICY: " + set.PolicyVersion);
+        rows.Add("TESTS OBSERVED: " + set.TotalTestsObserved.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                 + " (" + set.RetestedReferenceCount.ToString(System.Globalization.CultureInfo.InvariantCulture) + " RETESTED)");
+        rows.Add("REFERENCE STRENGTH: NOT CALIBRATED");
+        rows.Add("LIQUIDITY REPLENISHMENT: UNOBSERVABLE (MBO BLOCKED)");
+
+        var latest = set.MostRecentlyTested;
+        if (latest is not null)
+        {
+            rows.Add("LAST TESTED REF: " + Truncate(latest.ReferenceId, 44));
+            rows.Add("LAST REF TESTS: " + latest.TestCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + " (" + latest.RetestCount.ToString(System.Globalization.CultureInfo.InvariantCulture) + " RETESTS)");
+        }
+
+        if (!showDiagnostics) return rows;
+
+        rows.Add("MEMORY SINCE: " + set.MemoryStartedAtUtc.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + " UTC");
+        rows.Add("MEMORY WINDOW: LIVE ONLY (PRE-START TESTS UNKNOWN)");
+        if (latest is not null)
+        {
+            rows.Add("LAST REF CLOSED TESTS: " + latest.ClosedTestCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            foreach (var r in latest.Records.TakeLast(3))
+                rows.Add("  TEST " + Truncate(r.EpisodeId, 28) + ": "
+                         + r.Outcome.ToString().ToUpperInvariant()
+                         + " ATT " + r.AttemptCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
 }

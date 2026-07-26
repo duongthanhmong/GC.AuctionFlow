@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 3E-b CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 1I CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.21.0** (Phase 3E-b: PLAR published) |
+| Runtime snapshot schema | **0.22.0** (Phase 1I: Price memory) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -27,13 +27,15 @@
 | Signal Maturity policy | **SIGNAL_MATURITY_POLICY_V1** (Phase 3B) |
 | Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
 | PLAR policy | **PLAR_POLICY_V1** (Phase 3E) |
+| Price Memory policy | **PRICE_MEMORY_POLICY_V1** (Phase 1I) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
 | Phase 3E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR / Target Engine (`PLAR_POLICY_V1`) |
 | Phase 3E-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR published to runtime + GPS |
-| Test count | **1059** passed / 0 failed / 0 skipped |
-| GPS diagnostic rows | **15** |
+| Phase 1I | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Price Memory / Retest Ledger (`PRICE_MEMORY_POLICY_V1`) |
+| Test count | **1103** passed / 0 failed / 0 skipped |
+| GPS diagnostic rows | **16** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
@@ -307,6 +309,62 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 1I code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1103 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Runtime schema | `0.21.0` -> `0.22.0` |
+| Policy | `PRICE_MEMORY_POLICY_V1` |
+| Source/deployed DLL SHA-256 | `8125C05F93E0B36BAFCDCB4CFEAAED6DD584230E6427F79B49DA68AD77266082` (exact match) |
+| Reference strength | **NOT CALIBRATED** — Strengthening / Weakening / Stable reserved |
+| GPS rows | **16** (was 15); `MEMORY:` row added |
+| New Phase 1I tests | 44 tests (A01-H06); total 1103 |
+| Spec source | v1.3 §13 `G-REF-001` / `G-REF-002`; KDK Ch 27 |
+
+### The invariant this phase exists to protect
+
+`G-REF-001`: there is **no one-directional rule** that a level tested many times becomes
+weaker, or stronger. KDK Ch 27 gives the reason — passive liquidity can be replenished
+between tests, so a raw count carries no directional meaning.
+
+Test B01 folds fifty tests against one reference and asserts the strength state is
+identical to a reference tested once. Both report `NotCalibrated`.
+
+### Phase 1I present (code/test)
+
+- `PriceMemoryHost` — folds `AuctionEpisodeSetSnapshot` into a per-reference ledger.
+  Every episode against a reference is one test; the first is the first test, the rest
+  are retests
+- Deliberately **stateful across rebuilds**: memory that forgets between snapshots is not
+  memory. Idempotent per `EpisodeId`, so refolding an evolving episode updates the record
+  in place and never inflates the count (tests C04, C05)
+- `ReferenceTestRecord` — episode id, timestamps, final state, resolution, attempt count,
+  outcome
+- Outcomes are mechanical only: `InProgress` / `Expired` / `InvalidData` /
+  `NotCalibrated`. Held-vs-broken needs calibrated acceptance and re-entry resolution and
+  stays reserved (test D03)
+- `LiquidityReplenishmentObservability` always `Unavailable` — Tier-3 data, MBO BLOCKED,
+  never inferred from price
+- LIVE_ONLY: the ledger starts at indicator start; pre-start tests are unknown, not
+  absent, and the card says so
+
+### Phase 1I NOT present (code/test)
+
+- Any reference-strength verdict (calibration gate)
+- Held / Broken test outcomes (need Phase 2D resolution calibrated)
+- Liquidity replenishment observation (MBO BLOCKED)
+- Barrier permeability: Phase 3E can now be given reaction history, but a **count is not
+  a verdict** — permeability stays `NotCalibrated` until 5A
+
+### Bug caught by its own test
+
+`TestCount` was derived from the retained record list, so once a reference exceeded the
+64-record cap the reported count silently dropped back to 64. A reference tested 74 times
+would report 74 tests before truncation and 64 after — history rewritten by a storage
+limit. `TotalTests` is now tracked independently of retained records (test G08).
 
 ## Phase 3E-b code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

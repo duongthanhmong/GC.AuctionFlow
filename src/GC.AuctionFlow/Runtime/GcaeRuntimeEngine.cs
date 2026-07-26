@@ -8,6 +8,7 @@ using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
+using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Plar;
@@ -90,7 +91,9 @@ public sealed class GcaeRuntimeEngine
         ThesisContractSetSnapshot? thesisContract = null,
         bool showThesisContractDiagnostics = false,
         PlarSetSnapshot? plar = null,
-        bool showPlarDiagnostics = false)
+        bool showPlarDiagnostics = false,
+        PriceMemorySetSnapshot? priceMemory = null,
+        bool showPriceMemoryDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -134,6 +137,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("THESIS_CONTRACT_STATUS=" + thesisContract.ModuleState);
         if (plar is not null)
             profileExtra.Add("PLAR_STATUS=" + plar.ModuleState);
+        if (priceMemory is not null)
+            profileExtra.Add("PRICE_MEMORY_STATUS=" + priceMemory.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -191,6 +196,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(thesisContract.Limitations);
         if (plar?.Limitations is not null)
             limitations.AddRange(plar.Limitations);
+        if (priceMemory?.Limitations is not null)
+            limitations.AddRange(priceMemory.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -242,7 +249,9 @@ public sealed class GcaeRuntimeEngine
             thesisContract,
             showThesisContractDiagnostics,
             plar,
-            showPlarDiagnostics);
+            showPlarDiagnostics,
+            priceMemory,
+            showPriceMemoryDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

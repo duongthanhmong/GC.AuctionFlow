@@ -408,9 +408,9 @@ public sealed class Phase2FTradeFacilitationTests
     // ---------- I: Runtime integration ----------
 
     [Fact]
-    public void I01_RuntimeSnapshot_SnapshotVersion_is_0_21_0()
+    public void I01_RuntimeSnapshot_SnapshotVersion_is_0_22_0()
     {
-        Assert.Equal("0.21.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.22.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]
@@ -472,7 +472,7 @@ public sealed class Phase2FTradeFacilitationTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(15, vm.DiagnosticRows.Count);
+        Assert.Equal(16, vm.DiagnosticRows.Count);
     }
 
     [Fact]
@@ -563,7 +563,7 @@ public sealed class Phase2FTradeFacilitationTests
     }
 
     [Fact]
-    public void J09_AllLines_difference_is_15_for_diagnostics()
+    public void J09_AllLines_difference_is_16_for_diagnostics()
     {
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
@@ -575,7 +575,7 @@ public sealed class Phase2FTradeFacilitationTests
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
         var withDiag = vm.AllLines(true).Count;
         var withoutDiag = vm.AllLines(false).Count;
-        Assert.Equal(15, withDiag - withoutDiag);
+        Assert.Equal(16, withDiag - withoutDiag);
     }
 
     // ---------- K: Enums ----------

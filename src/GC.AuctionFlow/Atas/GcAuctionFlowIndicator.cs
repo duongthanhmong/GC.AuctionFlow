@@ -10,6 +10,7 @@ using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
+using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Plar;
@@ -76,6 +77,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private SignalMaturityHost? _signalMaturityHost;
     private ThesisContractHost? _thesisContractHost;
     private PlarHost? _plarHost;
+    private PriceMemoryHost? _priceMemoryHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -140,6 +142,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableThesisContract = false;
         EnablePlar = false;
         ShowPlarDiagnostics = false;
+        EnablePriceMemory = false;
+        ShowPriceMemoryDiagnostics = false;
         ShowThesisContractDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
@@ -464,6 +468,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Show the barrier corridor and final target per direction on the GPS card.")]
     public bool ShowPlarDiagnostics { get; set; }
 
+    [Category("Price Memory")]
+    [DisplayName("Enable Price Memory")]
+    [Description("Phase 1I retest ledger. Records how often each reference has been tested. Never infers that a reference is strong or weak.")]
+    public bool EnablePriceMemory { get; set; }
+
+    [Category("Price Memory")]
+    [DisplayName("Show Price Memory Diagnostics")]
+    [Description("Show the memory window and the most recent test records on the GPS card.")]
+    public bool ShowPriceMemoryDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -488,6 +502,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessFarThesis();
             ProcessAacThesis();
             ProcessPlar();
+            ProcessPriceMemory();
             ProcessSignalMaturity();
             ProcessThesisContract();
             PublishRuntimeSnapshot();
@@ -1769,6 +1784,29 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessSignalMaturity();
     }
 
+    private void ProcessPriceMemory()
+    {
+        if (!EnablePriceMemory || Volatile.Read(ref _disposed) != 0)
+        {
+            _priceMemoryHost = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new PriceMemoryPolicyConfig(enabled: true);
+            var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+
+            _priceMemoryHost ??= new PriceMemoryHost(policy);
+            _priceMemoryHost.Configure(policy);
+            _priceMemoryHost.Rebuild(episodes);
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
     private void ProcessPlar()
     {
         if (!EnablePlar || Volatile.Read(ref _disposed) != 0)
@@ -2229,6 +2267,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var signalMaturity = EnableSignalMaturity ? _signalMaturityHost?.Current : null;
             var thesisContract = EnableThesisContract ? _thesisContractHost?.Current : null;
             var plarSetForPublish = EnablePlar ? _plarHost?.Current : null;
+            var priceMemory = EnablePriceMemory ? _priceMemoryHost?.Current : null;
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
@@ -2281,7 +2320,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 thesisContract: thesisContract,
                 showThesisContractDiagnostics: ShowThesisContractDiagnostics,
                 plar: plarSetForPublish,
-                showPlarDiagnostics: ShowPlarDiagnostics);
+                showPlarDiagnostics: ShowPlarDiagnostics,
+                priceMemory: priceMemory,
+                showPriceMemoryDiagnostics: ShowPriceMemoryDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
