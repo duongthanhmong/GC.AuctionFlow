@@ -411,8 +411,8 @@ public sealed class Phase1CStructuralReferenceTests
             indicatorDisposed: false,
             profiles: profiles,
             structuralReferences: null);
-        Assert.Equal("0.12.0", GcaeRuntimeSnapshot.SnapshotVersion);
-        Assert.Equal("0.12.0", snap.Version);
+        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.13.0", snap.Version);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
         // Bid/Ask unknown keeps degraded independently of references.
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
@@ -501,7 +501,8 @@ public sealed class Phase1CStructuralReferenceTests
         Assert.Contains(vm.ProfileDetailLines, l => l.StartsWith("CONFIRMED REFERENCES:", StringComparison.Ordinal));
         Assert.Contains(vm.ProfileDetailLines, l => l.StartsWith("REF NEAREST", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, l => l.StartsWith("EPISODE:", StringComparison.Ordinal));
-        Assert.Contains(vm.DiagnosticRows, l => l.StartsWith("THESIS:", StringComparison.Ordinal));
+        Assert.Contains(vm.DiagnosticRows, l => l.StartsWith("FAR:", StringComparison.Ordinal));
+        Assert.Contains(vm.DiagnosticRows, l => l.StartsWith("AAC:", StringComparison.Ordinal));
         Assert.DoesNotContain(vm.AllLines(true), l => l.Contains("LONG", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(vm.AllLines(true), l => l.Contains("SHORT", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(vm.AllLines(true), l => l.Contains("SUPPORT", StringComparison.OrdinalIgnoreCase));
@@ -560,7 +561,7 @@ public sealed class Phase1CStructuralReferenceTests
         Assert.DoesNotContain("TradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("Telegram", indicator, StringComparison.Ordinal);
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
 
         var refDir = Path.Combine(root, "src", "GC.AuctionFlow", "Reference");
         foreach (var file in Directory.GetFiles(refDir, "*.cs"))

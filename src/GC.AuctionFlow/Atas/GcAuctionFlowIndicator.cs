@@ -16,6 +16,7 @@ using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Runtime;
+using GC.AuctionFlow.Thesis;
 using GC.AuctionFlow.UI;
 using OFT.Rendering.Context;
 
@@ -63,6 +64,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private ResolutionInputFingerprint? _lastAppliedResolutionFingerprint;
     private EffortResultClassifierHost? _effortResultHost;
     private EffortResultInputFingerprint? _lastAppliedEffortResultFingerprint;
+    private FarThesisHost? _farThesisHost;
+    private FarThesisInputFingerprint? _lastAppliedFarThesisFingerprint;
+    private AacThesisHost? _aacThesisHost;
+    private AacThesisInputFingerprint? _lastAppliedAacThesisFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -117,6 +122,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowAuctionResolutionDiagnostics = false;
         EnableEffortResultClassifier = false;
         ShowEffortResultDiagnostics = false;
+        EnableFarThesis = false;
+        ShowFarThesisDiagnostics = false;
+        EnableAacThesis = false;
+        ShowAacThesisDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -385,6 +394,26 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Classification id/state/revision diagnostics. Default false. Classification remains NOT CALIBRATED.")]
     public bool ShowEffortResultDiagnostics { get; set; }
 
+    [Category("FAR Thesis")]
+    [DisplayName("Enable FAR Thesis")]
+    [Description("Failed Auction Re-entry thesis state machine (FAR_THESIS_POLICY_V1). Default false. Armed+ NOT CALIBRATED.")]
+    public bool EnableFarThesis { get; set; }
+
+    [Category("FAR Thesis")]
+    [DisplayName("Show FAR Thesis Diagnostics")]
+    [Description("FAR id/state/revision diagnostics. Default false. Thesis remains NOT CALIBRATED.")]
+    public bool ShowFarThesisDiagnostics { get; set; }
+
+    [Category("AAC Thesis")]
+    [DisplayName("Enable AAC Thesis")]
+    [Description("Acceptance-Continuation thesis state machine (AAC_THESIS_POLICY_V1). Default false. AcceptanceDeveloping+ NOT CALIBRATED.")]
+    public bool EnableAacThesis { get; set; }
+
+    [Category("AAC Thesis")]
+    [DisplayName("Show AAC Thesis Diagnostics")]
+    [Description("AAC id/state/revision diagnostics. Default false. Thesis remains NOT CALIBRATED.")]
+    public bool ShowAacThesisDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -406,6 +435,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessClusterRawFeatures();
             ProcessAuctionEfficiencyEvidence();
             ProcessEffortResult();
+            ProcessFarThesis();
+            ProcessAacThesis();
             PublishRuntimeSnapshot();
         }
     }
@@ -796,6 +827,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _efficiencyHost = null;
                 _resolutionHost = null;
                 _effortResultHost = null;
+                _farThesisHost = null;
+                _aacThesisHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
@@ -806,6 +839,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _lastAppliedEfficiencyFingerprint = null;
                 _lastAppliedResolutionFingerprint = null;
                 _lastAppliedEffortResultFingerprint = null;
+                _lastAppliedFarThesisFingerprint = null;
+                _lastAppliedAacThesisFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -1487,6 +1522,106 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessFarThesis()
+    {
+        if (!EnableFarThesis || Volatile.Read(ref _disposed) != 0)
+        {
+            _farThesisHost = null;
+            _lastAppliedFarThesisFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new FarThesisPolicyConfig(enabled: true);
+            var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+            _farThesisHost ??= new FarThesisHost(policy);
+            _farThesisHost.Configure(policy);
+            _farThesisHost.Rebuild(evidence);
+
+            if (_farThesisHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedFarThesisFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void ProcessAacThesis()
+    {
+        if (!EnableAacThesis || Volatile.Read(ref _disposed) != 0)
+        {
+            _aacThesisHost = null;
+            _lastAppliedAacThesisFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new AacThesisPolicyConfig(enabled: true);
+            var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+            _aacThesisHost ??= new AacThesisHost(policy);
+            _aacThesisHost.Configure(policy);
+            _aacThesisHost.Rebuild(evidence);
+
+            if (_aacThesisHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedAacThesisFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureFarThesisInitializedForPublish()
+    {
+        if (!EnableFarThesis || Volatile.Read(ref _disposed) != 0)
+        {
+            _farThesisHost = null;
+            _lastAppliedFarThesisFingerprint = null;
+            return;
+        }
+
+        var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+        var fp = new FarThesisInputFingerprint(
+            true,
+            evidence?.RegistryRevision ?? -1L,
+            evidence?.InputFingerprint ?? "",
+            FarThesisPolicyConfig.PolicyVersion);
+
+        if (_lastAppliedFarThesisFingerprint.HasValue
+            && _lastAppliedFarThesisFingerprint.Value.Equals(fp)
+            && _farThesisHost?.Current is not null)
+            return;
+
+        ProcessFarThesis();
+    }
+
+    private void EnsureAacThesisInitializedForPublish()
+    {
+        if (!EnableAacThesis || Volatile.Read(ref _disposed) != 0)
+        {
+            _aacThesisHost = null;
+            _lastAppliedAacThesisFingerprint = null;
+            return;
+        }
+
+        var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+        var fp = new AacThesisInputFingerprint(
+            true,
+            evidence?.RegistryRevision ?? -1L,
+            evidence?.InputFingerprint ?? "",
+            AacThesisPolicyConfig.PolicyVersion);
+
+        if (_lastAppliedAacThesisFingerprint.HasValue
+            && _lastAppliedAacThesisFingerprint.Value.Equals(fp)
+            && _aacThesisHost?.Current is not null)
+            return;
+
+        ProcessAacThesis();
+    }
+
     private void EnsureEffortResultInitializedForPublish()
     {
         if (!EnableEffortResultClassifier || Volatile.Read(ref _disposed) != 0)
@@ -1863,6 +1998,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureAuctionEfficiencyInitializedForPublish();
             EnsureAcceptanceReentryResolutionInitializedForPublish();
             EnsureEffortResultInitializedForPublish();
+            EnsureFarThesisInitializedForPublish();
+            EnsureAacThesisInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -1875,6 +2012,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
             var resolution = EnableAcceptanceReentryResolution ? _resolutionHost?.Current : null;
             var effortResult = EnableEffortResultClassifier ? _effortResultHost?.Current : null;
+            var farThesis = EnableFarThesis ? _farThesisHost?.Current : null;
+            var aacThesis = EnableAacThesis ? _aacThesisHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1912,7 +2051,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 auctionResolution: resolution,
                 showAuctionResolutionDiagnostics: ShowAuctionResolutionDiagnostics,
                 effortResult: effortResult,
-                showEffortResultDiagnostics: ShowEffortResultDiagnostics);
+                showEffortResultDiagnostics: ShowEffortResultDiagnostics,
+                farThesis: farThesis,
+                showFarThesisDiagnostics: ShowFarThesisDiagnostics,
+                aacThesis: aacThesis,
+                showAacThesisDiagnostics: ShowAacThesisDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

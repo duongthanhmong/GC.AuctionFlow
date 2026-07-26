@@ -411,7 +411,7 @@ public sealed class Phase1DDirectionalContextTests
             directionalContext: s1);
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Directional Ready must not force global Ready
-        Assert.Equal("0.12.0", snap.Version);
+        Assert.Equal("0.13.0", snap.Version);
         Assert.Equal(DirectionalPolicyConfig.PolicyVersion, s1.PolicyVersion);
 
         // Overlay cosmetic must not be in fingerprint â€” reference overlay absence unchanged.
@@ -471,7 +471,7 @@ public sealed class Phase1DDirectionalContextTests
         Assert.True(Directory.Exists(Path.Combine(src, "Evidence")));
         Assert.True(Directory.Exists(Path.Combine(src, "Orderflow")));
         Assert.True(Directory.Exists(Path.Combine(src, "Cluster")));
-        Assert.False(Directory.Exists(Path.Combine(src, "Thesis")));
+        Assert.True(Directory.Exists(Path.Combine(src, "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(src, "TradeFacilitation")));
         var indicator = File.ReadAllText(Path.Combine(src, "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableAuctionEpisodes", indicator, StringComparison.Ordinal);

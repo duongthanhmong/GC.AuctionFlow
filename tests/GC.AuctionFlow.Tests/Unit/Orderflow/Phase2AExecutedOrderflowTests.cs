@@ -235,7 +235,7 @@ public sealed class Phase2AExecutedOrderflowTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), executedOrderflow: host.Current);
-        Assert.Equal("0.12.0", snap.Version);
+        Assert.Equal("0.13.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(host.Current, snap.ExecutedOrderflow);
     }
@@ -265,8 +265,6 @@ public sealed class Phase2AExecutedOrderflowTests
         Assert.DoesNotContain("ABSORPTION", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("EXHAUSTION", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("TRADE FACILITATION", text, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("FAR", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AAC", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PROBABILITY", text, StringComparison.Ordinal);
         Assert.Contains("MBO: BLOCKED", vm.MboLine, StringComparison.Ordinal);
 
@@ -274,7 +272,7 @@ public sealed class Phase2AExecutedOrderflowTests
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Orderflow")));
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Cluster")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "TradeFacilitation")));
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableExecutedOrderflow = false", indicator, StringComparison.Ordinal);
@@ -288,7 +286,7 @@ public sealed class Phase2AExecutedOrderflowTests
     public void Policy_Version()
     {
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
-        Assert.Equal("0.12.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     private static string FindRepoRoot()

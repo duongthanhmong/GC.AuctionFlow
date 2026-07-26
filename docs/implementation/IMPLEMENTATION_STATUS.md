@@ -2,10 +2,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2E CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 3A CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.12.0** (Effort vs Result Classifier fields) |
+| Runtime snapshot schema | **0.13.0** (FAR + AAC Thesis state machine fields) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -29,6 +29,7 @@
 | Phase 2C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Auction Efficiency Raw Evidence (`AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1`) |
 | Phase 2D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Acceptance/Re-entry Resolution (`ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Effort vs Result Classifier (`EFFORT_RESULT_CLASSIFIER_POLICY_V1`) |
+| Phase 3A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — FAR + AAC Thesis State Machine Foundation (`FAR_THESIS_POLICY_V1`, `AAC_THESIS_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -259,6 +260,45 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - FAR / AAC overall conclusion (NOT AUTHORIZED in Phase 2E)
 - Thesis / Entry / Risk phases
 - Overlay alerts
+
+## Phase 3A code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 651 passed / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Commit/tag | **HOLD** until live acceptance |
+| Runtime schema | `0.13.0` |
+| FAR policy | `FAR_THESIS_POLICY_V1` |
+| AAC policy | `AAC_THESIS_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Source/deployed DLL SHA-256 | `237C699C4FBB8E1E326425B3695173F8A8DC52F3911E4F6C083280CA07CAFF9B` (exact match) |
+| All calibrated states | **NOT CALIBRATED** — Armed/Executable/Managing/Completed reserved |
+| GPS rows | 11 (was 10); "THESIS: NOT AVAILABLE" replaced by "FAR:" + "AAC:" rows |
+| New Phase 3A tests | 59 tests (A01–R02); total 651 |
+
+### Phase 3A present (code/test)
+
+- `FarThesisHost` — FAR (Failed Auction Re-entry) state machine; fingerprint-gated rebuild from evidence
+- `AacThesisHost` — AAC (Acceptance-Continuation) state machine; fingerprint-gated rebuild from evidence
+- `FarState` enum: 15 states (observable 0–5, calibrated 100–105, terminal 200–202)
+- `AacState` enum: 14 states (observable 0–6, calibrated 100–102, terminal 200–203)
+- FAR direction: `CanonicalOutsideDirection==Below`→Long; `Above`→Short
+- AAC direction: `Above`→Long; `Below`→Short (opposite of FAR)
+- `ThesisDirection`: Unknown=0, Long=1, Short=2
+- Observable state mappings: `Interacting`→EpisodeActive; reentry obs→ReentryDeveloping; `ReentryDeveloping` episode→NOT CALIBRATED
+- AAC specific: `ReentryDeveloping` episode→`Invalidated` (re-entry negates continuation)
+- GPS diagnostics: "FAR: {state}" and "AAC: {state}" rows
+- Indicator settings: `EnableFarThesis`, `ShowFarThesisDiagnostics`, `EnableAacThesis`, `ShowAacThesisDiagnostics`
+- RuntimeSnapshot schema bumped `0.12.0` → `0.13.0`; `FarThesis` + `AacThesis` properties added
+- RecentlyClosedCapacity=64; ArmableCount/ExecutableCount always 0 (NOT CALIBRATED)
+
+### Explicitly deferred after Phase 3A
+
+- Armed / Executable / Managing / Completed states (gated: NOT CALIBRATED)
+- Thesis Signal Maturity, Entry Policy, Invalidation triggers
+- PLAR Targets, CFD Mapping, Risk phases
+- Overlay alerts / Telegram integration
 
 ## Phase 2B final closeout (2026-07-25) — LOCKED
 

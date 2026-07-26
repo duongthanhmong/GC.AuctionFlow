@@ -251,15 +251,16 @@ public sealed class P008ARuntimeDataGateTests
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
         Assert.Equal(DataState.Invalid, vm.DataState);
         Assert.Equal("DATA: INVALID", vm.DataLine);
-        Assert.Equal(10, vm.DiagnosticRows.Count);
-        Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("THESIS:", StringComparison.Ordinal));
+        Assert.Equal(11, vm.DiagnosticRows.Count);
+        Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("FAR:", StringComparison.Ordinal));
+        Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("AAC:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("ACCEPTANCE/REENTRY EVIDENCE:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("ORDERFLOW:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("CLUSTER RAW:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("AUCTION EFFICIENCY:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("RESOLUTION:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("EFFORT RESULT:", StringComparison.Ordinal));
-        Assert.Equal(vm.AllLines(false).Count + 10, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 11, vm.AllLines(true).Count);
     }
 
     [Fact]

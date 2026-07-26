@@ -489,7 +489,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: ep.Current, acceptanceReentryEvidence: ev.Current);
-        Assert.Equal("0.12.0", snap.Version);
+        Assert.Equal("0.13.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(ev.Current, snap.AcceptanceReentryEvidence);
 
@@ -529,8 +529,6 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
         Assert.DoesNotContain("ACCEPTED OUTSIDE", text, StringComparison.Ordinal);
         Assert.DoesNotContain("REACCEPTED INSIDE", text, StringComparison.Ordinal);
         Assert.DoesNotContain("FAILED AUCTION", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("FAR", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AAC", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PROBABILITY", text, StringComparison.Ordinal);
         Assert.DoesNotContain("CONFIDENCE", text, StringComparison.Ordinal);
         Assert.DoesNotContain("\nLONG", text, StringComparison.Ordinal);
@@ -541,14 +539,15 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Orderflow")));
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Cluster")));
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "TradeFacilitation")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableAcceptanceReentryEvidence", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableExecutedOrderflow", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableClusterRawFeatures", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableFar", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableFarThesis", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableAacThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptedOutside", indicator, StringComparison.Ordinal);
@@ -575,7 +574,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
     public void Policy_VersionAndLimitations()
     {
         Assert.Equal("ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1", AcceptanceReentryEvidencePolicyConfig.PolicyVersion);
-        Assert.Equal("0.12.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.Equal("CENTERLINE_ACCEPTANCE_GEOMETRY_NOT_APPLICABLE",
             AcceptanceReentryEvidencePolicyConfig.LimitationCenterlineNotApplicable);
     }

@@ -11,6 +11,7 @@ using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Resolution;
+using GC.AuctionFlow.Thesis;
 
 namespace GC.AuctionFlow.Runtime;
 
@@ -73,7 +74,11 @@ public sealed class GcaeRuntimeEngine
         AuctionResolutionSetSnapshot? auctionResolution = null,
         bool showAuctionResolutionDiagnostics = false,
         EffortResultClassificationSetSnapshot? effortResult = null,
-        bool showEffortResultDiagnostics = false)
+        bool showEffortResultDiagnostics = false,
+        FarThesisSetSnapshot? farThesis = null,
+        bool showFarThesisDiagnostics = false,
+        AacThesisSetSnapshot? aacThesis = null,
+        bool showAacThesisDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -105,6 +110,10 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("RESOLUTION_STATUS=" + auctionResolution.ModuleState);
         if (effortResult is not null)
             profileExtra.Add("EFFORT_RESULT_STATUS=" + effortResult.ModuleState);
+        if (farThesis is not null)
+            profileExtra.Add("FAR_THESIS_STATUS=" + farThesis.ModuleState);
+        if (aacThesis is not null)
+            profileExtra.Add("AAC_THESIS_STATUS=" + aacThesis.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -150,6 +159,10 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(auctionResolution.Limitations);
         if (effortResult?.Limitations is not null)
             limitations.AddRange(effortResult.Limitations);
+        if (farThesis?.Limitations is not null)
+            limitations.AddRange(farThesis.Limitations);
+        if (aacThesis?.Limitations is not null)
+            limitations.AddRange(aacThesis.Limitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -183,7 +196,11 @@ public sealed class GcaeRuntimeEngine
             auctionResolution,
             showAuctionResolutionDiagnostics,
             effortResult,
-            showEffortResultDiagnostics);
+            showEffortResultDiagnostics,
+            farThesis,
+            showFarThesisDiagnostics,
+            aacThesis,
+            showAacThesisDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

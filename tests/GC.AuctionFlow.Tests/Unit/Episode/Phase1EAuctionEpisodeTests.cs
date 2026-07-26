@@ -334,7 +334,7 @@ public sealed class Phase1EAuctionEpisodeTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: host.Current);
-        Assert.Equal("0.12.0", snap.Version);
+        Assert.Equal("0.13.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
     }
 
@@ -357,8 +357,6 @@ public sealed class Phase1EAuctionEpisodeTests
         Assert.Contains("AUCTION_EPISODE_POLICY_V1", text, StringComparison.Ordinal);
         Assert.Contains("ELIGIBLE REFERENCES:", text, StringComparison.Ordinal);
         Assert.DoesNotContain("SWEEP", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("FAR", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AAC", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptanceOutside", text, StringComparison.Ordinal);
         Assert.DoesNotContain("LONG", text, StringComparison.Ordinal);
         Assert.DoesNotContain("SHORT", text, StringComparison.Ordinal);
@@ -366,7 +364,7 @@ public sealed class Phase1EAuctionEpisodeTests
 
         var root = FindRepoRoot();
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableAuctionEpisodes", indicator, StringComparison.Ordinal);

@@ -12,6 +12,7 @@ using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Runtime;
+using GC.AuctionFlow.Thesis;
 
 namespace GC.AuctionFlow.UI;
 
@@ -192,6 +193,12 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildEffortResultLines(
             snapshot.EffortResult,
             snapshot.ShowEffortResultDiagnostics));
+        details.AddRange(BuildFarThesisLines(
+            snapshot.FarThesis,
+            snapshot.ShowFarThesisDiagnostics));
+        details.AddRange(BuildAacThesisLines(
+            snapshot.AacThesis,
+            snapshot.ShowAacThesisDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -224,7 +231,12 @@ public static class AuctionGpsCardMapper
                 snapshot.EffortResult is null
                     ? "EFFORT RESULT: NOT AVAILABLE"
                     : "EFFORT RESULT: " + snapshot.EffortResult.ModuleState.ToString().ToUpperInvariant(),
-                "THESIS: NOT AVAILABLE"
+                snapshot.FarThesis is null
+                    ? "FAR: NOT AVAILABLE"
+                    : "FAR: " + snapshot.FarThesis.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.AacThesis is null
+                    ? "AAC: NOT AVAILABLE"
+                    : "AAC: " + snapshot.AacThesis.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -954,6 +966,104 @@ public static class AuctionGpsCardMapper
             rows.Add("EFFORT RESULT ID: " + Truncate(latest.ClassificationId, 56));
             rows.Add("EFFORT RESULT STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
             rows.Add("EFFORT RESULT EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
+
+    public static IReadOnlyList<string> BuildFarThesisLines(
+        FarThesisSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case ThesisModuleState.Disabled:
+                rows.Add("FAR THESIS: DISABLED");
+                return rows;
+            case ThesisModuleState.AwaitingEvidence:
+                rows.Add("FAR THESIS: AWAITING EVIDENCE");
+                rows.Add("FAR THESIS POLICY: " + set.PolicyVersion);
+                rows.Add("FAR THESIS STATE: NOT CALIBRATED");
+                return rows;
+            case ThesisModuleState.Invalid:
+                rows.Add("FAR THESIS: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == ThesisModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("FAR THESIS: " + state + " (" + set.ActiveTheses.Count + " ACTIVE)");
+        rows.Add("FAR THESIS POLICY: " + set.PolicyVersion);
+        rows.Add("FAR THESIS STATE: NOT CALIBRATED");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("FAR STATE: " + latest.FarState.ToString().ToUpperInvariant());
+            rows.Add("FAR DIRECTION: " + latest.Direction.ToString().ToUpperInvariant());
+            if (latest.NotCalibrated)
+                rows.Add("FAR CALIBRATION: NOT CALIBRATED");
+            if (!string.IsNullOrEmpty(latest.ReferenceId))
+                rows.Add("FAR REF: " + Truncate(latest.ReferenceId, 48));
+        }
+
+        if (showDiagnostics && latest is not null)
+        {
+            rows.Add("FAR ACTIVE: " + set.ActiveTheses.Count.ToString(CultureInfo.InvariantCulture));
+            rows.Add("FAR CLOSED: " + set.RecentlyClosedTheses.Count.ToString(CultureInfo.InvariantCulture));
+            rows.Add("FAR ID: " + Truncate(latest.ThesisId, 56));
+            rows.Add("FAR STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
+            rows.Add("FAR EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
+
+    public static IReadOnlyList<string> BuildAacThesisLines(
+        AacThesisSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case ThesisModuleState.Disabled:
+                rows.Add("AAC THESIS: DISABLED");
+                return rows;
+            case ThesisModuleState.AwaitingEvidence:
+                rows.Add("AAC THESIS: AWAITING EVIDENCE");
+                rows.Add("AAC THESIS POLICY: " + set.PolicyVersion);
+                rows.Add("AAC THESIS STATE: NOT CALIBRATED");
+                return rows;
+            case ThesisModuleState.Invalid:
+                rows.Add("AAC THESIS: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == ThesisModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("AAC THESIS: " + state + " (" + set.ActiveTheses.Count + " ACTIVE)");
+        rows.Add("AAC THESIS POLICY: " + set.PolicyVersion);
+        rows.Add("AAC THESIS STATE: NOT CALIBRATED");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("AAC STATE: " + latest.AacState.ToString().ToUpperInvariant());
+            rows.Add("AAC DIRECTION: " + latest.Direction.ToString().ToUpperInvariant());
+            if (latest.NotCalibrated)
+                rows.Add("AAC CALIBRATION: NOT CALIBRATED");
+            if (!string.IsNullOrEmpty(latest.ReferenceId))
+                rows.Add("AAC REF: " + Truncate(latest.ReferenceId, 48));
+        }
+
+        if (showDiagnostics && latest is not null)
+        {
+            rows.Add("AAC ACTIVE: " + set.ActiveTheses.Count.ToString(CultureInfo.InvariantCulture));
+            rows.Add("AAC CLOSED: " + set.RecentlyClosedTheses.Count.ToString(CultureInfo.InvariantCulture));
+            rows.Add("AAC ID: " + Truncate(latest.ThesisId, 56));
+            rows.Add("AAC STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
+            rows.Add("AAC EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
         }
 
         return rows;

@@ -1,4 +1,4 @@
-using GC.AuctionFlow.Cluster;
+﻿using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
@@ -14,7 +14,7 @@ namespace GC.AuctionFlow.Tests.Unit.EffortResult;
 
 /// <summary>
 /// Phase 2E Effort vs Result Classifier Foundation.
-/// All calibrated classification states → NotCalibrated.
+/// All calibrated classification states â†’ NotCalibrated.
 /// FAR/AAC/Thesis/Entry: NOT AUTHORIZED in Phase 2E.
 /// </summary>
 public sealed class Phase2EEffortResultClassifierTests
@@ -326,7 +326,7 @@ public sealed class Phase2EEffortResultClassifierTests
     [Fact]
     public void I01_RuntimeSnapshot_SnapshotVersion_is_0_12_0()
     {
-        Assert.Equal("0.12.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public sealed class Phase2EEffortResultClassifierTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(10, vm.DiagnosticRows.Count);
+        Assert.Equal(11, vm.DiagnosticRows.Count);
     }
 
     // ---------- K: Limitations & NOT CALIBRATED policy ----------

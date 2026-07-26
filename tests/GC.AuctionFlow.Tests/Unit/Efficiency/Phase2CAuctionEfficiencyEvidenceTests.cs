@@ -395,7 +395,7 @@ public sealed class Phase2CAuctionEfficiencyEvidenceTests
             true, Utc(24), false, false, false, false, false, false,
             Profiles(), executedOrderflow: of.Current, clusterRaw: cl.Current,
             auctionEfficiency: eff.Current, showAuctionEfficiencyDiagnostics: true);
-        Assert.Equal("0.12.0", snap.Version);
+        Assert.Equal("0.13.0", snap.Version);
         Assert.Same(eff.Current, snap.AuctionEfficiency);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
 
@@ -456,7 +456,7 @@ public sealed class Phase2CAuctionEfficiencyEvidenceTests
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Orderflow")));
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "EffortResult")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "TradeFacilitation")));
-        Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Absorption")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
@@ -466,7 +466,7 @@ public sealed class Phase2CAuctionEfficiencyEvidenceTests
         Assert.DoesNotContain("EffortResultBalanced", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AggressionEffective", indicator, StringComparison.Ordinal);
         Assert.Equal(AuctionEfficiencyEvidencePolicyConfig.PolicyVersion, "AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1");
-        Assert.Equal("0.12.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.Equal("CLUSTER_RAW_FEATURE_POLICY_V1", ClusterRawFeaturePolicyConfig.PolicyVersion);
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
     }
