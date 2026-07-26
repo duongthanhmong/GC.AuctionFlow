@@ -5,7 +5,7 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 1H CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 4B CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
 | Runtime snapshot schema | **0.23.0** (Phase 2H: Imbalance) |
@@ -30,6 +30,7 @@
 | Price Memory policy | **PRICE_MEMORY_POLICY_V1** (Phase 1I) |
 | Imbalance policy | **IMBALANCE_POLICY_V1** (Phase 2H) |
 | Day Structure policy | **DAY_STRUCTURE_POLICY_V1** (Phase 1H, RESEARCH_ONLY) |
+| Entry policy | **ENTRY_POLICY_V1** (Phase 4B, ObserveOnly only) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
@@ -38,7 +39,8 @@
 | Phase 1I | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Price Memory / Retest Ledger (`PRICE_MEMORY_POLICY_V1`) |
 | Phase 2H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Imbalance context + gate (`IMBALANCE_POLICY_V1`) |
 | Phase 1H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Day Structure Classifier, RESEARCH_ONLY (`DAY_STRUCTURE_POLICY_V1`) |
-| Test count | **1174** passed / 0 failed / 0 skipped |
+| Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
+| Test count | **1199** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **17** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -343,6 +345,60 @@ that build, and the hash now matches.
 **Change to the closeout procedure:** the SHA-256 check must be preceded by a clean
 rebuild (`rm -rf bin obj` then build), otherwise it can certify an artifact that no
 longer corresponds to the source.
+
+## Phase 4B code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1199 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Runtime schema | `0.23.0` (unchanged — not published; selector is blind) |
+| Policy | `ENTRY_POLICY_V1` |
+| Clean-rebuild DLL SHA-256 | `2DFD0AF660E4D88B819D24825CE0D5DD7497B8B369CDCBA02BA124D17FCE2377` (bin+obj removed first) |
+| Selected plan | **ObserveOnly, always** — every active plan reserved |
+| New Phase 4B tests | 25 tests (A01-E04); total 1199 |
+| Spec source | v1.2 §30; §2.8 |
+
+### The audit result that defines this phase
+
+v1.2 §30.6 lists ten inputs the order-type selector needs. **Zero are available:**
+
+| Input | Status |
+|---|---|
+| Auction Tempo | NotBuilt — v1.2 §25.2 not implemented |
+| Spread | NotBuilt — not measured anywhere |
+| Depth | MboBlocked |
+| DOM persistence | MboBlocked |
+| Distance to invalidation | PresentButNotCalibrated — Phase 3C dimensions all gated |
+| Urgency | NotBuilt — not defined |
+| Expected slippage | RequiresCalibration — Phase 5A |
+| Missed-trade cost | RequiresCalibration — Phase 5A |
+| Signal maturity | PresentButNotCalibrated — Phase 3B |
+| CFD broker constraints | OperatorInputMissing |
+
+A grep initially suggested Tempo and Spread existed; both were false positives —
+"Tempo" matched `IncompleteTemporary` in the recorder, and Spread does not appear at all.
+
+So `ObserveOnly` is not a placeholder, it is **the only correct output**. v1.2 §30.7
+forbids assuming any fixed order-type distribution and §30.3 forbids a blind limit merely
+because price touched a reference; selecting a plan from ten missing inputs would violate
+both.
+
+### What this module is worth
+
+The dependency chain is now **explicit and testable**. Each input reports its own reason
+rather than collapsing into one "not ready" flag — test B03 asserts at least four
+distinct blocking reasons survive, so a future reader can see exactly which dependency
+unblocks what.
+
+Test B05 covers the honest-degradation case: if MBO ever becomes active, Depth must stop
+claiming "MBO blocked" and start saying the aggregation is not built.
+
+### Phase 4B NOT present (code/test)
+
+- Any active execution plan (all reserved)
+- Entry price, size, side — asserted absent by D04
+- Order placement of any kind (v1.2 §2.8) — disclaimed by D01
+- Entry Zone calculation (v1.2 §31) — needs invalidation geometry, still calibrated
 
 ## Phase 1H code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 
