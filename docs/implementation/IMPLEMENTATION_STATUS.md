@@ -320,150 +320,57 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
 
-## DLL integrity note (2026-07-27)
+## DLL integrity note (2026-07-27) — CORRECTED
 
-A progress audit found the deployed DLL no longer matched a fresh build of the
-committed source: deployed `82453D77...` versus build `B8873E0E...`.
+A progress audit found the deployed DLL did not match a fresh build of the committed
+source. An initial explanation blamed incremental build state. **That was wrong**, and
+the real cause matters more.
 
-Investigated rather than assumed:
+### Root cause: git line-ending normalisation
 
-- The build **is** deterministic — two `--no-incremental` rebuilds and a
-  clean-from-scratch rebuild all produce `B8873E0E...`
-- Building via the test project produces the same bytes as building the source
-  project standalone
-- Source was unchanged: working tree clean at `fb6ce86`
+`core.autocrlf = true` and the repository has no `.gitattributes`. Source files are
+written with LF, then `git add` / `git commit` rewrites them to CRLF **in the working
+tree**. The source bytes therefore change after the build that was deployed.
 
-So the divergence came from an **incremental build state**, not from source drift or
-non-determinism. The deployed artifact was produced by an incremental build whose output
-differed from a clean build of the same code.
+Verified rather than assumed:
 
-**Consequence for the SHA-256 gate.** Verifying `source == deployed` immediately after a
-copy always passes — it compares a file with the copy just made of it. That is not the
-property worth guaranteeing. The property that matters is:
+- Three consecutive clean-from-scratch rebuilds of the committed source all produce the
+  identical hash, so the build **is** reproducible
+- Working tree clean at the time of measurement
+- Files committed this session are CRLF on disk despite being authored LF
 
-> the deployed DLL equals a **clean rebuild** of the committed source
+### Consequence for every phase in this session
 
-Redeployed from a clean rebuild; `bin` and `obj` were removed first, 1174 tests pass on
-that build, and the hash now matches.
+The closeout order used was **build -> deploy -> record hash -> commit**. Because the
+commit mutated the source afterwards, the recorded hash certified an artifact built from
+a source state that no longer existed on disk. The DLLs were functionally correct — line
+endings do not change C# semantics — but the SHA-256 gate proved nothing.
 
-**Change to the closeout procedure:** the SHA-256 check must be preceded by a clean
-rebuild (`rm -rf bin obj` then build), otherwise it can certify an artifact that no
-longer corresponds to the source.
+The check was also weak in a second way: comparing `source` against `deployed`
+immediately after copying compares a file with the copy just made of it, which always
+passes.
 
-## Skeleton complete (2026-07-27) — LIVE ACCEPTANCE PENDING
-
-| Gate | Result |
-|------|--------|
-| Code/test | **PASS** — 1226 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
-| Runtime schema | `0.23.0` -> `0.24.0` |
-| Clean-rebuild DLL SHA-256 | `6D06A940EB828F5440EE888BA4DEA83D0D089816B5B797A703BAED5F11AE8441` |
-| GPS rows | **21** (was 17) |
-| Modules published | **21/21** — every module now reaches the runtime snapshot |
-
-### Why publication mattered more than more modules
-
-The operator intends to run **one** live acceptance covering everything. A module that
-does not reach the GPS card cannot be validated in that run. Two were unpublished —
-Day Structure (1H) and Entry Policy (4B) — so both were wired before adding anything new.
-All 21 modules now surface.
-
-### Phase 4C — CFD Mapping (v1.2 §34)
-
-`Basis = CFD Price − GC Price`. ATAS delivers GC only, so basis is unmeasurable and the
-map is **INVALID**, carrying the v1.2 §34.5 message verbatim:
-
-> `GC ANALYSIS VALID / CFD EXECUTION MAP INVALID`
-
-That is a safety output, not a failure: the auction analysis stands while the mechanical
-translation to the broker does not. Basis is `null`, never `0` — zero basis would assert
-the two markets trade identically (test A04). A disabled module reports INVALID rather
-than failing open (A10). A single observation **degrades** rather than validates: one
-sample is not a distribution (A06).
-
-### Phase 4A — Position Sizing and Account Risk (v1.2 §35-36)
-
-v1.2 §35 fixes the order and forbids reversing it:
+### Corrected procedure
 
 ```
-Thesis -> Structural Invalidation -> Stop Distance
-      -> CFD Effective Stop Distance -> Risk Per Lot -> Allowed Size
+commit  ->  rm -rf bin obj  ->  build  ->  run tests  ->  deploy  ->  record hash
 ```
 
-The chain breaks at **step two**: invalidation is calibration-gated (Phase 3C), so there
-is no stop distance and nothing downstream exists. Eleven operator inputs are also absent
-and the CFD map is INVALID.
+The hash must be taken from a clean build of **already-committed** source. Under that
+order the current DLL verifies:
 
-The module emits **no size** — not zero, not a default; the field does not exist (B08).
-The GPS card names where the chain broke: `SIZING BLOCKED AT: STRUCTURAL INVALIDATION`.
-`NEVER_TIGHTEN_STOP_TO_FIT_ACCOUNT` is carried in every snapshot, because §35.2's
-prohibition is worth nothing if it lives only in a document.
-
-### Skeleton status against v1.2 §64
-
-| Roadmap phase | State |
+| | |
 |---|---|
-| Phase 0 Capability & Recorder | **COMPLETE** |
-| Phase 1 Auction Core | **COMPLETE** |
-| Phase 2 Executed Orderflow | **COMPLETE** |
-| Phase 3 Thesis & Planning | **COMPLETE** — FAR/AAC, Maturity, Entry Policy, Invalidation, PLAR, CFD Mapping, Risk |
-| Phase 4 UI | GPS Card complete; Telegram/alerts not started |
-| Phase 5 Historical Scanner | **NOT STARTED — this is the single remaining unlock** |
-| Phase 6 ATAS Ultra Microstructure | blocked on MBO |
-| Phase 7 Advanced Research | not started |
+| Commit | `b2c1709` |
+| Clean-rebuild SHA-256 | `BECEA77113AF134292804EB3F18D9FC61F551C48C8D6EF45EC49E8D94CF1EEE4` |
+| Reproducible | 3/3 identical clean rebuilds |
+| Tests on that build | 1226 passed |
 
-## Phase 4B code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+### Follow-up worth doing
 
-| Gate | Result |
-|------|--------|
-| Code/test | **PASS** — 1199 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
-| Runtime schema | `0.23.0` (unchanged — not published; selector is blind) |
-| Policy | `ENTRY_POLICY_V1` |
-| Clean-rebuild DLL SHA-256 | `2DFD0AF660E4D88B819D24825CE0D5DD7497B8B369CDCBA02BA124D17FCE2377` (bin+obj removed first) |
-| Selected plan | **ObserveOnly, always** — every active plan reserved |
-| New Phase 4B tests | 25 tests (A01-E04); total 1199 |
-| Spec source | v1.2 §30; §2.8 |
-
-### The audit result that defines this phase
-
-v1.2 §30.6 lists ten inputs the order-type selector needs. **Zero are available:**
-
-| Input | Status |
-|---|---|
-| Auction Tempo | NotBuilt — v1.2 §25.2 not implemented |
-| Spread | NotBuilt — not measured anywhere |
-| Depth | MboBlocked |
-| DOM persistence | MboBlocked |
-| Distance to invalidation | PresentButNotCalibrated — Phase 3C dimensions all gated |
-| Urgency | NotBuilt — not defined |
-| Expected slippage | RequiresCalibration — Phase 5A |
-| Missed-trade cost | RequiresCalibration — Phase 5A |
-| Signal maturity | PresentButNotCalibrated — Phase 3B |
-| CFD broker constraints | OperatorInputMissing |
-
-A grep initially suggested Tempo and Spread existed; both were false positives —
-"Tempo" matched `IncompleteTemporary` in the recorder, and Spread does not appear at all.
-
-So `ObserveOnly` is not a placeholder, it is **the only correct output**. v1.2 §30.7
-forbids assuming any fixed order-type distribution and §30.3 forbids a blind limit merely
-because price touched a reference; selecting a plan from ten missing inputs would violate
-both.
-
-### What this module is worth
-
-The dependency chain is now **explicit and testable**. Each input reports its own reason
-rather than collapsing into one "not ready" flag — test B03 asserts at least four
-distinct blocking reasons survive, so a future reader can see exactly which dependency
-unblocks what.
-
-Test B05 covers the honest-degradation case: if MBO ever becomes active, Depth must stop
-claiming "MBO blocked" and start saying the aggregation is not built.
-
-### Phase 4B NOT present (code/test)
-
-- Any active execution plan (all reserved)
-- Entry price, size, side — asserted absent by D04
-- Order placement of any kind (v1.2 §2.8) — disclaimed by D01
-- Entry Zone calculation (v1.2 §31) — needs invalidation geometry, still calibrated
+Adding a `.gitattributes` pinning `*.cs text eol=lf` would remove the mutation entirely
+and make the build reproducible across machines. Not done yet — it rewrites every tracked
+file and deserves its own change.
 
 ## Phase 1H code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 
