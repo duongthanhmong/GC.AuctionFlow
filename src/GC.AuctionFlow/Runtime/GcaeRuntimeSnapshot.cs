@@ -6,6 +6,7 @@ using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Facilitation;
+using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Profile;
@@ -18,7 +19,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.15.0";
+    public const string SnapshotVersion = "0.16.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -58,7 +59,9 @@ public sealed class GcaeRuntimeSnapshot
         AacThesisSetSnapshot? aacThesis = null,
         bool showAacThesisDiagnostics = false,
         ParticipationSetSnapshot? participation = null,
-        TradeFacilitationSetSnapshot? tradeFacilitation = null)
+        TradeFacilitationSetSnapshot? tradeFacilitation = null,
+        SignalMaturitySetSnapshot? signalMaturity = null,
+        bool showSignalMaturityDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -98,6 +101,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowAacThesisDiagnostics = showAacThesisDiagnostics;
         Participation = participation;
         TradeFacilitation = tradeFacilitation;
+        SignalMaturity = signalMaturity;
+        ShowSignalMaturityDiagnostics = showSignalMaturityDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -121,6 +126,8 @@ public sealed class GcaeRuntimeSnapshot
     public AacThesisSetSnapshot? AacThesis { get; }
     public ParticipationSetSnapshot? Participation { get; }
     public TradeFacilitationSetSnapshot? TradeFacilitation { get; }
+    public SignalMaturitySetSnapshot? SignalMaturity { get; }
+    public bool ShowSignalMaturityDiagnostics { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }

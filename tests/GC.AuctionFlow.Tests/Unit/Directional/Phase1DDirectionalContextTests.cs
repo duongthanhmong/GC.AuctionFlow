@@ -1,4 +1,4 @@
-﻿using GC.AuctionFlow.Composite;
+using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Probe;
@@ -411,7 +411,7 @@ public sealed class Phase1DDirectionalContextTests
             directionalContext: s1);
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Directional Ready must not force global Ready
-        Assert.Equal("0.15.0", snap.Version);
+        Assert.Equal("0.16.0", snap.Version);
         Assert.Equal(DirectionalPolicyConfig.PolicyVersion, s1.PolicyVersion);
 
         // Overlay cosmetic must not be in fingerprint â€” reference overlay absence unchanged.

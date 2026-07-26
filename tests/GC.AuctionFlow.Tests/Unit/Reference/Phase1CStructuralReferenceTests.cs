@@ -1,4 +1,4 @@
-﻿using GC.AuctionFlow.Composite;
+using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -411,8 +411,8 @@ public sealed class Phase1CStructuralReferenceTests
             indicatorDisposed: false,
             profiles: profiles,
             structuralReferences: null);
-        Assert.Equal("0.15.0", GcaeRuntimeSnapshot.SnapshotVersion);
-        Assert.Equal("0.15.0", snap.Version);
+        Assert.Equal("0.16.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.16.0", snap.Version);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
         // Bid/Ask unknown keeps degraded independently of references.
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);

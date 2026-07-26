@@ -1,4 +1,4 @@
-﻿using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -334,7 +334,7 @@ public sealed class Phase1EAuctionEpisodeTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: host.Current);
-        Assert.Equal("0.15.0", snap.Version);
+        Assert.Equal("0.16.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
     }
 

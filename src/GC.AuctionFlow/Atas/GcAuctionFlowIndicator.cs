@@ -7,6 +7,7 @@ using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Facilitation;
+using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Orderflow;
@@ -71,6 +72,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private AacThesisHost? _aacThesisHost;
     private AacThesisInputFingerprint? _lastAppliedAacThesisFingerprint;
     private TradeFacilitationHost? _tradeFacilitationHost;
+    private SignalMaturityHost? _signalMaturityHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -130,6 +132,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableAacThesis = false;
         ShowAacThesisDiagnostics = false;
         EnableTradeFacilitation = false;
+        EnableSignalMaturity = false;
+        ShowSignalMaturityDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -423,6 +427,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Phase 2F Trade Facilitation Index classifier. Requires Auction Efficiency. Index NOT CALIBRATED.")]
     public bool EnableTradeFacilitation { get; set; }
 
+    [Category("Signal Maturity")]
+    [DisplayName("Enable Signal Maturity")]
+    [Description("Phase 3B Signal Maturity lifecycle. Requires FAR or AAC thesis. Fast/Standard/Confirmed NOT CALIBRATED.")]
+    public bool EnableSignalMaturity { get; set; }
+
+    [Category("Signal Maturity")]
+    [DisplayName("Show Signal Maturity Diagnostics")]
+    [Description("Show signal maturity IDs, versions and blocking-reason counts on the GPS card.")]
+    public bool ShowSignalMaturityDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -446,6 +460,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessEffortResult();
             ProcessFarThesis();
             ProcessAacThesis();
+            ProcessSignalMaturity();
             PublishRuntimeSnapshot();
         }
     }
@@ -1675,6 +1690,45 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessTradeFacilitation();
     }
 
+    private void ProcessSignalMaturity()
+    {
+        if (!EnableSignalMaturity || Volatile.Read(ref _disposed) != 0)
+        {
+            _signalMaturityHost = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new SignalMaturityPolicyConfig(enabled: true);
+            var far = EnableFarThesis ? _farThesisHost?.Current : null;
+            var aac = EnableAacThesis ? _aacThesisHost?.Current : null;
+
+            _signalMaturityHost ??= new SignalMaturityHost(policy);
+            _signalMaturityHost.Configure(policy);
+            _signalMaturityHost.Rebuild(far, aac);
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureSignalMaturityInitializedForPublish()
+    {
+        if (!EnableSignalMaturity || Volatile.Read(ref _disposed) != 0)
+        {
+            _signalMaturityHost = null;
+            return;
+        }
+
+        if (_signalMaturityHost?.Current is not null
+            && string.Equals(_signalMaturityHost.Current.PolicyVersion, SignalMaturityPolicyConfig.PolicyVersion, StringComparison.Ordinal))
+            return;
+
+        ProcessSignalMaturity();
+    }
+
     private void EnsureEffortResultInitializedForPublish()
     {
         if (!EnableEffortResultClassifier || Volatile.Read(ref _disposed) != 0)
@@ -2054,6 +2108,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureFarThesisInitializedForPublish();
             EnsureAacThesisInitializedForPublish();
             EnsureTradeFacilitationInitializedForPublish();
+            EnsureSignalMaturityInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -2069,6 +2124,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var farThesis = EnableFarThesis ? _farThesisHost?.Current : null;
             var aacThesis = EnableAacThesis ? _aacThesisHost?.Current : null;
             var tradeFacilitation = EnableTradeFacilitation ? _tradeFacilitationHost?.Current : null;
+            var signalMaturity = EnableSignalMaturity ? _signalMaturityHost?.Current : null;
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
@@ -2115,7 +2171,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 aacThesis: aacThesis,
                 showAacThesisDiagnostics: ShowAacThesisDiagnostics,
                 participation: participation,
-                tradeFacilitation: tradeFacilitation);
+                tradeFacilitation: tradeFacilitation,
+                signalMaturity: signalMaturity,
+                showSignalMaturityDiagnostics: ShowSignalMaturityDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

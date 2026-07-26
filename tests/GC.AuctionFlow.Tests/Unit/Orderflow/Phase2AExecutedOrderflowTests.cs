@@ -1,4 +1,4 @@
-﻿using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Probe;
@@ -235,7 +235,7 @@ public sealed class Phase2AExecutedOrderflowTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), executedOrderflow: host.Current);
-        Assert.Equal("0.15.0", snap.Version);
+        Assert.Equal("0.16.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(host.Current, snap.ExecutedOrderflow);
     }
@@ -287,7 +287,7 @@ public sealed class Phase2AExecutedOrderflowTests
     public void Policy_Version()
     {
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
-        Assert.Equal("0.15.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.16.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     private static string FindRepoRoot()

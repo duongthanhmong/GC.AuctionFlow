@@ -7,6 +7,7 @@ using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Facilitation;
+using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Probe;
@@ -82,7 +83,9 @@ public sealed class GcaeRuntimeEngine
         AacThesisSetSnapshot? aacThesis = null,
         bool showAacThesisDiagnostics = false,
         ParticipationSetSnapshot? participation = null,
-        TradeFacilitationSetSnapshot? tradeFacilitation = null)
+        TradeFacilitationSetSnapshot? tradeFacilitation = null,
+        SignalMaturitySetSnapshot? signalMaturity = null,
+        bool showSignalMaturityDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -120,6 +123,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("AAC_THESIS_STATUS=" + aacThesis.ModuleState);
         if (tradeFacilitation is not null)
             profileExtra.Add("TRADE_FACILITATION_STATUS=" + tradeFacilitation.ModuleState);
+        if (signalMaturity is not null)
+            profileExtra.Add("SIGNAL_MATURITY_STATUS=" + signalMaturity.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -171,6 +176,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(aacThesis.Limitations);
         if (tradeFacilitation?.Limitations is not null)
             limitations.AddRange(tradeFacilitation.Limitations);
+        if (signalMaturity?.Limitations is not null)
+            limitations.AddRange(signalMaturity.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -216,7 +223,9 @@ public sealed class GcaeRuntimeEngine
             aacThesis,
             showAacThesisDiagnostics,
             resolvedParticipation,
-            tradeFacilitation);
+            tradeFacilitation,
+            signalMaturity,
+            showSignalMaturityDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

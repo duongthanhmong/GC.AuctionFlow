@@ -6,6 +6,7 @@ using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Facilitation;
+using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
@@ -203,6 +204,7 @@ public static class AuctionGpsCardMapper
             snapshot.ShowAacThesisDiagnostics));
         details.AddRange(BuildParticipationLines(snapshot.Participation));
         details.AddRange(BuildTradeFacilitationLines(snapshot.TradeFacilitation, false));
+        details.AddRange(BuildSignalMaturityLines(snapshot.SignalMaturity, snapshot.ShowSignalMaturityDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -243,7 +245,10 @@ public static class AuctionGpsCardMapper
                     : "AAC: " + snapshot.AacThesis.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.TradeFacilitation is null
                     ? "TRADE FACILITATION: NOT AVAILABLE"
-                    : "TRADE FACILITATION: " + snapshot.TradeFacilitation.ModuleState.ToString().ToUpperInvariant()
+                    : "TRADE FACILITATION: " + snapshot.TradeFacilitation.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.SignalMaturity is null
+                    ? "MATURITY: NOT AVAILABLE"
+                    : "MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1479,4 +1484,55 @@ public static class AuctionGpsCardMapper
         DataGateReasonCodes.SourceProvenanceIncomplete => "SOURCE PROVENANCE INCOMPLETE",
         _ => code.Replace('_', ' ')
     };
+
+    public static IReadOnlyList<string> BuildSignalMaturityLines(
+        SignalMaturitySetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case MaturityModuleState.Disabled:
+                rows.Add("MATURITY: DISABLED");
+                return rows;
+            case MaturityModuleState.AwaitingThesis:
+                rows.Add("MATURITY: AWAITING THESIS");
+                rows.Add("MATURITY POLICY: " + set.PolicyVersion);
+                rows.Add("MATURITY LEVEL: NOT CALIBRATED");
+                return rows;
+            case MaturityModuleState.Invalid:
+                rows.Add("MATURITY: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == MaturityModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("MATURITY: " + state + " (" + set.ActiveCandidates.Count + " SCOPE)");
+        rows.Add("MATURITY POLICY: " + set.PolicyVersion);
+        rows.Add("MATURITY LEVEL: NOT CALIBRATED");
+        rows.Add("CANDIDATES: " + set.CandidateCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        if (set.FastShadowOnly)
+            rows.Add("FAST MODE: SHADOW ONLY");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("MATURITY FAMILY: " + latest.ThesisFamily);
+            rows.Add("LIFECYCLE: " + latest.LifecycleState.ToString().ToUpperInvariant());
+            rows.Add("EXPECTED BEHAVIOR: " + latest.ExpectedBehavior.ToString().ToUpperInvariant());
+            rows.Add("EXPECTED BEHAVIOR DEADLINE: NOT CALIBRATED");
+            rows.Add("RETEST: " + latest.RetestObservation.ToString().ToUpperInvariant());
+        }
+
+        if (showDiagnostics && latest is not null)
+        {
+            rows.Add("MATURITY ID: " + Truncate(latest.SnapshotId, 56));
+            rows.Add("MATURITY THESIS: " + Truncate(latest.ThesisId, 48));
+            rows.Add("MATURITY STATE VER: " + latest.StateVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            rows.Add("MATURITY EVENT REV: " + latest.EventRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            rows.Add("MATURITY BLOCKERS: " + latest.BlockingReasons.Count.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
 }

@@ -8,7 +8,7 @@
 | Current phase | **Phase 1G CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.14.0** (Phase 1G: Participation — SettlementProximity + ThinParticipation) |
+| Runtime snapshot schema | **0.16.0** (Phase 3B: Signal Maturity) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -35,7 +35,7 @@
 | Phase 1G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Participation Regime: Settlement Proximity Tags + Thin Participation Classifier |
 | Phase 2F | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Trade Facilitation Index (`TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — FAR + AAC Thesis State Machine Foundation (`FAR_THESIS_POLICY_V1`, `AAC_THESIS_POLICY_V1`) |
-| Phase 3B | **NOT STARTED** — Signal Maturity (§29) |
+| Phase 3B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Signal Maturity (`SIGNAL_MATURITY_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -289,6 +289,46 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
+- Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 3B code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 840 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Commit/tag | **HOLD** closeout tag until live acceptance |
+| Runtime schema | `0.15.0` -> `0.16.0` |
+| Policy | `SIGNAL_MATURITY_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Source/deployed DLL SHA-256 | `774E39C1C2E42C597294CE0B799C213B6DCE98B1D07E19D7582E6C0DD22AD4BB` (exact match) |
+| All maturity levels | **NOT CALIBRATED** — Fast/Standard/Confirmed reserved |
+| FAST mode | **SHADOW ONLY** — v1.2 §29.5 guardrail enforced in policy |
+| GPS rows | 13 (was 12); `MATURITY:` row added |
+| New Phase 3B tests | 48 tests (A01-L03); total 840 |
+| Spec source | v1.2 §29 + v1.3 §9 |
+
+### Phase 3B present (code/test)
+
+- `SignalMaturityHost` — fingerprint-gated rebuild from Phase 3A `FarThesisSetSnapshot` + `AacThesisSetSnapshot`
+- `SignalMaturitySnapshot` / `SignalMaturitySetSnapshot` v1.0.0 — immutable, `RecentlyClosedCapacity = 64`
+- `SignalMaturityLevel` — always `NotCalibrated`; Fast/Standard/Confirmed reserved at 100+
+- `AnalysisLifecycleState` — v1.2 §29.1 lifecycle; capped at `Candidate`; Armed/Executable/Managing reserved at 100+
+- `ExpectedBehaviorContractKind` — six KDK Ch 63 scenarios (v1.3 §9.3): FarReentry, FarRetest, AacEarly, AacRetest, NewValueContinuation, Rotation
+- `ExpectedBehaviorDeadlineUtc` — always `null`; duration NOT CALIBRATED (never fabricated)
+- `RetestObservationState` — always `NotCalibrated`; Micro/Structural/SecondAttempt reserved
+- `MaturityBlockingReason[]` — never empty; explains why no level can be emitted
+- `SignalMaturityPolicyConfig` — 12 limitation constants; `FastShadowOnlyDefault = true`
+- Indicator: `EnableSignalMaturity` / `ShowSignalMaturityDiagnostics`; module default OFF
+- GPS diagnostics list: `MATURITY:` status row added (13 rows total; was 12)
+
+### Phase 3B NOT present (code/test)
+
+- Fast / Standard / Confirmed level emission (calibration gate enforced)
+- Entry Policy, Entry Zone, position sizing (no Entry/Stop/Target/Size fields — asserted by test L01)
+- Score or probability fields (asserted by test L03)
+- Retest micro-vs-structural discrimination (NOT CALIBRATED)
+- Expected-behaviour deadline enforcement / Time Invalidation (Phase 3C)
 - Historical reconstruction (LIVE_ONLY enforced)
 
 ## Phase 3A code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
