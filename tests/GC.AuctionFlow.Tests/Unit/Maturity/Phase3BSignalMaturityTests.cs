@@ -165,7 +165,7 @@ public sealed class Phase3BSignalMaturityTests
     public void C01_Disabled_host_publishes_disabled_snapshot()
     {
         var host = new SignalMaturityHost(new SignalMaturityPolicyConfig(enabled: false));
-        var set = host.Rebuild(FarSet(), AacSet(), Loc(), Utc());
+        var set = host.Rebuild(FarSet(), AacSet(), Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.Disabled, set.ModuleState);
         Assert.Empty(set.ActiveCandidates);
         Assert.Contains("MODULE_DISABLED", set.Limitations);
@@ -175,7 +175,7 @@ public sealed class Phase3BSignalMaturityTests
     public void C02_Configure_disabled_clears_published_to_disabled()
     {
         var host = EnabledHost();
-        host.Rebuild(FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+        host.Rebuild(FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         host.Configure(new SignalMaturityPolicyConfig(enabled: false));
         Assert.Equal(MaturityModuleState.Disabled, host.Current!.ModuleState);
     }
@@ -184,7 +184,7 @@ public sealed class Phase3BSignalMaturityTests
     public void C03_Reset_clears_current()
     {
         var host = EnabledHost();
-        host.Rebuild(FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+        host.Rebuild(FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         host.Reset();
         Assert.Null(host.Current);
     }
@@ -198,7 +198,7 @@ public sealed class Phase3BSignalMaturityTests
     [Fact]
     public void D01_Null_inputs_yield_awaiting_thesis()
     {
-        var set = EnabledHost().Rebuild(null, null, Loc(), Utc());
+        var set = EnabledHost().Rebuild(null, null, Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.AwaitingThesis, set.ModuleState);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationNotCalibrated, set.Limitations);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationLiveOnly, set.Limitations);
@@ -208,14 +208,14 @@ public sealed class Phase3BSignalMaturityTests
     public void D02_Disabled_thesis_inputs_yield_awaiting_thesis()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Disabled), AacSet(ThesisModuleState.Disabled), Loc(), Utc());
+            FarSet(ThesisModuleState.Disabled), AacSet(ThesisModuleState.Disabled), Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.AwaitingThesis, set.ModuleState);
     }
 
     [Fact]
     public void D03_Invalid_thesis_input_yields_invalid()
     {
-        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Invalid), null, Loc(), Utc());
+        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Invalid), null, Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.Invalid, set.ModuleState);
         Assert.Contains("THESIS_INPUT_INVALID", set.Limitations);
     }
@@ -223,7 +223,7 @@ public sealed class Phase3BSignalMaturityTests
     [Fact]
     public void D04_Empty_ready_thesis_set_yields_awaiting_thesis()
     {
-        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready), null, Loc(), Utc());
+        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready), null, Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.AwaitingThesis, set.ModuleState);
     }
 
@@ -241,7 +241,7 @@ public sealed class Phase3BSignalMaturityTests
     [InlineData(FarState.Completed, AnalysisLifecycleState.Completed)]
     public void E01_Far_state_maps_to_lifecycle(FarState far, AnalysisLifecycleState expected)
     {
-        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready, Far(far)), null, Loc(), Utc());
+        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready, Far(far)), null, Loc(), nowUtc: Utc());
         Assert.Equal(expected, set.ActiveCandidates[0].LifecycleState);
     }
 
@@ -249,7 +249,7 @@ public sealed class Phase3BSignalMaturityTests
     public void E02_Far_reaccepted_inside_is_capped_at_candidate_and_flagged()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReacceptedInside)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReacceptedInside)), null, Loc(), nowUtc: Utc());
         var sm = set.ActiveCandidates[0];
         // Would be Armed once maturity is calibrated — must stay Candidate.
         Assert.Equal(AnalysisLifecycleState.Candidate, sm.LifecycleState);
@@ -260,7 +260,7 @@ public sealed class Phase3BSignalMaturityTests
     public void E03_Far_calibrated_state_falls_back_to_not_calibrated()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.Armed)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.Armed)), null, Loc(), nowUtc: Utc());
         Assert.Equal(AnalysisLifecycleState.NotCalibrated, set.ActiveCandidates[0].LifecycleState);
     }
 
@@ -268,7 +268,7 @@ public sealed class Phase3BSignalMaturityTests
     public void E04_Far_family_and_direction_are_carried()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping, dir: ThesisDirection.Long)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping, dir: ThesisDirection.Long)), null, Loc(), nowUtc: Utc());
         var sm = set.ActiveCandidates[0];
         Assert.Equal("FAR", sm.ThesisFamily);
         Assert.Equal(ThesisDirection.Long, sm.Direction);
@@ -291,21 +291,21 @@ public sealed class Phase3BSignalMaturityTests
     [InlineData(AacState.Completed, AnalysisLifecycleState.Completed)]
     public void F01_Aac_state_maps_to_lifecycle(AacState aac, AnalysisLifecycleState expected)
     {
-        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(aac)), Loc(), Utc());
+        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(aac)), Loc(), nowUtc: Utc());
         Assert.Equal(expected, set.ActiveCandidates[0].LifecycleState);
     }
 
     [Fact]
     public void F02_Aac_calibrated_state_falls_back_to_not_calibrated()
     {
-        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(AacState.Executable)), Loc(), Utc());
+        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(AacState.Executable)), Loc(), nowUtc: Utc());
         Assert.Equal(AnalysisLifecycleState.NotCalibrated, set.ActiveCandidates[0].LifecycleState);
     }
 
     [Fact]
     public void F03_Aac_family_is_carried()
     {
-        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(AacState.AcceptedOutside)), Loc(), Utc());
+        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(AacState.AcceptedOutside)), Loc(), nowUtc: Utc());
         Assert.Equal("AAC", set.ActiveCandidates[0].ThesisFamily);
     }
 
@@ -315,7 +315,7 @@ public sealed class Phase3BSignalMaturityTests
         var set = EnabledHost().Rebuild(
             FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)),
             AacSet(ThesisModuleState.Ready, Aac(AacState.AcceptanceDeveloping)),
-            Loc(), Utc());
+            Loc(), nowUtc: Utc());
         Assert.Equal(2, set.ActiveCandidates.Count);
         Assert.Contains(set.ActiveCandidates, s => s.ThesisFamily == "FAR");
         Assert.Contains(set.ActiveCandidates, s => s.ThesisFamily == "AAC");
@@ -329,7 +329,7 @@ public sealed class Phase3BSignalMaturityTests
     [InlineData(FarState.EpisodeActive, ExpectedBehaviorContractKind.Unknown)]
     public void G01_Far_expected_behavior(FarState far, ExpectedBehaviorContractKind expected)
     {
-        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready, Far(far)), null, Loc(), Utc());
+        var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready, Far(far)), null, Loc(), nowUtc: Utc());
         Assert.Equal(expected, set.ActiveCandidates[0].ExpectedBehavior);
     }
 
@@ -340,7 +340,7 @@ public sealed class Phase3BSignalMaturityTests
     [InlineData(AacState.EpisodeActive, ExpectedBehaviorContractKind.Unknown)]
     public void G02_Aac_expected_behavior(AacState aac, ExpectedBehaviorContractKind expected)
     {
-        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(aac)), Loc(), Utc());
+        var set = EnabledHost().Rebuild(null, AacSet(ThesisModuleState.Ready, Aac(aac)), Loc(), nowUtc: Utc());
         Assert.Equal(expected, set.ActiveCandidates[0].ExpectedBehavior);
     }
 
@@ -348,7 +348,7 @@ public sealed class Phase3BSignalMaturityTests
     public void G03_Expected_behavior_deadline_is_never_fabricated()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var sm = set.ActiveCandidates[0];
         Assert.Null(sm.ExpectedBehaviorDeadlineUtc);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationDeadlineNotCalibrated, sm.Limitations);
@@ -362,7 +362,7 @@ public sealed class Phase3BSignalMaturityTests
     {
         foreach (var far in Enum.GetValues<FarState>())
         {
-            var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready, Far(far)), null, Loc(), Utc());
+            var set = EnabledHost().Rebuild(FarSet(ThesisModuleState.Ready, Far(far)), null, Loc(), nowUtc: Utc());
             Assert.Equal(SignalMaturityLevel.NotCalibrated, set.ActiveCandidates[0].MaturityLevel);
         }
     }
@@ -373,7 +373,7 @@ public sealed class Phase3BSignalMaturityTests
         var set = EnabledHost().Rebuild(
             FarSet(ThesisModuleState.Ready, Far(FarState.ReacceptedInside)),
             AacSet(ThesisModuleState.Ready, Aac(AacState.AcceptedOutside)),
-            Loc(), Utc());
+            Loc(), nowUtc: Utc());
         Assert.Equal(0, set.FastCount);
         Assert.Equal(0, set.StandardCount);
         Assert.Equal(0, set.ConfirmedCount);
@@ -383,7 +383,7 @@ public sealed class Phase3BSignalMaturityTests
     public void H03_Fast_shadow_only_flag_is_always_true()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         Assert.True(set.FastShadowOnly);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationFastShadowOnly, set.Limitations);
     }
@@ -392,7 +392,7 @@ public sealed class Phase3BSignalMaturityTests
     public void H04_Retest_discrimination_is_not_calibrated()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReacceptedInside)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReacceptedInside)), null, Loc(), nowUtc: Utc());
         Assert.Equal(RetestObservationState.NotCalibrated, set.ActiveCandidates[0].RetestObservation);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationRetestNotCalibrated, set.ActiveCandidates[0].Limitations);
     }
@@ -401,7 +401,7 @@ public sealed class Phase3BSignalMaturityTests
     public void H05_MicroConfirmation_is_never_asserted()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         Assert.False(set.ActiveCandidates[0].MicroConfirmationObserved);
     }
 
@@ -411,7 +411,7 @@ public sealed class Phase3BSignalMaturityTests
         var set = EnabledHost().Rebuild(
             FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)),
             AacSet(ThesisModuleState.Ready, Aac(AacState.AcceptanceDeveloping)),
-            Loc(), Utc());
+            Loc(), nowUtc: Utc());
         Assert.All(set.ActiveCandidates, s => Assert.True(s.NotCalibrated));
     }
 
@@ -419,7 +419,7 @@ public sealed class Phase3BSignalMaturityTests
     public void H07_BlockingReasons_are_never_empty()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         Assert.NotEmpty(set.ActiveCandidates[0].BlockingReasons);
         Assert.Contains(MaturityBlockingReason.ThresholdsNotCalibrated, set.ActiveCandidates[0].BlockingReasons);
     }
@@ -428,7 +428,7 @@ public sealed class Phase3BSignalMaturityTests
     public void H08_Set_limitations_bar_entry_plan_and_risk_sizing()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         Assert.Contains(SignalMaturityPolicyConfig.LimitationNoEntryPlan, set.Limitations);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationNoRiskSizing, set.Limitations);
     }
@@ -439,7 +439,7 @@ public sealed class Phase3BSignalMaturityTests
     public void I01_Ready_when_complete_quality()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.Ready, set.ModuleState);
     }
 
@@ -448,7 +448,7 @@ public sealed class Phase3BSignalMaturityTests
     {
         var set = EnabledHost().Rebuild(
             FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping, q: ThesisDataQuality.Partial)),
-            null, Loc(), Utc());
+            null, Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.Partial, set.ModuleState);
     }
 
@@ -456,7 +456,7 @@ public sealed class Phase3BSignalMaturityTests
     public void I03_Partial_when_thesis_module_partial()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Partial, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Partial, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         Assert.Equal(MaturityModuleState.Partial, set.ModuleState);
     }
 
@@ -465,8 +465,8 @@ public sealed class Phase3BSignalMaturityTests
     {
         var host = EnabledHost();
         var far = FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping));
-        var a = host.Rebuild(far, null, Loc(), Utc());
-        var b = host.Rebuild(far, null, Loc(), Utc(5));
+        var a = host.Rebuild(far, null, Loc(), nowUtc: Utc());
+        var b = host.Rebuild(far, null, Loc(), nowUtc: Utc(5));
         Assert.Same(a, b);
     }
 
@@ -474,12 +474,12 @@ public sealed class Phase3BSignalMaturityTests
     public void I05_Changed_input_rebuilds()
     {
         var host = EnabledHost();
-        var a = host.Rebuild(FarSet(ThesisModuleState.Ready, Far(FarState.EpisodeActive)), null, Loc(), Utc());
+        var a = host.Rebuild(FarSet(ThesisModuleState.Ready, Far(FarState.EpisodeActive)), null, Loc(), nowUtc: Utc());
         var changed = new FarThesisSetSnapshot(
             ThesisModuleState.Ready, FarThesisPolicyConfig.PolicyVersion,
             new[] { Far(FarState.ReentryDeveloping) }, Array.Empty<FarThesisSnapshot>(),
             null, 0, 0, Utc(), Utc(9), Array.Empty<string>());
-        var b = host.Rebuild(changed, null, Loc(), Utc(9));
+        var b = host.Rebuild(changed, null, Loc(), nowUtc: Utc(9));
         Assert.NotSame(a, b);
         Assert.Equal(AnalysisLifecycleState.Candidate, b.ActiveCandidates[0].LifecycleState);
     }
@@ -491,7 +491,7 @@ public sealed class Phase3BSignalMaturityTests
             FarSet(ThesisModuleState.Ready,
                 Far(FarState.ReentryDeveloping, id: "FAR-1"),
                 Far(FarState.EpisodeActive, id: "FAR-2")),
-            null, Loc(), Utc());
+            null, Loc(), nowUtc: Utc());
         Assert.Equal(2, set.ActiveCandidates.Count);
         Assert.Equal(1, set.CandidateCount);
     }
@@ -503,7 +503,7 @@ public sealed class Phase3BSignalMaturityTests
             FarSet(ThesisModuleState.Ready,
                 Far(FarState.EpisodeActive, id: "FAR-1", eventRevision: 1L),
                 Far(FarState.ReentryDeveloping, id: "FAR-2", eventRevision: 7L)),
-            null, Loc(), Utc());
+            null, Loc(), nowUtc: Utc());
         Assert.Equal("SM:FAR-2", set.LatestUpdated!.SnapshotId);
     }
 
@@ -538,7 +538,7 @@ public sealed class Phase3BSignalMaturityTests
     public void J03_Maturity_set_is_carried_on_snapshot()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var snap = PublishWith(set);
         Assert.NotNull(snap.SignalMaturity);
         Assert.Equal(MaturityModuleState.Ready, snap.SignalMaturity!.ModuleState);
@@ -548,7 +548,7 @@ public sealed class Phase3BSignalMaturityTests
     public void J04_Maturity_limitations_merge_into_known_limitations()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var snap = PublishWith(set);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationNotCalibrated, snap.KnownLimitations);
         Assert.Contains(SignalMaturityPolicyConfig.LimitationFastShadowOnly, snap.KnownLimitations);
@@ -574,7 +574,7 @@ public sealed class Phase3BSignalMaturityTests
     public void K03_GpsCard_shows_maturity_module_state()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(PublishWith(set), showDiagnostics: true);
         Assert.Contains("MATURITY: READY", vm.DiagnosticRows);
     }
@@ -587,7 +587,7 @@ public sealed class Phase3BSignalMaturityTests
     public void K05_MaturityLines_disabled_is_single_row()
     {
         var host = new SignalMaturityHost(new SignalMaturityPolicyConfig(enabled: false));
-        var set = host.Rebuild(null, null, Loc(), Utc());
+        var set = host.Rebuild(null, null, Loc(), nowUtc: Utc());
         var rows = AuctionGpsCardMapper.BuildSignalMaturityLines(set, false);
         Assert.Single(rows);
         Assert.Equal("MATURITY: DISABLED", rows[0]);
@@ -596,7 +596,7 @@ public sealed class Phase3BSignalMaturityTests
     [Fact]
     public void K06_MaturityLines_awaiting_declares_not_calibrated()
     {
-        var set = EnabledHost().Rebuild(null, null, Loc(), Utc());
+        var set = EnabledHost().Rebuild(null, null, Loc(), nowUtc: Utc());
         var rows = AuctionGpsCardMapper.BuildSignalMaturityLines(set, false);
         Assert.Contains("MATURITY: AWAITING THESIS", rows);
         Assert.Contains("MATURITY LEVEL: NOT CALIBRATED", rows);
@@ -606,7 +606,7 @@ public sealed class Phase3BSignalMaturityTests
     public void K07_MaturityLines_ready_declares_not_calibrated_and_shadow_only()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var rows = AuctionGpsCardMapper.BuildSignalMaturityLines(set, false);
         Assert.Contains("MATURITY LEVEL: NOT CALIBRATED", rows);
         Assert.Contains("FAST MODE: SHADOW ONLY", rows);
@@ -619,7 +619,7 @@ public sealed class Phase3BSignalMaturityTests
         var set = EnabledHost().Rebuild(
             FarSet(ThesisModuleState.Ready, Far(FarState.ReacceptedInside)),
             AacSet(ThesisModuleState.Ready, Aac(AacState.AcceptedOutside)),
-            Loc(), Utc());
+            Loc(), nowUtc: Utc());
         var text = string.Join(" | ", AuctionGpsCardMapper.BuildSignalMaturityLines(set, true));
         Assert.DoesNotContain("MATURITY LEVEL: FAST", text, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("MATURITY LEVEL: STANDARD", text, StringComparison.OrdinalIgnoreCase);
@@ -632,7 +632,7 @@ public sealed class Phase3BSignalMaturityTests
     public void K09_MaturityLines_diagnostics_add_rows()
     {
         var set = EnabledHost().Rebuild(
-            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), Utc());
+            FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var plain = AuctionGpsCardMapper.BuildSignalMaturityLines(set, false);
         var diag = AuctionGpsCardMapper.BuildSignalMaturityLines(set, true);
         Assert.True(diag.Count > plain.Count);

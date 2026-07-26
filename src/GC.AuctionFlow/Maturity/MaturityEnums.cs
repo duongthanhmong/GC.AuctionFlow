@@ -93,7 +93,10 @@ public enum MaturityBlockingReason
     PriceLocationUnavailable = 6,
     ThesisStateNotCalibrated = 7,
     FastShadowOnly = 8,
-    LowQualityLocation = 9
+    LowQualityLocation = 9,
+    /// <summary>Measured: no target lies ahead. Distinct from TargetSpaceUnavailable,
+    /// which means the space could not be measured at all.</summary>
+    NoRemainingTargetSpace = 10
 }
 
 public enum MaturityDataQuality

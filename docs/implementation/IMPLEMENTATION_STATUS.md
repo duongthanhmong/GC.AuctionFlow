@@ -5,7 +5,7 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 3D CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 3E CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
 | Runtime snapshot schema | **0.20.0** (Phase 3D: Location gate) |
@@ -26,10 +26,12 @@
 | AAC thesis policy | **AAC_THESIS_POLICY_V1** (Phase 3A) |
 | Signal Maturity policy | **SIGNAL_MATURITY_POLICY_V1** (Phase 3B) |
 | Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
+| PLAR policy | **PLAR_POLICY_V1** (Phase 3E) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
-| Test count | **1008** passed / 0 failed / 0 skipped |
+| Phase 3E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR / Target Engine (`PLAR_POLICY_V1`) |
+| Test count | **1052** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **14** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -304,6 +306,67 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 3E code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1052 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Runtime schema | `0.20.0` (unchanged — PLAR is not yet on the runtime snapshot) |
+| Policy | `PLAR_POLICY_V1` |
+| Source/deployed DLL SHA-256 | `3C196B9E23E47BBCE98A2F46930FCE7E5614F6D6C02DABF50E17EF053320A7B3` (exact match) |
+| Barrier permeability | **NOT CALIBRATED** — LowFriction / ModerateFriction / HighFriction reserved |
+| New Phase 3E tests | 44 tests (A01-G06); total 1052 |
+| Spec source | v1.2 §33; v1.3 §7.4 `G-FAR-006` |
+
+### Closes G-LOC-002
+
+Phase 3D could enforce `G-LOC-001` and `G-LOC-003` but not `G-LOC-002`, because
+`RemainingTargetSpace` did not exist. Phase 3E supplies it and the veto is now live.
+
+`TargetSpaceAvailability` keeps three cases apart, which is the whole point:
+
+| Case | Meaning | Gate effect |
+|---|---|---|
+| `Available` | target ahead, distance known | veto not triggered |
+| `NoTargetAhead` | references exist, none ahead — **measured** no room | `BlockedNoTargetSpace` |
+| `Unavailable` | no references or no price — **cannot measure** | veto reported unmeasurable, never treated as passed |
+
+Blocking reasons are separated to match: `NoRemainingTargetSpace` (measured) versus
+`TargetSpaceUnavailable` (unmeasurable). The veto outranks position quality — a perfect
+location with nowhere to go is still not tradeable (test G03).
+
+### POC is a barrier, not just a target (G-FAR-006)
+
+Every POC reference type maps to `PathObstacleRole.TargetAndBarrier`. KDK Ch 64 lists POC
+as a valid FAR target, and KDK Ch 19 Rule 4 warns it can end a rotation before the
+opposite edge is reached. Modelling it only as a target is the mistake the guard names.
+
+### Phase 3E present (code/test)
+
+- `PlarHost` — projects the active reference set forward from the current price in both
+  directions; fingerprint-gated on price and reference-set revision
+- `PathObstacleSnapshot` — distance to the **near edge**, always non-negative, ordered
+  nearest-first with a corridor index
+- Price inside a zone is interacting with it, not travelling toward it, so it is not
+  "ahead" (test C06)
+- `Corridor` — Barrier 1..3 per v1.2 §33.2
+- Retired references are excluded
+
+### Phase 3E NOT present (code/test)
+
+- Barrier permeability / expected friction — needs reaction history (Phase 1I) and the
+  adjacent-build research of v1.2 §33.2.1, which is research-only by spec
+- TP1/TP2/TP3 ladder (v1.2 §33.4) — requires an entry price, which remains out of scope
+- Progress-milestone verdicts (SlowProgress, EarlyWeakness, TargetDowngradeCandidate)
+- Entry / stop / size / score fields — asserted absent by test E04
+
+### Stale invariant corrected
+
+`MaturityBlockingReason.TargetSpaceUnavailable` was unconditional in Phase 3B, when the
+space genuinely could never be measured. It is now conditional; leaving it unconditional
+would have made a measured, real target space still report as unmeasurable.
 
 ## Phase 3D code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

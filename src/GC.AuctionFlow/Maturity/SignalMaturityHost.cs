@@ -1,4 +1,5 @@
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Thesis;
 
 namespace GC.AuctionFlow.Maturity;
@@ -58,6 +59,7 @@ public sealed class SignalMaturityHost
         FarThesisSetSnapshot? far,
         AacThesisSetSnapshot? aac,
         ProfileLocationContextSnapshot? location = null,
+        AuctionPathSnapshot? path = null,
         DateTime? nowUtc = null)
     {
         var now = nowUtc ?? DateTime.UtcNow;
@@ -69,7 +71,7 @@ public sealed class SignalMaturityHost
             return _published;
         }
 
-        var fp = BuildFingerprintKey(far, aac, location);
+        var fp = BuildFingerprintKey(far, aac, location, path);
         if (_lastFingerprintKey is not null
             && string.Equals(_lastFingerprintKey, fp, StringComparison.Ordinal)
             && _published is not null)
@@ -107,17 +109,17 @@ public sealed class SignalMaturityHost
         if (farUsable)
         {
             foreach (var t in far!.ActiveTheses)
-                Accumulate(MapFar(t, loc, now), active, ref maxRev, ref latest, ref candidates, ref partial);
+                Accumulate(MapFar(t, loc, path, now), active, ref maxRev, ref latest, ref candidates, ref partial);
             foreach (var t in far.RecentlyClosedTheses)
-                AccumulateClosed(MapFar(t, loc, now));
+                AccumulateClosed(MapFar(t, loc, path, now));
         }
 
         if (aacUsable)
         {
             foreach (var t in aac!.ActiveTheses)
-                Accumulate(MapAac(t, loc, now), active, ref maxRev, ref latest, ref candidates, ref partial);
+                Accumulate(MapAac(t, loc, path, now), active, ref maxRev, ref latest, ref candidates, ref partial);
             foreach (var t in aac.RecentlyClosedTheses)
-                AccumulateClosed(MapAac(t, loc, now));
+                AccumulateClosed(MapAac(t, loc, path, now));
         }
 
         MaturityModuleState state;
@@ -152,23 +154,25 @@ public sealed class SignalMaturityHost
     // --- mapping ---
 
     private static SignalMaturitySnapshot MapFar(
-        FarThesisSnapshot t, PriceValueLocation location, DateTime nowUtc)
+        FarThesisSnapshot t, PriceValueLocation location,
+        AuctionPathSnapshot? path, DateTime nowUtc)
     {
         var (lifecycle, notCalibrated) = MapFarLifecycle(t.FarState);
         var expected = MapFarExpectedBehavior(t.FarState);
         return Build(t.ThesisId, FamilyFar, t.EvidenceId, t.EpisodeId, t.ReferenceId,
             t.Direction, lifecycle, expected, notCalibrated || t.NotCalibrated,
-            location, MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
+            location, path, MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
     }
 
     private static SignalMaturitySnapshot MapAac(
-        AacThesisSnapshot t, PriceValueLocation location, DateTime nowUtc)
+        AacThesisSnapshot t, PriceValueLocation location,
+        AuctionPathSnapshot? path, DateTime nowUtc)
     {
         var (lifecycle, notCalibrated) = MapAacLifecycle(t.AacState);
         var expected = MapAacExpectedBehavior(t.AacState);
         return Build(t.ThesisId, FamilyAac, t.EvidenceId, t.EpisodeId, t.ReferenceId,
             t.Direction, lifecycle, expected, notCalibrated || t.NotCalibrated,
-            location, MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
+            location, path, MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
     }
 
     private static (AnalysisLifecycleState state, bool notCalibrated) MapFarLifecycle(FarState s) => s switch
@@ -232,14 +236,17 @@ public sealed class SignalMaturityHost
         ThesisDirection direction, AnalysisLifecycleState lifecycle,
         ExpectedBehaviorContractKind expected, bool notCalibrated,
         PriceValueLocation location,
+        AuctionPathSnapshot? path,
         MaturityDataQuality quality, long stateVersion, long eventRevision, DateTime nowUtc)
     {
         // v1.3 §10 location gate, evaluated BEFORE the lifecycle is finalised.
-        var gate = DeriveLocationGate(location);
+        var gate = DeriveLocationGate(location, path);
 
-        // G-LOC-003: without a location there is no Context, so there is no candidate.
+        // G-LOC-003 / G-LOC-002: without a location there is no Context, and with no
+        // room ahead there is nothing to trade toward. Either way there is no candidate.
         // The scope is still reported — silently dropping it would hide the block.
-        if (gate == LocationGateOutcome.BlockedLocationUnavailable
+        if (gate is LocationGateOutcome.BlockedLocationUnavailable
+                 or LocationGateOutcome.BlockedNoTargetSpace
             && lifecycle == AnalysisLifecycleState.Candidate)
             lifecycle = AnalysisLifecycleState.EpisodeActive;
 
@@ -249,13 +256,17 @@ public sealed class SignalMaturityHost
             MaturityBlockingReason.RetestDiscriminationNotCalibrated,
             MaturityBlockingReason.ExpectedBehaviorDeadlineNotCalibrated,
             MaturityBlockingReason.MicroConfirmationNotCalibrated,
-            MaturityBlockingReason.TargetSpaceUnavailable,
+            // TargetSpaceUnavailable is NOT unconditional any more: since Phase 3E the
+            // PLAR path can actually measure the space, so the reason is added below
+            // only when it genuinely cannot be measured.
             MaturityBlockingReason.FastShadowOnly
         };
         if (notCalibrated)
             blocking.Add(MaturityBlockingReason.ThesisStateNotCalibrated);
         if (gate == LocationGateOutcome.BlockedLocationUnavailable)
             blocking.Add(MaturityBlockingReason.PriceLocationUnavailable);
+        if (gate == LocationGateOutcome.BlockedNoTargetSpace)
+            blocking.Add(MaturityBlockingReason.NoRemainingTargetSpace);
         // G-LOC-001: mid-value / at-POC may exist but may never mature to Confirmed.
         if (gate == LocationGateOutcome.AllowedLowQuality)
             blocking.Add(MaturityBlockingReason.LowQualityLocation);
@@ -272,10 +283,13 @@ public sealed class SignalMaturityHost
             SignalMaturityPolicyConfig.LimitationMicroConfirmationNotCalibrated,
             SignalMaturityPolicyConfig.LimitationTargetSpaceUnavailable,
             SignalMaturityPolicyConfig.LimitationLiveOnly,
-            // G-LOC-002 cannot be evaluated: RemainingTargetSpace arrives with the
-            // Target Engine (Phase 3E), so the veto is declared unavailable, not passed.
-            SignalMaturityPolicyConfig.LimitationTargetSpaceNotAvailable
         };
+        // Only claim the veto is unmeasurable when it genuinely is (no PLAR path).
+        if (path is null || path.TargetSpaceAvailability == TargetSpaceAvailability.Unavailable)
+        {
+            lim.Add(SignalMaturityPolicyConfig.LimitationTargetSpaceNotAvailable);
+            blocking.Add(MaturityBlockingReason.TargetSpaceUnavailable);
+        }
         if (gate == LocationGateOutcome.BlockedLocationUnavailable)
             lim.Add(SignalMaturityPolicyConfig.LimitationLocationUnavailable);
         if (gate == LocationGateOutcome.AllowedLowQuality)
@@ -346,11 +360,14 @@ public sealed class SignalMaturityHost
 
     private static string BuildFingerprintKey(
         FarThesisSetSnapshot? far, AacThesisSetSnapshot? aac,
-        ProfileLocationContextSnapshot? location) =>
+        ProfileLocationContextSnapshot? location,
+        AuctionPathSnapshot? path) =>
         SignalMaturityPolicyConfig.PolicyVersion
         + "|F:" + (far?.ModuleState.ToString() ?? "") + ":" + (far?.LastUpdatedAtUtc.Ticks.ToString() ?? "")
         + "|A:" + (aac?.ModuleState.ToString() ?? "") + ":" + (aac?.LastUpdatedAtUtc.Ticks.ToString() ?? "")
-        + "|L:" + ResolveLocation(location).ToString();
+        + "|L:" + ResolveLocation(location).ToString()
+        + "|T:" + (path?.TargetSpaceAvailability.ToString() ?? "")
+        + ":" + (path?.RemainingTargetSpaceTicks?.ToString() ?? "");
 
     private static IReadOnlyList<string> BuildSetLimitations() => new[]
     {
@@ -422,7 +439,20 @@ public sealed class SignalMaturityHost
     /// v1.3 §10 location gate. Purely positional — no threshold, no direction.
     /// BlockedNoTargetSpace (G-LOC-002) is unreachable until the Target Engine exists.
     /// </summary>
-    private static LocationGateOutcome DeriveLocationGate(PriceValueLocation location) => location switch
+    private static LocationGateOutcome DeriveLocationGate(
+        PriceValueLocation location, AuctionPathSnapshot? path)
+    {
+        // G-LOC-002: no room ahead is a hard veto, and it outranks position quality —
+        // a perfect location with nowhere to go is still not tradeable.
+        // NoTargetAhead is a measured fact; Unavailable means we could not measure and
+        // must NOT be treated as a pass.
+        if (path?.TargetSpaceAvailability == TargetSpaceAvailability.NoTargetAhead)
+            return LocationGateOutcome.BlockedNoTargetSpace;
+
+        return MapPosition(location);
+    }
+
+    private static LocationGateOutcome MapPosition(PriceValueLocation location) => location switch
     {
         PriceValueLocation.Unavailable => LocationGateOutcome.BlockedLocationUnavailable,
         PriceValueLocation.InsideValue => LocationGateOutcome.AllowedLowQuality,

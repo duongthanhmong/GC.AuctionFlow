@@ -63,7 +63,7 @@ public sealed class Phase3CThesisContractTests
             thesisState, AacThesisPolicyConfig.PolicyVersion,
             aac, Array.Empty<AacThesisSnapshot>(), aac.Length > 0 ? aac[^1] : null,
             0, 0, Utc(), Utc(1), Array.Empty<string>());
-        return host.Rebuild(farSet, aacSet, Loc(), Utc());
+        return host.Rebuild(farSet, aacSet, Loc(), nowUtc: Utc());
     }
 
     /// <summary>
@@ -207,7 +207,7 @@ public sealed class Phase3CThesisContractTests
             ThesisModuleState.Invalid, FarThesisPolicyConfig.PolicyVersion,
             Array.Empty<FarThesisSnapshot>(), Array.Empty<FarThesisSnapshot>(),
             null, 0, 0, Utc(), Utc(1), Array.Empty<string>());
-        var maturity = host.Rebuild(badFar, null, Loc(), Utc());
+        var maturity = host.Rebuild(badFar, null, Loc(), nowUtc: Utc());
 
         var set = EnabledHost().Rebuild(maturity, Utc());
         Assert.Equal(ThesisContractModuleState.Invalid, set.ModuleState);

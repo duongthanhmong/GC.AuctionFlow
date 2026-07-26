@@ -12,6 +12,7 @@ using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
+using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
@@ -74,6 +75,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private TradeFacilitationHost? _tradeFacilitationHost;
     private SignalMaturityHost? _signalMaturityHost;
     private ThesisContractHost? _thesisContractHost;
+    private PlarHost? _plarHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -136,6 +138,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableSignalMaturity = false;
         ShowSignalMaturityDiagnostics = false;
         EnableThesisContract = false;
+        EnablePlar = false;
         ShowThesisContractDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
@@ -450,6 +453,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Show contract IDs, per-dimension invalidation states and the consistency gate on the GPS card.")]
     public bool ShowThesisContractDiagnostics { get; set; }
 
+    [Category("Path of Least Auction Resistance")]
+    [DisplayName("Enable PLAR")]
+    [Description("Phase 3E path projection from structural references. Geometry only: no friction estimate, no entry, no TP ladder. Supplies the target-space veto to Signal Maturity.")]
+    public bool EnablePlar { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -473,6 +481,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessEffortResult();
             ProcessFarThesis();
             ProcessAacThesis();
+            ProcessPlar();
             ProcessSignalMaturity();
             ProcessThesisContract();
             PublishRuntimeSnapshot();
@@ -1724,7 +1733,14 @@ public sealed class GcAuctionFlowIndicator : Indicator
             // when it is off the gate sees Unavailable and blocks candidates (G-LOC-003).
             var location = EnableDirectionalContext ? _directionalHost?.Current?.PriceLocation : null;
 
-            _signalMaturityHost.Rebuild(far, aac, location);
+            // Direction of the path a thesis would travel. FAR is a return toward old
+            // value, AAC a continuation away from it; both are expressed as the thesis
+            // direction, so the up/down path is selected from that.
+            var plarSet = EnablePlar ? _plarHost?.Current : null;
+            var dir = ResolvePathDirection(far, aac);
+            var path = plarSet?.PathFor(dir);
+
+            _signalMaturityHost.Rebuild(far, aac, location, path);
         }
         catch
         {
@@ -1745,6 +1761,29 @@ public sealed class GcAuctionFlowIndicator : Indicator
             return;
 
         ProcessSignalMaturity();
+    }
+
+    private void ProcessPlar()
+    {
+        if (!EnablePlar || Volatile.Read(ref _disposed) != 0)
+        {
+            _plarHost = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new PlarPolicyConfig(enabled: true);
+            var references = EnableStructuralReferences ? _referenceHost?.Current : null;
+
+            _plarHost ??= new PlarHost(policy);
+            _plarHost.Configure(policy);
+            _plarHost.Rebuild(references?.ActiveReferences, references?.Nearest?.CurrentPriceTick);
+        }
+        catch
+        {
+            // Contained.
+        }
     }
 
     private void ProcessThesisContract()
@@ -2467,5 +2506,25 @@ public sealed class GcAuctionFlowIndicator : Indicator
             probe.RecordIntegrity("SnapshotPullFailure:" + ex.GetType().Name);
             probe.MarkSnapshotPullNotExecuted();
         }
+    }
+
+    /// <summary>
+    /// Path direction for the target-space veto. Long theses travel up, short travel down.
+    /// Mixed or unknown directions yield Unknown, and the veto is then reported as
+    /// unmeasurable rather than assumed passed.
+    /// </summary>
+    private static PathDirection ResolvePathDirection(
+        FarThesisSetSnapshot? far, AacThesisSetSnapshot? aac)
+    {
+        var dirs = new HashSet<ThesisDirection>();
+        if (far is not null)
+            foreach (var t in far.ActiveTheses) dirs.Add(t.Direction);
+        if (aac is not null)
+            foreach (var t in aac.ActiveTheses) dirs.Add(t.Direction);
+
+        dirs.Remove(ThesisDirection.Unknown);
+        if (dirs.Count != 1) return PathDirection.Unknown;
+
+        return dirs.Single() == ThesisDirection.Long ? PathDirection.Up : PathDirection.Down;
     }
 }

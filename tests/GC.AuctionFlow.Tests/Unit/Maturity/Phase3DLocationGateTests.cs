@@ -50,7 +50,7 @@ public sealed class Phase3DLocationGateTests
         PriceValueLocation location,
         FarState state = FarState.ReentryDeveloping) =>
         EnabledHost()
-            .Rebuild(FarSet(Far(state)), null, Location(location), Utc())
+            .Rebuild(FarSet(Far(state)), null, Location(location), nowUtc: Utc())
             .ActiveCandidates[0];
 
     // ========== A: Enum shape ==========
@@ -104,7 +104,7 @@ public sealed class Phase3DLocationGateTests
         var set = EnabledHost().Rebuild(
             FarSet(Far(FarState.ReentryDeveloping)), null,
             Location(volume: PriceValueLocation.AboveValue, tpo: PriceValueLocation.InsideValue),
-            Utc());
+            nowUtc: Utc());
         Assert.Equal(PriceValueLocation.AboveValue, set.ActiveCandidates[0].ObservedLocation);
     }
 
@@ -114,7 +114,7 @@ public sealed class Phase3DLocationGateTests
         var set = EnabledHost().Rebuild(
             FarSet(Far(FarState.ReentryDeveloping)), null,
             Location(volume: PriceValueLocation.Unavailable, tpo: PriceValueLocation.BelowValue),
-            Utc());
+            nowUtc: Utc());
         Assert.Equal(PriceValueLocation.BelowValue, set.ActiveCandidates[0].ObservedLocation);
     }
 
@@ -134,7 +134,7 @@ public sealed class Phase3DLocationGateTests
     {
         var set = EnabledHost().Rebuild(
             FarSet(Far(FarState.ReentryDeveloping)), null,
-            Location(PriceValueLocation.Unavailable), Utc());
+            Location(PriceValueLocation.Unavailable), nowUtc: Utc());
         // Dropping the scope would hide the block from the operator.
         Assert.Single(set.ActiveCandidates);
         Assert.Equal(0, set.CandidateCount);
@@ -151,7 +151,7 @@ public sealed class Phase3DLocationGateTests
     [Fact]
     public void C04_Null_location_context_blocks_too()
     {
-        var set = EnabledHost().Rebuild(FarSet(Far(FarState.ReentryDeveloping)), null, null, Utc());
+        var set = EnabledHost().Rebuild(FarSet(Far(FarState.ReentryDeveloping)), null, null, nowUtc: Utc());
         var sm = set.ActiveCandidates[0];
         Assert.Equal(LocationGateOutcome.BlockedLocationUnavailable, sm.LocationGate);
         Assert.NotEqual(AnalysisLifecycleState.Candidate, sm.LifecycleState);
@@ -247,7 +247,7 @@ public sealed class Phase3DLocationGateTests
 
         var set = EnabledHost().Rebuild(
             FarSet(longThesis, shortThesis), null,
-            Location(PriceValueLocation.AboveValue), Utc());
+            Location(PriceValueLocation.AboveValue), nowUtc: Utc());
 
         Assert.Equal(2, set.ActiveCandidates.Count);
         Assert.Single(set.ActiveCandidates.Select(x => x.LocationGate).Distinct());
@@ -265,8 +265,8 @@ public sealed class Phase3DLocationGateTests
     {
         var host = EnabledHost();
         var far = FarSet(Far(FarState.ReentryDeveloping));
-        var a = host.Rebuild(far, null, Location(PriceValueLocation.AboveValue), Utc());
-        var b = host.Rebuild(far, null, Location(PriceValueLocation.InsideValue), Utc(1));
+        var a = host.Rebuild(far, null, Location(PriceValueLocation.AboveValue), nowUtc: Utc());
+        var b = host.Rebuild(far, null, Location(PriceValueLocation.InsideValue), nowUtc: Utc(1));
         Assert.NotSame(a, b);
         Assert.NotEqual(a.ActiveCandidates[0].LocationGate, b.ActiveCandidates[0].LocationGate);
     }
@@ -277,7 +277,7 @@ public sealed class Phase3DLocationGateTests
         var host = EnabledHost();
         var far = FarSet(Far(FarState.ReentryDeveloping));
         var loc = Location(PriceValueLocation.AboveValue);
-        Assert.Same(host.Rebuild(far, null, loc, Utc()), host.Rebuild(far, null, loc, Utc(5)));
+        Assert.Same(host.Rebuild(far, null, loc, nowUtc: Utc()), host.Rebuild(far, null, loc, nowUtc: Utc(5)));
     }
 
     // ========== G: GPS card ==========
@@ -287,7 +287,7 @@ public sealed class Phase3DLocationGateTests
     {
         var set = EnabledHost().Rebuild(
             FarSet(Far(FarState.ReentryDeveloping)), null,
-            Location(PriceValueLocation.AboveValue), Utc());
+            Location(PriceValueLocation.AboveValue), nowUtc: Utc());
         var rows = AuctionGpsCardMapper.BuildSignalMaturityLines(set, false);
         Assert.Contains("LOCATION: ABOVEVALUE", rows);
         Assert.Contains("LOCATION GATE: ALLOWEDOUTSIDE", rows);
@@ -298,7 +298,7 @@ public sealed class Phase3DLocationGateTests
     {
         var set = EnabledHost().Rebuild(
             FarSet(Far(FarState.ReentryDeveloping)), null,
-            Location(PriceValueLocation.AboveValue), Utc());
+            Location(PriceValueLocation.AboveValue), nowUtc: Utc());
         Assert.Contains("TARGET SPACE VETO: NOT AVAILABLE",
             AuctionGpsCardMapper.BuildSignalMaturityLines(set, false));
     }
@@ -308,7 +308,7 @@ public sealed class Phase3DLocationGateTests
     {
         var set = EnabledHost().Rebuild(
             FarSet(Far(FarState.ReentryDeveloping)), null,
-            Location(PriceValueLocation.Unavailable), Utc());
+            Location(PriceValueLocation.Unavailable), nowUtc: Utc());
         var rows = AuctionGpsCardMapper.BuildSignalMaturityLines(set, false);
         Assert.Contains("LOCATION GATE: BLOCKEDLOCATIONUNAVAILABLE", rows);
         Assert.Contains("CANDIDATES: 0", rows);
