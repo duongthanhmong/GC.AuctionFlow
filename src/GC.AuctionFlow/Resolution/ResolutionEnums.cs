@@ -63,3 +63,35 @@ public enum ResolutionDataQuality
     Partial = 1,
     Invalid = 2
 }
+
+/// <summary>
+/// Old-value reclaim test (v1.3 §6.2, G-ACC-005; KDK Ch 18).
+/// This is the FAR-vs-AAC decision axis: a reclaim that is attempted AND held
+/// supports FAR; a reclaim that fails or is only fleeting supports AAC; no attempt
+/// at all means the auction is still Unresolved.
+///
+/// A nullable bool is explicitly insufficient — "not attempted" and "attempted but
+/// outcome unknown" are different facts and must not collapse to null.
+/// </summary>
+public enum OldValueReclaimState
+{
+    /// <summary>Re-entry evidence unavailable — cannot say whether an attempt occurred.</summary>
+    Unknown = 0,
+
+    /// <summary>Observable: no reclaim attempt has been made.</summary>
+    NotAttempted = 1,
+
+    /// <summary>
+    /// Observable: a reclaim attempt occurred, but held-vs-failed requires
+    /// calibrated dwell/volume/structure thresholds.
+    /// </summary>
+    AttemptedOutcomeNotCalibrated = 2,
+
+    // Reserved — calibration required before any of these can be emitted.
+
+    /// <summary>Reclaim attempted and sustained — supports FAR.</summary>
+    AttemptedAndHeld = 100,
+
+    /// <summary>Reclaim attempted and failed, or held only fleetingly — supports AAC.</summary>
+    AttemptedAndFailed = 101
+}

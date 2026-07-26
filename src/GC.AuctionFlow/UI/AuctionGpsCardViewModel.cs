@@ -916,6 +916,7 @@ public static class AuctionGpsCardMapper
         {
             rows.Add("ACCEPTANCE RESOLUTION: " + latest.AcceptanceResolution.ToString().ToUpperInvariant());
             rows.Add("REENTRY RESOLUTION: " + latest.ReentryResolution.ToString().ToUpperInvariant());
+            rows.AddRange(BuildOldValueReclaimLines(latest.OldValueReclaim, showDiagnostics));
             if (!string.IsNullOrEmpty(latest.ReferenceId))
                 rows.Add("RESOLUTION REF: " + Truncate(latest.ReferenceId, 48));
         }
@@ -1537,6 +1538,46 @@ public static class AuctionGpsCardMapper
             rows.Add("MATURITY BLOCKERS: " + latest.BlockingReasons.Count.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
+        return rows;
+    }
+
+    /// <summary>
+    /// Old-value reclaim rows (Phase 2G). Always states NOT CALIBRATED for the
+    /// held-vs-failed verdict — the row exists so the operator can see the axis is
+    /// being measured, not concluded.
+    /// </summary>
+    public static IReadOnlyList<string> BuildOldValueReclaimLines(
+        OldValueReclaimObservation? reclaim, bool showDiagnostics)
+    {
+        if (reclaim is null) return Array.Empty<string>();
+        var rows = new List<string>
+        {
+            "OLD VALUE RECLAIM: " + reclaim.State.ToString().ToUpperInvariant()
+        };
+
+        if (reclaim.State == OldValueReclaimState.AttemptedOutcomeNotCalibrated)
+            rows.Add("RECLAIM OUTCOME: NOT CALIBRATED");
+
+        if (!showDiagnostics) return rows;
+
+        rows.Add("RECLAIM ATTEMPTS: " + reclaim.AttemptCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        rows.Add("RECLAIM DWELL INSIDE: "
+                 + (reclaim.TimeMaintainedInside.HasValue
+                     ? reclaim.TimeMaintainedInside.Value.TotalSeconds.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "s"
+                     : "unavailable"));
+        rows.Add("RECLAIM MAX DEPTH: "
+                 + (reclaim.MaximumDistanceReturnedInsideTicks.HasValue
+                     ? reclaim.MaximumDistanceReturnedInsideTicks.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks"
+                     : "unavailable"));
+        rows.Add("RECLAIM LOCAL VALUE REBUILD: "
+                 + (reclaim.LocalValueRebuildInside.HasValue
+                     ? (reclaim.LocalValueRebuildInside.Value ? "yes" : "no")
+                     : "unavailable"));
+        rows.Add("RECLAIM SINCE INSIDE: "
+                 + (reclaim.ElapsedSinceLastInsideEvent.HasValue
+                     ? reclaim.ElapsedSinceLastInsideEvent.Value.TotalSeconds.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "s"
+                     : "unavailable"));
+        rows.Add("RECLAIM WINDOW: NOT CALIBRATED");
         return rows;
     }
 

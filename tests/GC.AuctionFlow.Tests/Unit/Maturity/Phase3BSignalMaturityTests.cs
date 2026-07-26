@@ -515,8 +515,8 @@ public sealed class Phase3BSignalMaturityTests
     }
 
     [Fact]
-    public void J01_SnapshotVersion_is_0_17_0() =>
-        Assert.Equal("0.17.0", GcaeRuntimeSnapshot.SnapshotVersion);
+    public void J01_SnapshotVersion_is_0_18_0() =>
+        Assert.Equal("0.18.0", GcaeRuntimeSnapshot.SnapshotVersion);
 
     [Fact]
     public void J02_Maturity_defaults_to_null_on_snapshot() =>

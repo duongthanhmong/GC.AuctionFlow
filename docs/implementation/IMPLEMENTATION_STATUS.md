@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 3C CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 2G CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.17.0** (Phase 3C: Thesis Contract) |
+| Runtime snapshot schema | **0.18.0** (Phase 2G: Old Value Reclaim) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -26,7 +26,8 @@
 | AAC thesis policy | **AAC_THESIS_POLICY_V1** (Phase 3A) |
 | Signal Maturity policy | **SIGNAL_MATURITY_POLICY_V1** (Phase 3B) |
 | Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
-| Test count | **920** passed / 0 failed / 0 skipped |
+| Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
+| Test count | **947** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **14** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -301,6 +302,57 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 2G code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 947 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Runtime schema | `0.17.0` -> `0.18.0` |
+| Policy | `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1` (extended; version unchanged) |
+| Source/deployed DLL SHA-256 | `0B1DCD8D6D5BCCB47FC12541B874051AA1A3A4D826AF9E9896F95094A8C3ABB9` (exact match) |
+| Reclaim outcome | **NOT CALIBRATED** — AttemptedAndHeld / AttemptedAndFailed reserved |
+| GPS rows | 14 (unchanged — reclaim rows nest inside the existing RESOLUTION block) |
+| New Phase 2G tests | 27 tests (A01-G02); total 947 |
+| Spec source | v1.3 §6.2 `G-ACC-005`; KDK Ch 18 |
+
+### Why this phase exists
+
+`OldValueReclaim` is the FAR-vs-AAC decision axis (KDK Ch 18): a reclaim that is
+attempted **and held** supports FAR; one that **fails** supports AAC; **no attempt**
+leaves the auction Unresolved. Without this field neither thesis family can ever leave
+`NotCalibrated`, even after the Historical Scanner runs.
+
+### Audit finding that motivated the shape
+
+- `AcceptanceEvidenceVector.OldValueReclaimFailure` is a `bool?` that **no producer ever
+  set** — a dead field. It also cannot distinguish "not attempted" from "attempted,
+  outcome unknown", which is exactly why `G-ACC-005` requires three states.
+- `AuctionResolutionHost` **never read any evidence vector** before this phase; it only
+  mapped observation-state enums. The reclaim axis was absent from the pipeline entirely.
+
+### Phase 2G present (code/test)
+
+- `OldValueReclaimState`: `Unknown=0`, `NotAttempted=1`, `AttemptedOutcomeNotCalibrated=2`;
+  `AttemptedAndHeld=100` / `AttemptedAndFailed=101` reserved
+- `OldValueReclaimObservation` — raw research measurements: attempt count, dwell inside,
+  max/current depth returned, local value rebuild, inside volume after re-entry, and the
+  elapsed-since-inside **time bound** required by `G-ACC-005`
+- `AuctionResolutionHost.DeriveOldValueReclaim` — first consumer of the Phase 1F evidence
+  vectors; derives the three observable facts only
+- Measurements are `null` for `NotAttempted` / `Unknown` — reporting them would imply an
+  attempt that never happened (`G-ACC-003`)
+- GPS: reclaim rows nested inside the existing RESOLUTION block; diagnostics show raw
+  measurements and report `unavailable`, never `0`
+
+### Phase 2G NOT present (code/test)
+
+- Held-vs-failed verdict (calibration gate); the deciding window LENGTH is not calibrated
+- Any boolean "reclaimed" shortcut — asserted absent by test G01
+- Changes to the Evidence module: **Phase 1F is LOCKED**, so the dead
+  `OldValueReclaimFailure` field is left in place and documented as superseded rather
+  than removed
 
 ## Phase 3C code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

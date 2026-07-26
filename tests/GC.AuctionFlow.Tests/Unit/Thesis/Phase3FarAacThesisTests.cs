@@ -716,9 +716,9 @@ public sealed class Phase3FarAacThesisTests
     // ========== P: Schema version bumped to 0.16.0 ==========
 
     [Fact]
-    public void P01_SnapshotVersion_is_0_17_0()
+    public void P01_SnapshotVersion_is_0_18_0()
     {
-        Assert.Equal("0.17.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.18.0", GcaeRuntimeSnapshot.SnapshotVersion);
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
             null, "GCQ6",
@@ -726,7 +726,7 @@ public sealed class Phase3FarAacThesisTests
             DeclaredFeedProvider.Unknown, FeedProviderProvenance.Unknown,
             false, null, false, false, false, false, false, false,
             timestampUtc: Utc());
-        Assert.Equal("0.17.0", snap.Version);
+        Assert.Equal("0.18.0", snap.Version);
     }
 
     // ========== Q: FAR/AAC both wired into runtime publish ==========

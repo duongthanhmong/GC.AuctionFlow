@@ -186,6 +186,9 @@ public sealed class AuctionResolutionHost
             _                                         => ReentryResolutionState.Unknown
         };
 
+        // Old-value reclaim test (Phase 2G) — the FAR-vs-AAC decision axis.
+        var reclaim = DeriveOldValueReclaim(ev);
+
         // FAR/AAC overall conclusion: always NotCalibrated in Phase 2D — calibrated thresholds required.
         const AuctionResolutionConclusion conclusion = AuctionResolutionConclusion.NotCalibrated;
 
@@ -221,6 +224,7 @@ public sealed class AuctionResolutionHost
             accRes,
             reentryRes,
             conclusion,
+            reclaim,
             ev.AcceptanceObservationState,
             ev.ReentryObservationState,
             ev.StateVersion,
@@ -292,6 +296,55 @@ public sealed class AuctionResolutionHost
             _closedList.ToArray(),
             null, 0, 0,
             _createdAtUtc, now,
+            lim);
+    }
+
+    /// <summary>
+    /// Derive the old-value reclaim observation from Phase 1F evidence (v1.3 §6.2, G-ACC-005).
+    ///
+    /// Only three facts are decidable without calibration:
+    ///   - evidence unavailable            -> Unknown
+    ///   - no re-entry observed            -> NotAttempted
+    ///   - re-entry observed               -> AttemptedOutcomeNotCalibrated
+    ///
+    /// Whether an attempted reclaim HELD (supports FAR) or FAILED (supports AAC) needs
+    /// calibrated dwell, volume and local-structure thresholds, so the raw measurements
+    /// are carried forward unjudged.
+    /// </summary>
+    private static OldValueReclaimObservation DeriveOldValueReclaim(
+        AcceptanceReentryEvidenceSnapshot ev)
+    {
+        var state = ev.ReentryObservationState switch
+        {
+            ReentryObservationState.Unknown => OldValueReclaimState.Unknown,
+            ReentryObservationState.None    => OldValueReclaimState.NotAttempted,
+            _                               => OldValueReclaimState.AttemptedOutcomeNotCalibrated
+        };
+
+        var lim = new List<string>
+        {
+            AuctionResolutionPolicyConfig.LimitationReclaimNotCalibrated,
+            AuctionResolutionPolicyConfig.LimitationReclaimHeldNotCalibrated,
+            AuctionResolutionPolicyConfig.LimitationReclaimFailedNotCalibrated,
+            AuctionResolutionPolicyConfig.LimitationReclaimWindowNotCalibrated
+        };
+
+        // Measurements are only meaningful once an attempt exists. Reporting them for
+        // NotAttempted would imply an attempt that never happened (G-ACC-003: never
+        // fabricate, and never zero-fill unavailable data).
+        if (state != OldValueReclaimState.AttemptedOutcomeNotCalibrated)
+            return new OldValueReclaimObservation(
+                state, 0, null, null, null, null, null, null, lim);
+
+        return new OldValueReclaimObservation(
+            state,
+            ev.Acceptance.AttemptCount,
+            ev.Reentry.TimeMaintainedInside,
+            ev.Reentry.MaximumDistanceReturnedInsideTicks,
+            ev.Reentry.CurrentDistanceInsideTicks,
+            ev.Reentry.LocalValueRebuildInside,
+            ev.Reentry.InsideExecutedVolumeAfterReentry,
+            ev.Acceptance.ElapsedSinceLastInsideEvent,
             lim);
     }
 }

@@ -7,6 +7,10 @@ namespace GC.AuctionFlow.Resolution;
 /// </summary>
 public sealed class AuctionResolutionPolicyConfig
 {
+    public const string LimitationReclaimNotCalibrated = "OLD_VALUE_RECLAIM_OUTCOME_NOT_CALIBRATED";
+    public const string LimitationReclaimHeldNotCalibrated = "OLD_VALUE_RECLAIM_HELD_NOT_CALIBRATED";
+    public const string LimitationReclaimFailedNotCalibrated = "OLD_VALUE_RECLAIM_FAILED_NOT_CALIBRATED";
+    public const string LimitationReclaimWindowNotCalibrated = "OLD_VALUE_RECLAIM_WINDOW_NOT_CALIBRATED";
     public const string PolicyVersion = "ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1";
 
     public const string LimitationNotCalibrated = "ACCEPTANCE_REENTRY_RESOLUTION_NOT_CALIBRATED";

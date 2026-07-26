@@ -3,6 +3,66 @@ using GC.AuctionFlow.Evidence;
 namespace GC.AuctionFlow.Resolution;
 
 /// <summary>
+/// Old-value reclaim observation (v1.3 §6.2 G-ACC-005).
+/// Carries the raw research measurements for the reclaim test plus a time bound;
+/// the held-vs-failed verdict itself stays calibration-gated.
+///
+/// Supersedes <c>AcceptanceEvidenceVector.OldValueReclaimFailure</c>, a nullable bool
+/// that no producer ever set. That field is left in place because Phase 1F is LOCKED.
+/// </summary>
+public sealed class OldValueReclaimObservation
+{
+    public OldValueReclaimObservation(
+        OldValueReclaimState state,
+        int attemptCount,
+        TimeSpan? timeMaintainedInside,
+        long? maximumDistanceReturnedInsideTicks,
+        long? currentDistanceInsideTicks,
+        bool? localValueRebuildInside,
+        decimal? insideExecutedVolumeAfterReentry,
+        TimeSpan? elapsedSinceLastInsideEvent,
+        IReadOnlyList<string> limitations)
+    {
+        State = state;
+        AttemptCount = attemptCount;
+        TimeMaintainedInside = timeMaintainedInside;
+        MaximumDistanceReturnedInsideTicks = maximumDistanceReturnedInsideTicks;
+        CurrentDistanceInsideTicks = currentDistanceInsideTicks;
+        LocalValueRebuildInside = localValueRebuildInside;
+        InsideExecutedVolumeAfterReentry = insideExecutedVolumeAfterReentry;
+        ElapsedSinceLastInsideEvent = elapsedSinceLastInsideEvent;
+        Limitations = limitations ?? Array.Empty<string>();
+    }
+
+    public OldValueReclaimState State { get; }
+
+    /// <summary>Observable count of outside attempts against the reference.</summary>
+    public int AttemptCount { get; }
+
+    // --- raw research measurements; null means unavailable, never 0 (G-ACC-003) ---
+
+    public TimeSpan? TimeMaintainedInside { get; }
+    public long? MaximumDistanceReturnedInsideTicks { get; }
+    public long? CurrentDistanceInsideTicks { get; }
+    public bool? LocalValueRebuildInside { get; }
+    public decimal? InsideExecutedVolumeAfterReentry { get; }
+
+    /// <summary>
+    /// Time bound required by G-ACC-005: how long since price was last inside.
+    /// The window LENGTH that would decide held-vs-failed is NOT CALIBRATED.
+    /// </summary>
+    public TimeSpan? ElapsedSinceLastInsideEvent { get; }
+
+    public IReadOnlyList<string> Limitations { get; }
+
+    /// <summary>True only for the observable states, never for a calibrated verdict.</summary>
+    public bool IsObservableOnly =>
+        State == OldValueReclaimState.Unknown
+        || State == OldValueReclaimState.NotAttempted
+        || State == OldValueReclaimState.AttemptedOutcomeNotCalibrated;
+}
+
+/// <summary>
 /// Immutable resolution snapshot for one EvidenceId.
 /// AcceptanceResolution/ReentryResolution are always NotCalibrated for Established/Failed/Stable tiers.
 /// Conclusion is always NotCalibrated (FAR/AAC require calibration).
@@ -21,6 +81,7 @@ public sealed class AuctionResolutionSnapshot
         AcceptanceResolutionState acceptanceResolution,
         ReentryResolutionState reentryResolution,
         AuctionResolutionConclusion conclusion,
+        OldValueReclaimObservation oldValueReclaim,
         AcceptanceObservationState inputAcceptanceObservation,
         ReentryObservationState inputReentryObservation,
         long stateVersion,
@@ -38,6 +99,7 @@ public sealed class AuctionResolutionSnapshot
         AcceptanceResolution = acceptanceResolution;
         ReentryResolution = reentryResolution;
         Conclusion = conclusion;
+        OldValueReclaim = oldValueReclaim;
         InputAcceptanceObservation = inputAcceptanceObservation;
         InputReentryObservation = inputReentryObservation;
         StateVersion = stateVersion;
@@ -62,6 +124,9 @@ public sealed class AuctionResolutionSnapshot
 
     /// <summary>Overall auction conclusion — always NotCalibrated in Phase 2D. FAR/AAC NOT AUTHORIZED.</summary>
     public AuctionResolutionConclusion Conclusion { get; }
+
+    /// <summary>Old-value reclaim test — the FAR-vs-AAC decision axis (v1.3 §6.2).</summary>
+    public OldValueReclaimObservation OldValueReclaim { get; }
 
     /// <summary>Input evidence acceptance observation state (from Phase 1F).</summary>
     public AcceptanceObservationState InputAcceptanceObservation { get; }
