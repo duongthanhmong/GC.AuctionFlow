@@ -5,7 +5,7 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2H CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 1H CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
 | Runtime snapshot schema | **0.23.0** (Phase 2H: Imbalance) |
@@ -29,6 +29,7 @@
 | PLAR policy | **PLAR_POLICY_V1** (Phase 3E) |
 | Price Memory policy | **PRICE_MEMORY_POLICY_V1** (Phase 1I) |
 | Imbalance policy | **IMBALANCE_POLICY_V1** (Phase 2H) |
+| Day Structure policy | **DAY_STRUCTURE_POLICY_V1** (Phase 1H, RESEARCH_ONLY) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
@@ -36,7 +37,8 @@
 | Phase 3E-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR published to runtime + GPS |
 | Phase 1I | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Price Memory / Retest Ledger (`PRICE_MEMORY_POLICY_V1`) |
 | Phase 2H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Imbalance context + gate (`IMBALANCE_POLICY_V1`) |
-| Test count | **1137** passed / 0 failed / 0 skipped |
+| Phase 1H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Day Structure Classifier, RESEARCH_ONLY (`DAY_STRUCTURE_POLICY_V1`) |
+| Test count | **1174** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **17** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -311,6 +313,58 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 1H code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1174 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Runtime schema | `0.23.0` (unchanged — module is RESEARCH_ONLY, not published) |
+| Policy | `DAY_STRUCTURE_POLICY_V1` |
+| Source/deployed DLL SHA-256 | `82453D7783FEF1C6D5A85510F2E7B1EB0E451B09C53F0F5D761CA715F7CC9873` (exact match) |
+| Status | **RESEARCH_ONLY** per v1.2 §18.4 |
+| Every shape label | **RESERVED** — no day type is ever named |
+| New Phase 1H tests | 37 tests (A01-H02); total 1174 |
+| Spec source | v1.2 §18.4 + §18.4.1; KDK Ch 11 |
+
+### The look-ahead split (v1.2 §18.4.1)
+
+The highest-value correctness item in this phase. Two layers are kept strictly apart:
+
+- **Live feature** — `CurrentDayExtremeStillEqualsIbHigh` / `...IbLow`. Safe to read at
+  any time during the session.
+- **End-of-day labels** — `IbHighWasDayHigh` / `IbLowWasDayLow`. **Null until the session
+  completes.** Producing them intra-session would leak the session outcome into a live
+  decision, which is exactly the look-ahead v1.2 §18.4.1 exists to prevent.
+
+Test F01 asserts the EOD labels are withheld intra-session; F04 asserts they appear only
+after completion.
+
+### Phase 1H present (code/test)
+
+- `DayStructureState` carries every v1.2 §18.4 shape name, and **all of them are
+  reserved at 100+**. The module reports `NotCalibrated` while developing and
+  `SessionComplete` after close — never a type
+- Initial balance from the first two completed TPO periods. Two is the conventional
+  reading, not a calibrated finding, and is declared as such
+- **A partial initial balance is not an initial balance** — one period yields
+  `Unavailable`, not a half-formed IB (test C02)
+- Periods ordered by index, not arrival, so a later period cannot contaminate the IB
+  (test C04)
+- Range extension direction, extension ticks per side (never negative), session range,
+  close-location band
+- `RevisionCount` per session, reset on auction change
+
+### Phase 1H NOT present (code/test)
+
+- Any day-type label (all shape rules calibrated)
+- `IbWidthPercentile` — needs a historical IB-width distribution (Phase 5A)
+- POC / value migration series — Phase 1A does not expose a developing-profile time
+  series, so both report null rather than a guess
+- Double-distribution evidence (rule calibrated)
+- Entry, veto or score surface — asserted absent by test H01
+
+Phase 1A Profile is LOCKED; git diff confirms it was not touched.
 
 ## Phase 2H code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 
