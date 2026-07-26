@@ -1,4 +1,5 @@
 using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Runtime;
@@ -62,8 +63,19 @@ public sealed class Phase3CThesisContractTests
             thesisState, AacThesisPolicyConfig.PolicyVersion,
             aac, Array.Empty<AacThesisSnapshot>(), aac.Length > 0 ? aac[^1] : null,
             0, 0, Utc(), Utc(1), Array.Empty<string>());
-        return host.Rebuild(farSet, aacSet, Utc());
+        return host.Rebuild(farSet, aacSet, Loc(), Utc());
     }
+
+    /// <summary>
+    /// A resolvable location so these tests exercise contract construction rather than
+    /// the Phase 3D location gate. Gate behaviour is owned by Phase3DLocationGateTests.
+    /// </summary>
+    private static ProfileLocationContextSnapshot Loc() =>
+        new(currentPrimaryTpo: PriceValueLocation.AboveValue,
+            currentPrimaryVolume: PriceValueLocation.AboveValue,
+            previousPrimaryTpo: PriceValueLocation.Unavailable,
+            confirmedCompositeTpo: PriceValueLocation.Unavailable,
+            confirmedCompositeVolume: PriceValueLocation.Unavailable);
 
     private static ThesisContractHost EnabledHost() =>
         new ThesisContractHost(new ThesisContractPolicyConfig(enabled: true));
@@ -195,7 +207,7 @@ public sealed class Phase3CThesisContractTests
             ThesisModuleState.Invalid, FarThesisPolicyConfig.PolicyVersion,
             Array.Empty<FarThesisSnapshot>(), Array.Empty<FarThesisSnapshot>(),
             null, 0, 0, Utc(), Utc(1), Array.Empty<string>());
-        var maturity = host.Rebuild(badFar, null, Utc());
+        var maturity = host.Rebuild(badFar, null, Loc(), Utc());
 
         var set = EnabledHost().Rebuild(maturity, Utc());
         Assert.Equal(ThesisContractModuleState.Invalid, set.ModuleState);
@@ -510,8 +522,8 @@ public sealed class Phase3CThesisContractTests
     }
 
     [Fact]
-    public void K01_SnapshotVersion_is_0_19_0() =>
-        Assert.Equal("0.19.0", GcaeRuntimeSnapshot.SnapshotVersion);
+    public void K01_SnapshotVersion_is_0_20_0() =>
+        Assert.Equal("0.20.0", GcaeRuntimeSnapshot.SnapshotVersion);
 
     [Fact]
     public void K02_Contract_defaults_to_null_on_snapshot() =>

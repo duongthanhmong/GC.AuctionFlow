@@ -17,6 +17,9 @@ public sealed class SignalMaturityPolicyConfig
     public const string LimitationDeadlineNotCalibrated = "EXPECTED_BEHAVIOR_DEADLINE_NOT_CALIBRATED";
     public const string LimitationMicroConfirmationNotCalibrated = "MICRO_CONFIRMATION_NOT_CALIBRATED";
     public const string LimitationTargetSpaceUnavailable = "TARGET_SPACE_UNAVAILABLE";
+    public const string LimitationLocationUnavailable = "PRICE_LOCATION_UNAVAILABLE";
+    public const string LimitationLowQualityLocation = "LOW_QUALITY_LOCATION_MID_VALUE";
+    public const string LimitationTargetSpaceNotAvailable = "REMAINING_TARGET_SPACE_NOT_AVAILABLE";
     public const string LimitationLiveOnly = "LIVE_ONLY_HISTORY";
     public const string LimitationNoEntryPlan = "SIGNAL_MATURITY_NO_ENTRY_PLAN";
     public const string LimitationNoRiskSizing = "SIGNAL_MATURITY_NO_RISK_SIZING";

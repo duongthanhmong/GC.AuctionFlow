@@ -1536,6 +1536,9 @@ public static class AuctionGpsCardMapper
             rows.Add("EXPECTED BEHAVIOR: " + latest.ExpectedBehavior.ToString().ToUpperInvariant());
             rows.Add("EXPECTED BEHAVIOR DEADLINE: NOT CALIBRATED");
             rows.Add("RETEST: " + latest.RetestObservation.ToString().ToUpperInvariant());
+            rows.Add("LOCATION: " + latest.ObservedLocation.ToString().ToUpperInvariant());
+            rows.Add("LOCATION GATE: " + latest.LocationGate.ToString().ToUpperInvariant());
+            rows.Add("TARGET SPACE VETO: NOT AVAILABLE");
         }
 
         if (showDiagnostics && latest is not null)

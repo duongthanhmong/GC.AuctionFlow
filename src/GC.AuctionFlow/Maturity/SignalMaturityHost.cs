@@ -1,3 +1,4 @@
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Thesis;
 
 namespace GC.AuctionFlow.Maturity;
@@ -56,6 +57,7 @@ public sealed class SignalMaturityHost
     public SignalMaturitySetSnapshot Rebuild(
         FarThesisSetSnapshot? far,
         AacThesisSetSnapshot? aac,
+        ProfileLocationContextSnapshot? location = null,
         DateTime? nowUtc = null)
     {
         var now = nowUtc ?? DateTime.UtcNow;
@@ -67,7 +69,7 @@ public sealed class SignalMaturityHost
             return _published;
         }
 
-        var fp = BuildFingerprintKey(far, aac);
+        var fp = BuildFingerprintKey(far, aac, location);
         if (_lastFingerprintKey is not null
             && string.Equals(_lastFingerprintKey, fp, StringComparison.Ordinal)
             && _published is not null)
@@ -95,6 +97,8 @@ public sealed class SignalMaturityHost
         if (_createdAtUtc == default)
             _createdAtUtc = now;
 
+        var loc = ResolveLocation(location);
+
         var active = new List<SignalMaturitySnapshot>();
         long maxRev = -1L;
         SignalMaturitySnapshot? latest = null;
@@ -103,17 +107,17 @@ public sealed class SignalMaturityHost
         if (farUsable)
         {
             foreach (var t in far!.ActiveTheses)
-                Accumulate(MapFar(t, now), active, ref maxRev, ref latest, ref candidates, ref partial);
+                Accumulate(MapFar(t, loc, now), active, ref maxRev, ref latest, ref candidates, ref partial);
             foreach (var t in far.RecentlyClosedTheses)
-                AccumulateClosed(MapFar(t, now));
+                AccumulateClosed(MapFar(t, loc, now));
         }
 
         if (aacUsable)
         {
             foreach (var t in aac!.ActiveTheses)
-                Accumulate(MapAac(t, now), active, ref maxRev, ref latest, ref candidates, ref partial);
+                Accumulate(MapAac(t, loc, now), active, ref maxRev, ref latest, ref candidates, ref partial);
             foreach (var t in aac.RecentlyClosedTheses)
-                AccumulateClosed(MapAac(t, now));
+                AccumulateClosed(MapAac(t, loc, now));
         }
 
         MaturityModuleState state;
@@ -147,22 +151,24 @@ public sealed class SignalMaturityHost
 
     // --- mapping ---
 
-    private static SignalMaturitySnapshot MapFar(FarThesisSnapshot t, DateTime nowUtc)
+    private static SignalMaturitySnapshot MapFar(
+        FarThesisSnapshot t, PriceValueLocation location, DateTime nowUtc)
     {
         var (lifecycle, notCalibrated) = MapFarLifecycle(t.FarState);
         var expected = MapFarExpectedBehavior(t.FarState);
         return Build(t.ThesisId, FamilyFar, t.EvidenceId, t.EpisodeId, t.ReferenceId,
             t.Direction, lifecycle, expected, notCalibrated || t.NotCalibrated,
-            MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
+            location, MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
     }
 
-    private static SignalMaturitySnapshot MapAac(AacThesisSnapshot t, DateTime nowUtc)
+    private static SignalMaturitySnapshot MapAac(
+        AacThesisSnapshot t, PriceValueLocation location, DateTime nowUtc)
     {
         var (lifecycle, notCalibrated) = MapAacLifecycle(t.AacState);
         var expected = MapAacExpectedBehavior(t.AacState);
         return Build(t.ThesisId, FamilyAac, t.EvidenceId, t.EpisodeId, t.ReferenceId,
             t.Direction, lifecycle, expected, notCalibrated || t.NotCalibrated,
-            MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
+            location, MapQuality(t.DataQuality), t.StateVersion, t.EventRevision, nowUtc);
     }
 
     private static (AnalysisLifecycleState state, bool notCalibrated) MapFarLifecycle(FarState s) => s switch
@@ -225,8 +231,18 @@ public sealed class SignalMaturityHost
         string thesisId, string family, string evidenceId, string episodeId, string referenceId,
         ThesisDirection direction, AnalysisLifecycleState lifecycle,
         ExpectedBehaviorContractKind expected, bool notCalibrated,
+        PriceValueLocation location,
         MaturityDataQuality quality, long stateVersion, long eventRevision, DateTime nowUtc)
     {
+        // v1.3 §10 location gate, evaluated BEFORE the lifecycle is finalised.
+        var gate = DeriveLocationGate(location);
+
+        // G-LOC-003: without a location there is no Context, so there is no candidate.
+        // The scope is still reported — silently dropping it would hide the block.
+        if (gate == LocationGateOutcome.BlockedLocationUnavailable
+            && lifecycle == AnalysisLifecycleState.Candidate)
+            lifecycle = AnalysisLifecycleState.EpisodeActive;
+
         var blocking = new List<MaturityBlockingReason>
         {
             MaturityBlockingReason.ThresholdsNotCalibrated,
@@ -238,6 +254,11 @@ public sealed class SignalMaturityHost
         };
         if (notCalibrated)
             blocking.Add(MaturityBlockingReason.ThesisStateNotCalibrated);
+        if (gate == LocationGateOutcome.BlockedLocationUnavailable)
+            blocking.Add(MaturityBlockingReason.PriceLocationUnavailable);
+        // G-LOC-001: mid-value / at-POC may exist but may never mature to Confirmed.
+        if (gate == LocationGateOutcome.AllowedLowQuality)
+            blocking.Add(MaturityBlockingReason.LowQualityLocation);
 
         var lim = new List<string>
         {
@@ -250,8 +271,15 @@ public sealed class SignalMaturityHost
             SignalMaturityPolicyConfig.LimitationDeadlineNotCalibrated,
             SignalMaturityPolicyConfig.LimitationMicroConfirmationNotCalibrated,
             SignalMaturityPolicyConfig.LimitationTargetSpaceUnavailable,
-            SignalMaturityPolicyConfig.LimitationLiveOnly
+            SignalMaturityPolicyConfig.LimitationLiveOnly,
+            // G-LOC-002 cannot be evaluated: RemainingTargetSpace arrives with the
+            // Target Engine (Phase 3E), so the veto is declared unavailable, not passed.
+            SignalMaturityPolicyConfig.LimitationTargetSpaceNotAvailable
         };
+        if (gate == LocationGateOutcome.BlockedLocationUnavailable)
+            lim.Add(SignalMaturityPolicyConfig.LimitationLocationUnavailable);
+        if (gate == LocationGateOutcome.AllowedLowQuality)
+            lim.Add(SignalMaturityPolicyConfig.LimitationLowQualityLocation);
 
         return new SignalMaturitySnapshot(
             BuildSnapshotId(thesisId),
@@ -269,6 +297,8 @@ public sealed class SignalMaturityHost
             null,
             // Micro vs structural retest discrimination is NOT CALIBRATED.
             RetestObservationState.NotCalibrated,
+            location,
+            gate,
             false,
             true,
             blocking,
@@ -314,10 +344,13 @@ public sealed class SignalMaturityHost
 
     private static string BuildSnapshotId(string thesisId) => "SM:" + thesisId;
 
-    private static string BuildFingerprintKey(FarThesisSetSnapshot? far, AacThesisSetSnapshot? aac) =>
+    private static string BuildFingerprintKey(
+        FarThesisSetSnapshot? far, AacThesisSetSnapshot? aac,
+        ProfileLocationContextSnapshot? location) =>
         SignalMaturityPolicyConfig.PolicyVersion
         + "|F:" + (far?.ModuleState.ToString() ?? "") + ":" + (far?.LastUpdatedAtUtc.Ticks.ToString() ?? "")
-        + "|A:" + (aac?.ModuleState.ToString() ?? "") + ":" + (aac?.LastUpdatedAtUtc.Ticks.ToString() ?? "");
+        + "|A:" + (aac?.ModuleState.ToString() ?? "") + ":" + (aac?.LastUpdatedAtUtc.Ticks.ToString() ?? "")
+        + "|L:" + ResolveLocation(location).ToString();
 
     private static IReadOnlyList<string> BuildSetLimitations() => new[]
     {
@@ -370,4 +403,34 @@ public sealed class SignalMaturityHost
             _createdAtUtc, now,
             lim);
     }
+
+    /// <summary>
+    /// Which of the five available locations the gate uses.
+    /// The current primary auction is what a live thesis is transacting in, and the
+    /// volume profile is preferred over TPO because it reflects executed activity
+    /// rather than time distribution.
+    /// </summary>
+    private static PriceValueLocation ResolveLocation(ProfileLocationContextSnapshot? location)
+    {
+        if (location is null) return PriceValueLocation.Unavailable;
+        return location.CurrentPrimaryVolume != PriceValueLocation.Unavailable
+            ? location.CurrentPrimaryVolume
+            : location.CurrentPrimaryTpo;
+    }
+
+    /// <summary>
+    /// v1.3 §10 location gate. Purely positional — no threshold, no direction.
+    /// BlockedNoTargetSpace (G-LOC-002) is unreachable until the Target Engine exists.
+    /// </summary>
+    private static LocationGateOutcome DeriveLocationGate(PriceValueLocation location) => location switch
+    {
+        PriceValueLocation.Unavailable => LocationGateOutcome.BlockedLocationUnavailable,
+        PriceValueLocation.InsideValue => LocationGateOutcome.AllowedLowQuality,
+        PriceValueLocation.AtPoc       => LocationGateOutcome.AllowedLowQuality,
+        PriceValueLocation.AtValueHigh => LocationGateOutcome.AllowedBoundary,
+        PriceValueLocation.AtValueLow  => LocationGateOutcome.AllowedBoundary,
+        PriceValueLocation.AboveValue  => LocationGateOutcome.AllowedOutside,
+        PriceValueLocation.BelowValue  => LocationGateOutcome.AllowedOutside,
+        _                              => LocationGateOutcome.Unknown
+    };
 }

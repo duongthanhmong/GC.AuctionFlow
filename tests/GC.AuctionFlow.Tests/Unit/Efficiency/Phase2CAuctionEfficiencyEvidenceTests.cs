@@ -395,7 +395,7 @@ public sealed class Phase2CAuctionEfficiencyEvidenceTests
             true, Utc(24), false, false, false, false, false, false,
             Profiles(), executedOrderflow: of.Current, clusterRaw: cl.Current,
             auctionEfficiency: eff.Current, showAuctionEfficiencyDiagnostics: true);
-        Assert.Equal("0.19.0", snap.Version);
+        Assert.Equal("0.20.0", snap.Version);
         Assert.Same(eff.Current, snap.AuctionEfficiency);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
 
@@ -466,7 +466,7 @@ public sealed class Phase2CAuctionEfficiencyEvidenceTests
         Assert.DoesNotContain("EffortResultBalanced", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AggressionEffective", indicator, StringComparison.Ordinal);
         Assert.Equal(AuctionEfficiencyEvidencePolicyConfig.PolicyVersion, "AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1");
-        Assert.Equal("0.19.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.20.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.Equal("CLUSTER_RAW_FEATURE_POLICY_V1", ClusterRawFeaturePolicyConfig.PolicyVersion);
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
     }

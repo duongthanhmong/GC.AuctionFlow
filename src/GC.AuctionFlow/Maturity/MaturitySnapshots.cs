@@ -1,3 +1,4 @@
+using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Thesis;
 
 namespace GC.AuctionFlow.Maturity;
@@ -24,6 +25,8 @@ public sealed class SignalMaturitySnapshot
         ExpectedBehaviorContractKind expectedBehavior,
         DateTime? expectedBehaviorDeadlineUtc,
         RetestObservationState retestObservation,
+        PriceValueLocation observedLocation,
+        LocationGateOutcome locationGate,
         bool microConfirmationObserved,
         bool notCalibrated,
         IReadOnlyList<MaturityBlockingReason> blockingReasons,
@@ -46,6 +49,8 @@ public sealed class SignalMaturitySnapshot
         ExpectedBehavior = expectedBehavior;
         ExpectedBehaviorDeadlineUtc = expectedBehaviorDeadlineUtc;
         RetestObservation = retestObservation;
+        ObservedLocation = observedLocation;
+        LocationGate = locationGate;
         MicroConfirmationObserved = microConfirmationObserved;
         NotCalibrated = notCalibrated;
         BlockingReasons = blockingReasons ?? Array.Empty<MaturityBlockingReason>();
@@ -71,6 +76,12 @@ public sealed class SignalMaturitySnapshot
     /// <summary>Always null in Phase 3B — deadline duration NOT CALIBRATED.</summary>
     public DateTime? ExpectedBehaviorDeadlineUtc { get; }
     public RetestObservationState RetestObservation { get; }
+
+    /// <summary>Price location the gate was evaluated against (v1.3 §10).</summary>
+    public PriceValueLocation ObservedLocation { get; }
+
+    /// <summary>Location gate outcome. Never blocks on target space in Phase 3D.</summary>
+    public LocationGateOutcome LocationGate { get; }
     /// <summary>Always false in Phase 3B — micro-confirmation criteria NOT CALIBRATED.</summary>
     public bool MicroConfirmationObserved { get; }
     public bool NotCalibrated { get; }

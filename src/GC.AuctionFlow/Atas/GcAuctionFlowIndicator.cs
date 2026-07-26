@@ -1720,7 +1720,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             _signalMaturityHost ??= new SignalMaturityHost(policy);
             _signalMaturityHost.Configure(policy);
-            _signalMaturityHost.Rebuild(far, aac);
+            // v1.3 §10 location gate input. Directional owns PriceValueLocation;
+            // when it is off the gate sees Unavailable and blocks candidates (G-LOC-003).
+            var location = EnableDirectionalContext ? _directionalHost?.Current?.PriceLocation : null;
+
+            _signalMaturityHost.Rebuild(far, aac, location);
         }
         catch
         {

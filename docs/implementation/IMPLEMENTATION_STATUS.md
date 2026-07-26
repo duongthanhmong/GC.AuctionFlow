@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2F-b CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 3D CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.19.0** (Phase 2F-b: Facilitation components) |
+| Runtime snapshot schema | **0.20.0** (Phase 3D: Location gate) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -28,7 +28,8 @@
 | Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
-| Test count | **975** passed / 0 failed / 0 skipped |
+| Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
+| Test count | **1008** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **14** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -303,6 +304,60 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 3D code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1008 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Runtime schema | `0.19.0` -> `0.20.0` |
+| Policy | `SIGNAL_MATURITY_POLICY_V1` (extended; version unchanged) |
+| Source/deployed DLL SHA-256 | `A87C2528B3425AA19215CFB117929517E17AF2A4B12AEB019D955D8C6FF6B4D4` (exact match) |
+| GPS rows | 14 (unchanged — gate rows nest inside the MATURITY block) |
+| New Phase 3D tests | 26 tests (A01-G03); total 1008 |
+| Spec source | v1.3 §10 `G-LOC-001..003`; v1.2 §2.3 |
+
+### Why this phase exists
+
+v1.2 §2.3 asserts that orderflow only has meaning in Context and Location, but no
+module enforced the Location half. `PriceValueLocation` has existed since Phase 1D and
+was never read by the thesis path.
+
+### What is enforced, and what is not
+
+| Guard | Status |
+|---|---|
+| `G-LOC-003` — location Unavailable => no candidate | **ENFORCED**. Pure availability check. |
+| `G-LOC-001` — mid-value / at-POC => low quality, never Confirmed | **ENFORCED**. Pure position check. |
+| `G-LOC-002` — no target space => hard veto | **NOT ENFORCEABLE**. `RemainingTargetSpace` arrives with the Target Engine (Phase 3E). Declared unavailable via `REMAINING_TARGET_SPACE_NOT_AVAILABLE` + `MaturityBlockingReason.TargetSpaceUnavailable`; `LocationGateOutcome.BlockedNoTargetSpace` is reserved at 100 and unreachable (test E02). |
+
+Treating "cannot evaluate" as "passed" would be the dangerous failure here, so the veto
+is reported as unavailable rather than silently satisfied (test E01).
+
+### Phase 3D present (code/test)
+
+- `LocationGateOutcome`: `BlockedLocationUnavailable` / `AllowedLowQuality` /
+  `AllowedBoundary` / `AllowedOutside`; `BlockedNoTargetSpace` reserved
+- `MaturityBlockingReason.LowQualityLocation` added
+- Gate evaluated in `SignalMaturityHost` **before** the lifecycle is finalised; a blocked
+  scope is capped at `EpisodeActive` instead of reaching `Candidate`
+- A blocked scope is still **reported**, not dropped — dropping it would hide the block
+  from the operator (test C02)
+- Terminal states (Invalidated / Expired / Completed) are never disturbed by the gate
+  (test C05)
+- Location resolution prefers current-primary **volume** profile over TPO, same rationale
+  as Phase 2F-b: executed activity over time distribution
+- Gate is positional only — independent of thesis direction (test F01) and never unlocks
+  a maturity level (test F02)
+- Location participates in the maturity fingerprint, so a location change rebuilds (F03)
+
+### API change
+
+`SignalMaturityHost.Rebuild` gained a `location` parameter before `nowUtc`. Phase 3B and
+3C test call sites were updated to pass a resolvable location, so they keep testing
+lifecycle mapping and contract construction rather than the gate. Gate behaviour is owned
+solely by `Phase3DLocationGateTests`.
 
 ## Phase 2F-b code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

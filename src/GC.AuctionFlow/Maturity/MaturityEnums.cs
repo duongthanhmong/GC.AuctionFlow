@@ -92,7 +92,8 @@ public enum MaturityBlockingReason
     TargetSpaceUnavailable = 5,
     PriceLocationUnavailable = 6,
     ThesisStateNotCalibrated = 7,
-    FastShadowOnly = 8
+    FastShadowOnly = 8,
+    LowQualityLocation = 9
 }
 
 public enum MaturityDataQuality
@@ -100,4 +101,40 @@ public enum MaturityDataQuality
     Complete = 0,
     Partial = 1,
     Invalid = 2
+}
+
+/// <summary>
+/// Location gate outcome (v1.3 §10, guards G-LOC-001..003).
+///
+/// v1.2 §2.3 states that orderflow only has meaning in Context and Location.
+/// This gate is what enforces the Location half of that claim.
+/// </summary>
+public enum LocationGateOutcome
+{
+    Unknown = 0,
+
+    /// <summary>
+    /// G-LOC-003: price location is unavailable, so no candidate may be produced.
+    /// Enforced — this is a pure availability check.
+    /// </summary>
+    BlockedLocationUnavailable = 1,
+
+    /// <summary>
+    /// G-LOC-001: mid-value or at-POC. The worst location for FAR/AAC; the candidate
+    /// is allowed to exist but may never mature to Confirmed.
+    /// </summary>
+    AllowedLowQuality = 2,
+
+    /// <summary>At a value-area boundary — where episodes legitimately open.</summary>
+    AllowedBoundary = 3,
+
+    /// <summary>Outside value — where FAR (failure) and AAC (acceptance) live.</summary>
+    AllowedOutside = 4,
+
+    /// <summary>
+    /// G-LOC-002: no remaining target space, hard veto regardless of score.
+    /// Reserved — RemainingTargetSpace does not exist until the Target Engine
+    /// (Phase 3E), so this outcome can never be reached yet.
+    /// </summary>
+    BlockedNoTargetSpace = 100
 }

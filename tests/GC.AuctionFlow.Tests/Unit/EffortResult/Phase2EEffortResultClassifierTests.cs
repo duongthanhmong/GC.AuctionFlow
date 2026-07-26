@@ -326,7 +326,7 @@ public sealed class Phase2EEffortResultClassifierTests
     [Fact]
     public void I01_RuntimeSnapshot_SnapshotVersion_is_0_12_0()
     {
-        Assert.Equal("0.19.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.20.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]
