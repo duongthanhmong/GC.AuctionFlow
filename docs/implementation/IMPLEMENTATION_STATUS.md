@@ -314,6 +314,36 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
 
+## DLL integrity note (2026-07-27)
+
+A progress audit found the deployed DLL no longer matched a fresh build of the
+committed source: deployed `82453D77...` versus build `B8873E0E...`.
+
+Investigated rather than assumed:
+
+- The build **is** deterministic — two `--no-incremental` rebuilds and a
+  clean-from-scratch rebuild all produce `B8873E0E...`
+- Building via the test project produces the same bytes as building the source
+  project standalone
+- Source was unchanged: working tree clean at `fb6ce86`
+
+So the divergence came from an **incremental build state**, not from source drift or
+non-determinism. The deployed artifact was produced by an incremental build whose output
+differed from a clean build of the same code.
+
+**Consequence for the SHA-256 gate.** Verifying `source == deployed` immediately after a
+copy always passes — it compares a file with the copy just made of it. That is not the
+property worth guaranteeing. The property that matters is:
+
+> the deployed DLL equals a **clean rebuild** of the committed source
+
+Redeployed from a clean rebuild; `bin` and `obj` were removed first, 1174 tests pass on
+that build, and the hash now matches.
+
+**Change to the closeout procedure:** the SHA-256 check must be preceded by a clean
+rebuild (`rm -rf bin obj` then build), otherwise it can certify an artifact that no
+longer corresponds to the source.
+
 ## Phase 1H code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 
 | Gate | Result |
@@ -321,7 +351,7 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 | Code/test | **PASS** — 1174 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
 | Runtime schema | `0.23.0` (unchanged — module is RESEARCH_ONLY, not published) |
 | Policy | `DAY_STRUCTURE_POLICY_V1` |
-| Source/deployed DLL SHA-256 | `82453D7783FEF1C6D5A85510F2E7B1EB0E451B09C53F0F5D761CA715F7CC9873` (exact match) |
+| Source/deployed DLL SHA-256 | `B8873E0E5219B6003BB969924CDBFFC1D14398DD752938BC610E1134932D9319` (clean-rebuild canonical; see integrity note) |
 | Status | **RESEARCH_ONLY** per v1.2 §18.4 |
 | Every shape label | **RESERVED** — no day type is ever named |
 | New Phase 1H tests | 37 tests (A01-H02); total 1174 |
