@@ -295,17 +295,17 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 
 | Gate | Result |
 |------|--------|
-| Code/test | **PASS** — 840 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Code/test | **PASS** — 863 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
 | Live acceptance | **REQUIRED** — focused gate pending |
 | Commit/tag | **HOLD** closeout tag until live acceptance |
 | Runtime schema | `0.15.0` -> `0.16.0` |
 | Policy | `SIGNAL_MATURITY_POLICY_V1` |
 | Assembly | `0.0.6` (unchanged) |
-| Source/deployed DLL SHA-256 | `774E39C1C2E42C597294CE0B799C213B6DCE98B1D07E19D7582E6C0DD22AD4BB` (exact match) |
+| Source/deployed DLL SHA-256 | `1109AC3C4EE67670673BE164044D0DDF4CD2E214E7686A94E0C14AD14FB57BA7` (exact match) |
 | All maturity levels | **NOT CALIBRATED** — Fast/Standard/Confirmed reserved |
 | FAST mode | **SHADOW ONLY** — v1.2 §29.5 guardrail enforced in policy |
 | GPS rows | 13 (was 12); `MATURITY:` row added |
-| New Phase 3B tests | 48 tests (A01-L03); total 840 |
+| New Phase 3B tests | 48 tests (A01-L03) + 22 anti-pattern guards + 1 AAC regression; total 863 |
 | Spec source | v1.2 §29 + v1.3 §9 |
 
 ### Phase 3B present (code/test)
@@ -330,6 +330,49 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Retest micro-vs-structural discrimination (NOT CALIBRATED)
 - Expected-behaviour deadline enforcement / Time Invalidation (Phase 3C)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+
+## v1.3 remediation (2026-07-27) — bundled with Phase 3B
+
+| Item | Result |
+|------|--------|
+| v1.3 §15.1(3) AAC premature invalidation | **FIXED** |
+| v1.3 §15.1(4) Anti-Pattern Guard Registry | **DONE** — 22 tests covering AP-001..AP-028 |
+| Total tests | 863 (was 840) |
+
+### AAC re-entry mapping corrected
+
+`AacThesisHost.DeriveAacState` mapped `EpisodeState.ReentryDeveloping` to
+`AacState.Invalidated` with `NotCalibrated = false`, asserting the thesis could be
+definitively closed on geometry alone.
+
+Per KDK Ch 65 ("một bóng nến quay vào chưa đủ") and v1.3 `G-DISC-002` / `G-AAC-001`,
+geometric re-entry is not reacceptance. AAC invalidation requires
+`ReentryResolutionState.StableReacceptance`, which is calibration-gated.
+
+Now maps to `AacState.Pullback` with `NotCalibrated = true`. New regression
+`J04b_AacHost_never_invalidates_on_geometry_alone` asserts no evidence-observable
+episode state can produce `Invalidated` or `ReacceptedOldValue`.
+
+### Anti-Pattern Guard Registry (`tests/.../Unit/Guards/AntiPatternGuardTests.cs`)
+
+22 behaviour/type-surface tests covering all 28 registry entries, plus four
+cross-cutting registry guards: no GEX surface, no probability or order-placement
+surface, every gated verdict enum offers `NotCalibrated`, and every state-machine
+snapshot carries a `NotCalibrated` flag.
+
+Documented exemptions (verified, not silently skipped):
+
+- `CapabilityKind.MboSweeps` — the capability matrix must be able to NAME a feed
+  capability in order to report it BLOCKED. Naming a capability is not emitting a
+  Tier-4 label. The gate is verified separately: `default(MboSubscriptionState)`
+  is `NotAttempted`, so MBO is never assumed live.
+- `FarState` / `AacState` / `EpisodeState` / observation-state enums have no
+  `NotCalibrated` member because they carry the gate as a `NotCalibrated` bool on
+  their snapshot; asserted by `Registry_State_machine_snapshots_carry_a_NotCalibrated_flag`.
+
+Guard matching is PascalCase token-aware: naive substring matching produced false
+positives ("PeriodIn**dex**Compressor" for "Dex", "Containin**gEx**act" for "Gex").
 
 ## Phase 3A code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
 

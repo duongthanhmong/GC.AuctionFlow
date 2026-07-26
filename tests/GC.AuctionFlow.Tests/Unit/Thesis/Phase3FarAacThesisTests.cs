@@ -13,7 +13,7 @@ namespace GC.AuctionFlow.Tests.Unit.Thesis;
 
 /// <summary>
 /// Phase 3A FAR + AAC Thesis State Machine Foundation.
-/// Observable states only: EpisodeActive, OutsideAttempt, ReentryDeveloping, Invalidated.
+/// Observable states only: EpisodeActive, OutsideAttempt, ReentryDeveloping, Pullback.
 /// Armed/Executable/Managing/Completed → NOT CALIBRATED.
 /// FAR legacy alias: "Sweep-Reclaim Reversal" (log/UI only).
 /// AAC legacy alias: "Break-Accept-Retest Continuation" (log/UI only).
@@ -476,14 +476,37 @@ public sealed class Phase3FarAacThesisTests
     }
 
     [Fact]
-    public void J04_AacHost_ReentryDeveloping_maps_to_Invalidated()
+    public void J04_AacHost_ReentryDeveloping_maps_to_Pullback_NotCalibrated()
     {
-        // AAC: price re-enters old value → thesis invalidated.
+        // Geometric re-entry alone does NOT invalidate AAC. Invalidation requires
+        // StableReacceptance, which is calibration-gated (v1.3 §8.2 / G-AAC-001).
         var host = new AacThesisHost(new AacThesisPolicyConfig(enabled: true));
         var ev = MakeEvidence("EV-J04", EpisodeState.ReentryDeveloping, ReferenceSidePosition.Above);
         var set = host.Rebuild(MakeEvidenceSet(ev), Utc());
-        Assert.Equal(AacState.Invalidated, set.ActiveTheses[0].AacState);
-        Assert.False(set.ActiveTheses[0].NotCalibrated);
+        Assert.Equal(AacState.Pullback, set.ActiveTheses[0].AacState);
+        Assert.True(set.ActiveTheses[0].NotCalibrated);
+    }
+
+    [Fact]
+    public void J04b_AacHost_never_invalidates_on_geometry_alone()
+    {
+        // G-DISC-002: GeometricReentry must not be promoted to StableReacceptance,
+        // therefore no evidence-observable episode state may yield Invalidated.
+        var host = new AacThesisHost(new AacThesisPolicyConfig(enabled: true));
+        foreach (var st in new[]
+        {
+            EpisodeState.Interacting,
+            EpisodeState.OutsideAttempt,
+            EpisodeState.Developing,
+            EpisodeState.ReentryDeveloping
+        })
+        {
+            host.Reset();
+            var ev = MakeEvidence("EV-J04b-" + st, st, ReferenceSidePosition.Above);
+            var set = host.Rebuild(MakeEvidenceSet(ev), Utc());
+            Assert.NotEqual(AacState.Invalidated, set.ActiveTheses[0].AacState);
+            Assert.NotEqual(AacState.ReacceptedOldValue, set.ActiveTheses[0].AacState);
+        }
     }
 
     [Fact]

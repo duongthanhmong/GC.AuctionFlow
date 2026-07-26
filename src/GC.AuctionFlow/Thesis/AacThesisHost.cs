@@ -6,11 +6,13 @@ namespace GC.AuctionFlow.Thesis;
 /// <summary>
 /// Phase 3 AAC (Acceptance-Continuation) Thesis host.
 /// Consumes Phase 1F AcceptanceReentryEvidenceSetSnapshot immutably.
-/// Observable states: Idle, EpisodeActive, OutsideAttempt, Invalidated.
+/// Observable states: Idle, EpisodeActive, OutsideAttempt, Pullback.
 /// AcceptanceDeveloping and beyond require calibrated thresholds — NOT CALIBRATED in Phase 3.
 /// AAC Long: break above reference, sustained outside, continuation upward.
 /// AAC Short: break below reference, sustained outside, continuation downward.
-/// Re-entry (ReentryDeveloping) → Invalidated (wick alone NOT sufficient for live dwell/volume check).
+/// Re-entry (ReentryDeveloping) → Pullback + NotCalibrated. Geometric re-entry alone does NOT
+/// invalidate AAC: invalidation requires StableReacceptance, which is calibration-gated
+/// (v1.3 §8.2, G-AAC-001; KDK Ch 65 "một bóng nến quay vào chưa đủ").
 /// </summary>
 public sealed class AacThesisHost
 {
@@ -54,7 +56,7 @@ public sealed class AacThesisHost
     /// Rebuild AAC thesis observations from current evidence set.
     /// Fingerprint-gated: returns cached when evidence unchanged.
     /// All AcceptanceDeveloping/AcceptedOutside/Pullback/Armed+ states → NotCalibrated.
-    /// ReentryDeveloping → Invalidated (AAC break-accept thesis negated by re-entry into old value).
+    /// ReentryDeveloping → Pullback + NotCalibrated (geometric re-entry is not reacceptance).
     /// </summary>
     public AacThesisSetSnapshot Rebuild(
         AcceptanceReentryEvidenceSetSnapshot? evidence,
@@ -225,9 +227,11 @@ public sealed class AacThesisHost
                 return (AacState.OutsideAttempt, false);
 
             case EpisodeState.ReentryDeveloping:
-                // AAC: price returning to old value negates the break-accept-continuation thesis.
-                // NotCalibrated=false — we can definitively observe this without calibrated thresholds.
-                return (AacState.Invalidated, false);
+                // Price has geometrically re-entered old value. This is NOT yet reacceptance:
+                // AAC invalidation requires ReentryResolutionState.StableReacceptance, which is
+                // calibration-gated. Report Pullback and flag NotCalibrated rather than closing
+                // the thesis on geometry alone (v1.3 G-DISC-002 / G-AAC-001).
+                return (AacState.Pullback, true);
 
             case EpisodeState.EpisodeExpired:
             case EpisodeState.InvalidData:
