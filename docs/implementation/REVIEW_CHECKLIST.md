@@ -333,3 +333,25 @@
 - [x] Multi-visit/revisit lifecycle; duplicate/revision/stale visit idempotence (**automated**)
 - [x] Classified Episode aggregates; max abs-Delta tick; Centerline Episode input (**automated**)
 - [x] Auction/epoch/disable–re-enable; StateVersion/EventRevision; stale Phase 2A rejection; replay (**automated**)
+
+## Phase 2C Auction Efficiency Raw Evidence — code/test
+
+- [x] Phase 2A/2B remain authoritative; no second trade/Cluster ledger
+- [x] Module default OFF; AwaitingOrderflow / AwaitingEpisode / Ready / Partial / Invalid
+- [x] Deterministic AEFF / AEFFEP identities; fingerprint-gated rebuild
+- [x] Effort vector copied from 2A/2B; Ask/Bid nullable; Unknown explicit; no fabricated imbalance/Big Trade/MBO
+- [x] Result geometry; favorable/adverse by Episode direction; retention; null-safe ratios
+- [x] Immutable Profile start anchors; migration exact; Evidence outside ratios / geometric reentry copied
+- [x] Raw relationships descriptive only; zero denom → null; no EfficiencyScore / Effective/Ineffective
+- [x] Revisions/lifecycle; runtime schema 0.10.0; GPS NOT CALIBRATED; Data Gate independence
+- [x] GCAE tests green (497 ×2); Probe/Recorder 183 green; 0 errors / 0 warnings
+- [x] Source/deployed DLL SHA-256 exact match
+- [ ] Focused live acceptance
+
+## Phase 2C live acceptance (PENDING)
+
+- [ ] GCQ6 / Rithmic Live; Episodes + Evidence + Orderflow + Cluster + Efficiency ON; Efficiency Diagnostics ON; other diagnostics OFF; Probe/Recorder OFF permitted; MBO OFF
+- [ ] Card: AUCTION EFFICIENCY READY or PARTIAL; POLICY AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1; HISTORY LIVE_ONLY; CLASSIFICATION NOT CALIBRATED
+- [ ] Effort volume/trades positive; Classified Delta value or unavailable; Result net/range finite; favorable/adverse/retained finite or unavailable
+- [ ] Progress per contract/trade finite or unavailable; no Effective/Ineffective/Absorption/Trade Facilitation wording
+- [ ] DATA DEGRADED independent; MBO BLOCKED; two screenshots a few seconds apart when practical

@@ -2,6 +2,7 @@ using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
@@ -70,7 +71,9 @@ public sealed class GcaeRuntimeEngine
         AuctionEfficiencyEvidenceSetSnapshot? auctionEfficiency = null,
         bool showAuctionEfficiencyDiagnostics = false,
         AuctionResolutionSetSnapshot? auctionResolution = null,
-        bool showAuctionResolutionDiagnostics = false)
+        bool showAuctionResolutionDiagnostics = false,
+        EffortResultClassificationSetSnapshot? effortResult = null,
+        bool showEffortResultDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -100,6 +103,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("AUCTION_EFFICIENCY_STATUS=" + auctionEfficiency.ModuleState);
         if (auctionResolution is not null)
             profileExtra.Add("RESOLUTION_STATUS=" + auctionResolution.ModuleState);
+        if (effortResult is not null)
+            profileExtra.Add("EFFORT_RESULT_STATUS=" + effortResult.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -143,6 +148,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(auctionEfficiency.Limitations);
         if (auctionResolution?.Limitations is not null)
             limitations.AddRange(auctionResolution.Limitations);
+        if (effortResult?.Limitations is not null)
+            limitations.AddRange(effortResult.Limitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -174,7 +181,9 @@ public sealed class GcaeRuntimeEngine
             auctionEfficiency,
             showAuctionEfficiencyDiagnostics,
             auctionResolution,
-            showAuctionResolutionDiagnostics);
+            showAuctionResolutionDiagnostics,
+            effortResult,
+            showEffortResultDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

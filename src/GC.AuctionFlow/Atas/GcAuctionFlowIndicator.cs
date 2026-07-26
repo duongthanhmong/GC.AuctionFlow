@@ -13,6 +13,7 @@ using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
 using GC.AuctionFlow.Reference;
+using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Runtime;
 using GC.AuctionFlow.UI;
@@ -60,6 +61,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private EfficiencyInputFingerprint? _lastAppliedEfficiencyFingerprint;
     private AuctionResolutionHost? _resolutionHost;
     private ResolutionInputFingerprint? _lastAppliedResolutionFingerprint;
+    private EffortResultClassifierHost? _effortResultHost;
+    private EffortResultInputFingerprint? _lastAppliedEffortResultFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -112,6 +115,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowAuctionEfficiencyDiagnostics = false;
         EnableAcceptanceReentryResolution = false;
         ShowAuctionResolutionDiagnostics = false;
+        EnableEffortResultClassifier = false;
+        ShowEffortResultDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -370,6 +375,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Resolution id/state/revision diagnostics. Default false. Conclusions remain NOT CALIBRATED.")]
     public bool ShowAuctionResolutionDiagnostics { get; set; }
 
+    [Category("Effort vs Result Classifier")]
+    [DisplayName("Enable Effort Result Classifier")]
+    [Description("Reads Phase 2C efficiency evidence and maps it to Effort/Result classification states (EFFORT_RESULT_CLASSIFIER_POLICY_V1). Default false. All states NOT CALIBRATED.")]
+    public bool EnableEffortResultClassifier { get; set; }
+
+    [Category("Effort vs Result Classifier")]
+    [DisplayName("Show Effort Result Diagnostics")]
+    [Description("Classification id/state/revision diagnostics. Default false. Classification remains NOT CALIBRATED.")]
+    public bool ShowEffortResultDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -390,6 +405,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessExecutedOrderflow();
             ProcessClusterRawFeatures();
             ProcessAuctionEfficiencyEvidence();
+            ProcessEffortResult();
             PublishRuntimeSnapshot();
         }
     }
@@ -779,6 +795,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _clusterHost = null;
                 _efficiencyHost = null;
                 _resolutionHost = null;
+                _effortResultHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
@@ -788,6 +805,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _lastAppliedClusterFingerprint = null;
                 _lastAppliedEfficiencyFingerprint = null;
                 _lastAppliedResolutionFingerprint = null;
+                _lastAppliedEffortResultFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -1442,6 +1460,56 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessEffortResult()
+    {
+        if (!EnableEffortResultClassifier || Volatile.Read(ref _disposed) != 0)
+        {
+            _effortResultHost = null;
+            _lastAppliedEffortResultFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new EffortResultClassifierPolicyConfig(enabled: true);
+            var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
+
+            _effortResultHost ??= new EffortResultClassifierHost(policy);
+            _effortResultHost.Configure(policy);
+            var result = _effortResultHost.Rebuild(efficiency);
+
+            if (_effortResultHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedEffortResultFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureEffortResultInitializedForPublish()
+    {
+        if (!EnableEffortResultClassifier || Volatile.Read(ref _disposed) != 0)
+        {
+            _effortResultHost = null;
+            _lastAppliedEffortResultFingerprint = null;
+            return;
+        }
+
+        var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
+        var fp = new EffortResultInputFingerprint(
+            true,
+            efficiency?.InputFingerprint?.ToString() ?? "",
+            EffortResultClassifierPolicyConfig.PolicyVersion);
+
+        if (_lastAppliedEffortResultFingerprint.HasValue
+            && _lastAppliedEffortResultFingerprint.Value.Equals(fp)
+            && _effortResultHost?.Current is not null)
+            return;
+
+        ProcessEffortResult();
+    }
+
     private void EnsureAcceptanceReentryResolutionInitializedForPublish()
     {
         if (!EnableAcceptanceReentryResolution || Volatile.Read(ref _disposed) != 0)
@@ -1794,6 +1862,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureClusterRawInitializedForPublish();
             EnsureAuctionEfficiencyInitializedForPublish();
             EnsureAcceptanceReentryResolutionInitializedForPublish();
+            EnsureEffortResultInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -1805,6 +1874,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var cluster = EnableClusterRawFeatures ? _clusterHost?.Current : null;
             var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
             var resolution = EnableAcceptanceReentryResolution ? _resolutionHost?.Current : null;
+            var effortResult = EnableEffortResultClassifier ? _effortResultHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1840,7 +1910,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 auctionEfficiency: efficiency,
                 showAuctionEfficiencyDiagnostics: ShowAuctionEfficiencyDiagnostics,
                 auctionResolution: resolution,
-                showAuctionResolutionDiagnostics: ShowAuctionResolutionDiagnostics);
+                showAuctionResolutionDiagnostics: ShowAuctionResolutionDiagnostics,
+                effortResult: effortResult,
+                showEffortResultDiagnostics: ShowEffortResultDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

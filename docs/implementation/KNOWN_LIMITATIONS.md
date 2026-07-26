@@ -190,3 +190,18 @@
 139. **Documented live classified-cluster coverage limitation:** classified Ask/Bid ratios, diagonal classified paths, classified dominant sides/runs, absolute-Delta rank, percentile ties, multi-visit lifecycle, classified Episode aggregates, Centerline, auction/epoch/disable resets, revision sequences, stale rejection, and deterministic replay were not all manually observed live; covered by automated tests. Core live gate (two-snapshot Unknown-only Partial update, Volume Rank, NOT CALIBRATED) was live-verified.
 140. Live-accepted closeout DLL SHA-256: `A15CC6A85AA9562E59CA8B66140AAD017E957F96E96C7BBF47E620E6E0E71A39`. Tag: `gcae-p2b-cluster-raw-feature-measurement-pass`.
 141. Imbalance / Stacked Imbalance / Extreme Delta/Volume / Big Trade / Effort vs Result / Trade Facilitation / Acceptance/Re-entry Resolution / FAR / AAC remain **NOT STARTED**.
+
+## Phase 2C Auction Efficiency Raw Evidence Measurement Foundation (CODE/TEST PASS — LIVE ACCEPTANCE PENDING)
+
+142. **Raw Effort and Result only.** No EffortResultBalanced, AggressionEffective/Ineffective, Absorption, Exhaustion, or Trade Facilitation.
+143. No one-dimensional efficiency formula / EfficiencyScore; no threshold or weighting policy.
+144. Ask/Bid may remain unavailable; Classified Delta may cover classified subset only; Absolute classified Delta may be unavailable for Unknown-only.
+145. Imbalance / Big Trade / MBO Sweep / Stop / Iceberg effort components remain unavailable (research-only limitations; never substitute zero).
+146. Start anchors begin within LIVE_ONLY observation scope; developing Profile revisions must not rewrite published start anchors.
+147. Profile / Acceptance Evidence components may be Partial/unavailable.
+148. No candle reconstruction; no overlay/alerts; no Resolution/FAR/AAC; no Long/Short.
+149. Module Ready/Partial does **not clear** global DATA DEGRADED. MBO remains blocked.
+150. OAC contamination remains outside GCAE Phase 2C scope.
+151. EFFICIENCY CLASSIFICATION **NOT CALIBRATED** — do not use a fake Neutral state.
+152. Live acceptance pending; commit/tag HOLD.
+153. Effort vs Result classifier / Trade Facilitation / Absorption/Exhaustion / Resolution/FAR/AAC remain **NOT STARTED**.

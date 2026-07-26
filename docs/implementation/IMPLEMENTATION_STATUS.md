@@ -2,10 +2,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2D CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 2E CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.11.0** (Acceptance/Re-entry Resolution fields) |
+| Runtime snapshot schema | **0.12.0** (Effort vs Result Classifier fields) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -28,6 +28,7 @@
 | Phase 2B | **LOCKED FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION** — `gcae-p2b-cluster-raw-feature-measurement-pass` |
 | Phase 2C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Auction Efficiency Raw Evidence (`AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1`) |
 | Phase 2D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Acceptance/Re-entry Resolution (`ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
+| Phase 2E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Effort vs Result Classifier (`EFFORT_RESULT_CLASSIFIER_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -216,6 +217,46 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Established acceptance / Failed acceptance calibration (gated: NOT CALIBRATED)
 - Stable re-acceptance / Re-entry failed calibration (gated: NOT CALIBRATED)
 - FAR / AAC overall conclusion (NOT CALIBRATED)
+- Thesis / Entry / Risk phases
+- Overlay alerts
+
+## Phase 2E code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 592 passed / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Commit/tag | **HOLD** until live acceptance |
+| Runtime schema | `0.12.0` |
+| Policy | `EFFORT_RESULT_CLASSIFIER_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Source/deployed DLL SHA-256 | `848E0D9417E65051ED70889E9E36CFB1F6326FAE830CF5357CCB6F2708991BB4` (exact match) |
+| All classification states | **NOT CALIBRATED** — EffortResultBalanced/AggressionEffective/Ineffective/Absorption/Exhaustion/TradeFacilitationHealthy/Failing reserved |
+| FAR/AAC/Thesis/Entry | **NOT AUTHORIZED** in Phase 2E |
+| History | **LIVE_ONLY** |
+| GPS rows | 10 (was 9); "EFFORT RESULT:" row added |
+| New Phase 2E tests | 48 tests (A01–K05); total 592 |
+
+### Phase 2E present (code/test)
+
+- `EffortResultClassifierHost` — fingerprint-gated rebuild from `AuctionEfficiencyEvidenceSetSnapshot`
+- `EffortResultClassificationSnapshot` / `EffortResultClassificationSetSnapshot` — immutable versioned snapshots
+- `EffortResultIdentity.BuildFromEfficiencyId()` — `ERCL|{sanitized}|{policyVersion}` format
+- `EffortResultInputFingerprint` — IEquatable struct gating rebuild on efficiency InputFingerprint change
+- `EffortResultClassifierPolicyConfig` — `EFFORT_RESULT_CLASSIFIER_POLICY_V1`; 12 limitation constants
+- Effort/Result enums: `EffortResultModuleState`, `EffortResultClassificationState`, `EffortResultDataQuality`
+- Supports: CurrentAuction scope + ActiveEpisode scopes + RecentlyClosed (cap 64)
+- GPS card rows via `AuctionGpsCardMapper.BuildEffortResultLines()`; showDiagnostics-gated ID/version rows
+- RuntimeSnapshot schema bumped `0.11.0` → `0.12.0`; `EffortResult` property on `GcaeRuntimeSnapshot`
+- Indicator: `EnableEffortResultClassifier` / `ShowEffortResultDiagnostics` settings; module default OFF
+- GPS diagnostics list: `EFFORT RESULT:` status row added (10 rows total; was 9)
+
+### Explicitly deferred after Phase 2E
+
+- EffortResultBalanced / AggressionEffective/Ineffective calibration (gated: NOT CALIBRATED)
+- PotentialPassiveAbsorption / PotentialExhaustion calibration (gated: NOT CALIBRATED)
+- TradeFacilitationHealthy / TradeFacilitationFailing calibration (gated: NOT CALIBRATED)
+- FAR / AAC overall conclusion (NOT AUTHORIZED in Phase 2E)
 - Thesis / Entry / Risk phases
 - Overlay alerts
 

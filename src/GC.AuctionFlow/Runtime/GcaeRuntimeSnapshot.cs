@@ -1,6 +1,7 @@
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
@@ -14,7 +15,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.11.0";
+    public const string SnapshotVersion = "0.12.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -46,7 +47,9 @@ public sealed class GcaeRuntimeSnapshot
         AuctionEfficiencyEvidenceSetSnapshot? auctionEfficiency = null,
         bool showAuctionEfficiencyDiagnostics = false,
         AuctionResolutionSetSnapshot? auctionResolution = null,
-        bool showAuctionResolutionDiagnostics = false)
+        bool showAuctionResolutionDiagnostics = false,
+        EffortResultClassificationSetSnapshot? effortResult = null,
+        bool showEffortResultDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -78,6 +81,8 @@ public sealed class GcaeRuntimeSnapshot
         ShowAuctionEfficiencyDiagnostics = showAuctionEfficiencyDiagnostics;
         AuctionResolution = auctionResolution;
         ShowAuctionResolutionDiagnostics = showAuctionResolutionDiagnostics;
+        EffortResult = effortResult;
+        ShowEffortResultDiagnostics = showEffortResultDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -96,6 +101,7 @@ public sealed class GcaeRuntimeSnapshot
     public ClusterRawSetSnapshot? ClusterRaw { get; }
     public AuctionEfficiencyEvidenceSetSnapshot? AuctionEfficiency { get; }
     public AuctionResolutionSetSnapshot? AuctionResolution { get; }
+    public EffortResultClassificationSetSnapshot? EffortResult { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -111,6 +117,7 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowClusterRawDiagnostics { get; }
     public bool ShowAuctionEfficiencyDiagnostics { get; }
     public bool ShowAuctionResolutionDiagnostics { get; }
+    public bool ShowEffortResultDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

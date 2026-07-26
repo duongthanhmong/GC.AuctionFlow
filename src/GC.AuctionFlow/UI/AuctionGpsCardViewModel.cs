@@ -3,6 +3,7 @@ using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
@@ -188,6 +189,9 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildAuctionResolutionLines(
             snapshot.AuctionResolution,
             snapshot.ShowAuctionResolutionDiagnostics));
+        details.AddRange(BuildEffortResultLines(
+            snapshot.EffortResult,
+            snapshot.ShowEffortResultDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -217,6 +221,9 @@ public static class AuctionGpsCardMapper
                 snapshot.AuctionResolution is null
                     ? "RESOLUTION: NOT AVAILABLE"
                     : "RESOLUTION: " + snapshot.AuctionResolution.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.EffortResult is null
+                    ? "EFFORT RESULT: NOT AVAILABLE"
+                    : "EFFORT RESULT: " + snapshot.EffortResult.ModuleState.ToString().ToUpperInvariant(),
                 "THESIS: NOT AVAILABLE"
             }
             : new List<string>();
@@ -899,6 +906,54 @@ public static class AuctionGpsCardMapper
                 rows.Add("RESOLUTION STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
                 rows.Add("RESOLUTION EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
             }
+        }
+
+        return rows;
+    }
+
+    public static IReadOnlyList<string> BuildEffortResultLines(
+        EffortResultClassificationSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case EffortResultModuleState.Disabled:
+                rows.Add("EFFORT RESULT: DISABLED");
+                return rows;
+            case EffortResultModuleState.AwaitingEfficiency:
+                rows.Add("EFFORT RESULT: AWAITING EFFICIENCY");
+                rows.Add("EFFORT RESULT POLICY: " + set.PolicyVersion);
+                rows.Add("EFFORT RESULT CLASSIFICATION: NOT CALIBRATED");
+                return rows;
+            case EffortResultModuleState.Invalid:
+                rows.Add("EFFORT RESULT: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == EffortResultModuleState.Ready ? "READY" : "PARTIAL";
+        var total = (set.CurrentAuctionClassification is not null ? 1 : 0)
+                    + set.ActiveEpisodeClassifications.Count;
+        rows.Add("EFFORT RESULT: " + state + " (" + total + " SCOPE)");
+        rows.Add("EFFORT RESULT POLICY: " + set.PolicyVersion);
+        rows.Add("EFFORT RESULT CLASSIFICATION: NOT CALIBRATED");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("EFFORT RESULT SCOPE: " + latest.ScopeType.ToString().ToUpperInvariant());
+            if (!string.IsNullOrEmpty(latest.ReferenceId))
+                rows.Add("EFFORT RESULT REF: " + Truncate(latest.ReferenceId, 48));
+        }
+
+        if (showDiagnostics && latest is not null)
+        {
+            rows.Add("EFFORT RESULT READY: " + set.ReadyCount.ToString(CultureInfo.InvariantCulture)
+                     + " PARTIAL: " + set.PartialCount.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EFFORT RESULT ID: " + Truncate(latest.ClassificationId, 56));
+            rows.Add("EFFORT RESULT STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
+            rows.Add("EFFORT RESULT EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
         }
 
         return rows;

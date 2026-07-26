@@ -181,15 +181,24 @@ public sealed class MboLifecycleProbeTests
                 var token = BitConverter.ToInt32(il, i + 1);
                 var handle = MetadataTokens.EntityHandle(token);
                 string? name = null;
-                if (handle.Kind == HandleKind.MemberReference)
+                try
                 {
-                    var mr = md.GetMemberReference((MemberReferenceHandle)handle);
-                    name = md.GetString(mr.Name);
+                    if (handle.Kind == HandleKind.MemberReference)
+                    {
+                        var mr = md.GetMemberReference((MemberReferenceHandle)handle);
+                        name = md.GetString(mr.Name);
+                    }
+                    else if (handle.Kind == HandleKind.MethodDefinition)
+                    {
+                        var mdh = md.GetMethodDefinition((MethodDefinitionHandle)handle);
+                        name = md.GetString(mdh.Name);
+                    }
                 }
-                else if (handle.Kind == HandleKind.MethodDefinition)
+                catch (BadImageFormatException)
                 {
-                    var mdh = md.GetMethodDefinition((MethodDefinitionHandle)handle);
-                    name = md.GetString(mdh.Name);
+                    // Naive IL byte scan can mis-align on operand bytes that look like call/callvirt.
+                    i += 4;
+                    continue;
                 }
 
                 Assert.NotEqual("Unsubscribe", name);
