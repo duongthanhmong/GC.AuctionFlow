@@ -205,6 +205,7 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildParticipationLines(snapshot.Participation));
         details.AddRange(BuildTradeFacilitationLines(snapshot.TradeFacilitation, false));
         details.AddRange(BuildSignalMaturityLines(snapshot.SignalMaturity, snapshot.ShowSignalMaturityDiagnostics));
+        details.AddRange(BuildThesisContractLines(snapshot.ThesisContract, snapshot.ShowThesisContractDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -248,7 +249,10 @@ public static class AuctionGpsCardMapper
                     : "TRADE FACILITATION: " + snapshot.TradeFacilitation.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.SignalMaturity is null
                     ? "MATURITY: NOT AVAILABLE"
-                    : "MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant()
+                    : "MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.ThesisContract is null
+                    ? "CONTRACT: NOT AVAILABLE"
+                    : "CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1531,6 +1535,63 @@ public static class AuctionGpsCardMapper
             rows.Add("MATURITY STATE VER: " + latest.StateVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
             rows.Add("MATURITY EVENT REV: " + latest.EventRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
             rows.Add("MATURITY BLOCKERS: " + latest.BlockingReasons.Count.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        return rows;
+    }
+
+    public static IReadOnlyList<string> BuildThesisContractLines(
+        ThesisContractSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case ThesisContractModuleState.Disabled:
+                rows.Add("CONTRACT: DISABLED");
+                return rows;
+            case ThesisContractModuleState.AwaitingMaturity:
+                rows.Add("CONTRACT: AWAITING MATURITY");
+                rows.Add("CONTRACT POLICY: " + set.PolicyVersion);
+                rows.Add("CONTRACT STATE: NOT CALIBRATED");
+                return rows;
+            case ThesisContractModuleState.Invalid:
+                rows.Add("CONTRACT: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == ThesisContractModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("CONTRACT: " + state + " (" + set.DeclaredCount + " DECLARED)");
+        rows.Add("CONTRACT POLICY: " + set.PolicyVersion);
+        rows.Add("CONTRACT STATE: NOT CALIBRATED");
+        if (!set.ProtectiveStopAuthorized)
+            rows.Add("PROTECTIVE STOP: NOT AUTHORIZED");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("CONTRACT FAMILY: " + latest.Family.ToString().ToUpperInvariant());
+            rows.Add("EXPECTED BEHAVIOR: " + latest.ExpectedBehavior.ToString().ToUpperInvariant());
+            rows.Add("SOURCE OF MOVE: " + latest.SourceOfMove.ToString().ToUpperInvariant());
+            rows.Add("HORIZONS DECLARED: " + latest.Horizons.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + "/" + ThesisContractPolicyConfig.RequiredHorizonRoles.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            rows.Add("INVALIDATION DIMS: " + latest.Invalidations.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + "/" + ThesisContractPolicyConfig.RequiredInvalidationDimensions.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + " NOT CALIBRATED");
+            rows.Add("THESIS EXPIRY: NOT CALIBRATED");
+            rows.Add("MISSING EVIDENCE: " + latest.MissingEvidence.Count.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        if (showDiagnostics && latest is not null)
+        {
+            rows.Add("CONTRACT ID: " + Truncate(latest.ContractId, 56));
+            rows.Add("CONTRACT STATE VER: " + latest.StateVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            rows.Add("CONTRACT EVENT REV: " + latest.EventRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            foreach (var inv in latest.Invalidations)
+                rows.Add("INVALIDATION " + inv.Dimension.ToString().ToUpperInvariant()
+                         + ": " + inv.State.ToString().ToUpperInvariant());
+            rows.Add("CONSISTENCY GATE: " + (latest.ConsistencyGate.AllSatisfied ? "SATISFIED" : "NOT SATISFIED"));
         }
 
         return rows;

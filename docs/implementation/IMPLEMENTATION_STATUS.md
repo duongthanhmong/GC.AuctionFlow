@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 1G CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 3C CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.16.0** (Phase 3B: Signal Maturity) |
+| Runtime snapshot schema | **0.17.0** (Phase 3C: Thesis Contract) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -36,6 +36,7 @@
 | Phase 2F | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Trade Facilitation Index (`TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — FAR + AAC Thesis State Machine Foundation (`FAR_THESIS_POLICY_V1`, `AAC_THESIS_POLICY_V1`) |
 | Phase 3B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Signal Maturity (`SIGNAL_MATURITY_POLICY_V1`) |
+| Phase 3C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Thesis Contract + 5-dimension Invalidation (`THESIS_CONTRACT_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -290,6 +291,63 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 3C code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 920 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Commit/tag | **HOLD** closeout tag until live acceptance |
+| Runtime schema | `0.16.0` -> `0.17.0` |
+| Policy | `THESIS_CONTRACT_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Source/deployed DLL SHA-256 | `53DC99E39CC4203FC2DD205B21D18C8D1E0DA2B5E4E046E32778257F1218EBCB` (exact match) |
+| Contract state | **NOT CALIBRATED** — Complete/Executable reserved |
+| All 5 invalidation dimensions | **NOT CALIBRATED** — Triggered/Cleared reserved |
+| Protective stop | **NOT AUTHORIZED** — v1.2 §32.4 needs volatility/MAE, deferred |
+| GPS rows | 14 (was 13); `CONTRACT:` row added |
+| New Phase 3C tests | 45 tests (A01-M03); total 920 |
+| Spec source | v1.2 §32 + §11.1-11.3 + v1.3 §11 |
+
+### Phase 3C present (code/test)
+
+- `ThesisContractHost` — fingerprint-gated rebuild from Phase 3B `SignalMaturitySetSnapshot`
+- `ThesisContractSnapshot` / `ThesisContractSetSnapshot` v1.0.0; `RecentlyClosedCapacity = 64`
+- **Five thesis horizons** (v1.2 §11.2): Context / Thesis / Trigger / Management / Target.
+  Always all five declared; every source reports `Unavailable` because the multi-horizon
+  map is not authorized — roles exist so a contract can never silently omit one.
+- **Five invalidation dimensions** (v1.2 §32.2 four + v1.3 §11.3 Evidence).
+  Evidence is an independent dimension with its own limitation string: it fires earlier
+  than Auction invalidation and does not require acceptance to have formed (`G-INV-001`).
+- `MissingEvidenceKind[]` — structured, never free text (`G-THE-001`), never empty
+- `ThesisConsistencyGate` — four separate booleans, deliberately not one score (`G-THE-006`)
+- `ExpiresAtUtc` always `null` — expiry duration NOT CALIBRATED, never fabricated
+- `SourceOfMove` always `Unknown` — needs the horizon map (v1.2 §11.3)
+- Indicator: `EnableThesisContract` / `ShowThesisContractDiagnostics`; module default OFF
+- GPS diagnostics list: `CONTRACT:` status row added (14 rows total; was 13)
+
+### Phase 3C NOT present (code/test)
+
+- `Complete` / `Executable` contract state (calibration gate)
+- Protective hard stop and stop calculation (v1.2 §32.3-32.4) — needs tick volatility,
+  MAE distribution, participation regime, spread, basis; asserted absent by test M01
+- Target Engine / PLAR (v1.2 §33), RR + CFD mapping (§34), position sizing (§35)
+- Entry price, stop price, target price, size — no such field exists (M01)
+- Score or probability fields (M02); GEX surface (M03)
+- Horizon map resolution and source-of-move attribution
+- Historical reconstruction (LIVE_ONLY enforced)
+
+### Legacy gate assertions tightened (not loosened)
+
+Six pre-Phase-3 tests asserted `DoesNotContain("EnableThesis", indicatorSource)`, whose
+intent is "there is no generic monolithic thesis toggle; theses are per-family flags".
+The new `EnableThesisContract` property tripped them by prefix coincidence only.
+
+The assertions were made **more precise** rather than relaxed: they now match
+`"EnableThesis "` with a trailing space, which still catches a real generic
+`EnableThesis { get; set; }` or `EnableThesis = false;` but not `EnableThesisContract`.
+Files: Phase1A, Phase1C, Phase1D, Phase1E, Phase1F, Phase2A.
 
 ## Phase 3B code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

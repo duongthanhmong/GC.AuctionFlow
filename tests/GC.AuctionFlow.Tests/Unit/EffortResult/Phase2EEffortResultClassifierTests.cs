@@ -326,7 +326,7 @@ public sealed class Phase2EEffortResultClassifierTests
     [Fact]
     public void I01_RuntimeSnapshot_SnapshotVersion_is_0_12_0()
     {
-        Assert.Equal("0.16.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.17.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public sealed class Phase2EEffortResultClassifierTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(13, vm.DiagnosticRows.Count);
+        Assert.Equal(14, vm.DiagnosticRows.Count);
     }
 
     // ---------- K: Limitations & NOT CALIBRATED policy ----------

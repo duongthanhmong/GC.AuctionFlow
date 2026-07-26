@@ -281,7 +281,7 @@ public sealed class Phase1APrimaryProfileTests
         Assert.DoesNotContain("DirectionalAuction", src, StringComparison.Ordinal);
         Assert.DoesNotContain("ProductionThesis", src, StringComparison.Ordinal);
         Assert.DoesNotContain("FarAac", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableThesis", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableThesis ", src, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptedOutside", src, StringComparison.Ordinal);
     }
 

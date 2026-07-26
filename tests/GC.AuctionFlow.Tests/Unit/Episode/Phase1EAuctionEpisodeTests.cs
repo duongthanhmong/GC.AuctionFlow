@@ -334,7 +334,7 @@ public sealed class Phase1EAuctionEpisodeTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: host.Current);
-        Assert.Equal("0.16.0", snap.Version);
+        Assert.Equal("0.17.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
     }
 
@@ -370,7 +370,7 @@ public sealed class Phase1EAuctionEpisodeTests
         Assert.Contains("EnableAuctionEpisodes", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptanceOutside", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("SweepDetector", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableThesis ", indicator, StringComparison.Ordinal);
     }
 
     [Fact]

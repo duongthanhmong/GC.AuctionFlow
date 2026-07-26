@@ -85,7 +85,9 @@ public sealed class GcaeRuntimeEngine
         ParticipationSetSnapshot? participation = null,
         TradeFacilitationSetSnapshot? tradeFacilitation = null,
         SignalMaturitySetSnapshot? signalMaturity = null,
-        bool showSignalMaturityDiagnostics = false)
+        bool showSignalMaturityDiagnostics = false,
+        ThesisContractSetSnapshot? thesisContract = null,
+        bool showThesisContractDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -125,6 +127,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("TRADE_FACILITATION_STATUS=" + tradeFacilitation.ModuleState);
         if (signalMaturity is not null)
             profileExtra.Add("SIGNAL_MATURITY_STATUS=" + signalMaturity.ModuleState);
+        if (thesisContract is not null)
+            profileExtra.Add("THESIS_CONTRACT_STATUS=" + thesisContract.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -178,6 +182,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(tradeFacilitation.Limitations);
         if (signalMaturity?.Limitations is not null)
             limitations.AddRange(signalMaturity.Limitations);
+        if (thesisContract?.Limitations is not null)
+            limitations.AddRange(thesisContract.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -225,7 +231,9 @@ public sealed class GcaeRuntimeEngine
             resolvedParticipation,
             tradeFacilitation,
             signalMaturity,
-            showSignalMaturityDiagnostics);
+            showSignalMaturityDiagnostics,
+            thesisContract,
+            showThesisContractDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

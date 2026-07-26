@@ -424,7 +424,7 @@ public sealed class Phase1GParticipationRegimeTests
     {
         var snap = MakeSnapshot(17, 30);
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, true);
-        Assert.Equal(13, vm.DiagnosticRows.Count);
+        Assert.Equal(14, vm.DiagnosticRows.Count);
     }
 
     [Fact]
@@ -432,7 +432,7 @@ public sealed class Phase1GParticipationRegimeTests
     {
         var snap = MakeSnapshot(17, 30);
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, true);
-        Assert.Equal(vm.AllLines(false).Count + 13, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 14, vm.AllLines(true).Count);
     }
 
     // ========== H: Schema version ==========
@@ -440,7 +440,7 @@ public sealed class Phase1GParticipationRegimeTests
     [Fact]
     public void H01_SnapshotVersion_is_0_14_0()
     {
-        Assert.Equal("0.16.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.17.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]

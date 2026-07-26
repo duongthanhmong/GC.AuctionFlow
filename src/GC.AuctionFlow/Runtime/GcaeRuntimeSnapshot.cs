@@ -19,7 +19,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.16.0";
+    public const string SnapshotVersion = "0.17.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -61,7 +61,9 @@ public sealed class GcaeRuntimeSnapshot
         ParticipationSetSnapshot? participation = null,
         TradeFacilitationSetSnapshot? tradeFacilitation = null,
         SignalMaturitySetSnapshot? signalMaturity = null,
-        bool showSignalMaturityDiagnostics = false)
+        bool showSignalMaturityDiagnostics = false,
+        ThesisContractSetSnapshot? thesisContract = null,
+        bool showThesisContractDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -103,6 +105,8 @@ public sealed class GcaeRuntimeSnapshot
         TradeFacilitation = tradeFacilitation;
         SignalMaturity = signalMaturity;
         ShowSignalMaturityDiagnostics = showSignalMaturityDiagnostics;
+        ThesisContract = thesisContract;
+        ShowThesisContractDiagnostics = showThesisContractDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -128,6 +132,8 @@ public sealed class GcaeRuntimeSnapshot
     public TradeFacilitationSetSnapshot? TradeFacilitation { get; }
     public SignalMaturitySetSnapshot? SignalMaturity { get; }
     public bool ShowSignalMaturityDiagnostics { get; }
+    public ThesisContractSetSnapshot? ThesisContract { get; }
+    public bool ShowThesisContractDiagnostics { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
