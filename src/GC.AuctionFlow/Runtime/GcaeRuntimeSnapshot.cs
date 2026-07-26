@@ -19,7 +19,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.18.0";
+    public const string SnapshotVersion = "0.19.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,

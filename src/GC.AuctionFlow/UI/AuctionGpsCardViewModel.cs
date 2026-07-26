@@ -1137,6 +1137,15 @@ public static class AuctionGpsCardMapper
                 + (latest.DirectionConsistentEffortVolume.HasValue
                     ? latest.DirectionConsistentEffortVolume.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
                     : "unavailable"));
+            rows.Add("FACILITATION COMPONENTS: "
+                     + latest.AvailableComponentCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + "/" + TradeFacilitationPolicyConfig.RequiredComponents.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + (latest.ComponentsComplete ? "" : " INCOMPLETE"));
+            rows.Add("STRUCTURE ALIGNMENT: " + latest.StructureAlignment.ToString().ToUpperInvariant());
+            rows.Add("MAINTENANCE RETENTION: "
+                     + (latest.MaintenanceProgressRetentionRatio.HasValue
+                         ? FormatOptionalRatio(latest.MaintenanceProgressRetentionRatio)
+                         : "unavailable"));
             rows.Add("FAVORABLE PROGRESS: "
                 + (latest.AchievedFavorableProgressTicks.HasValue
                     ? latest.AchievedFavorableProgressTicks.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks"

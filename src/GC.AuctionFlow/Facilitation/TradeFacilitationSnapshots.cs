@@ -25,6 +25,13 @@ public sealed class TradeFacilitationSnapshot
         decimal? directionConsistentEffortRatio,
         long? achievedFavorableProgressTicks,
         decimal? favorableProgressPerDirectionUnit,
+        long? structurePocMigrationTicks,
+        long? structureValueMigrationTicks,
+        FacilitationComponentAlignment structureAlignment,
+        long? maintenanceProgressRetainedTicks,
+        decimal? maintenanceProgressRetentionRatio,
+        TimeSpan? maintenanceTimeAtMaximumExcursion,
+        int availableComponentCount,
         long stateVersion,
         long eventRevision,
         DateTime classifiedAtUtc,
@@ -43,6 +50,13 @@ public sealed class TradeFacilitationSnapshot
         DirectionConsistentEffortRatio = directionConsistentEffortRatio;
         AchievedFavorableProgressTicks = achievedFavorableProgressTicks;
         FavorableProgressPerDirectionUnit = favorableProgressPerDirectionUnit;
+        StructurePocMigrationTicks = structurePocMigrationTicks;
+        StructureValueMigrationTicks = structureValueMigrationTicks;
+        StructureAlignment = structureAlignment;
+        MaintenanceProgressRetainedTicks = maintenanceProgressRetainedTicks;
+        MaintenanceProgressRetentionRatio = maintenanceProgressRetentionRatio;
+        MaintenanceTimeAtMaximumExcursion = maintenanceTimeAtMaximumExcursion;
+        AvailableComponentCount = availableComponentCount;
         StateVersion = stateVersion;
         EventRevision = eventRevision;
         ClassifiedAtUtc = classifiedAtUtc;
@@ -70,6 +84,34 @@ public sealed class TradeFacilitationSnapshot
 
     /// <summary>Ticks per direction-consistent contract. Research raw value for future calibration.</summary>
     public decimal? FavorableProgressPerDirectionUnit { get; }
+
+
+    // --- Structure component (v1.3 §5.2): did POC / value migrate with the attempt? ---
+
+    /// <summary>Signed POC migration. Volume POC preferred, TPO POC as fallback.</summary>
+    public long? StructurePocMigrationTicks { get; }
+
+    /// <summary>Signed value-area centroid migration.</summary>
+    public long? StructureValueMigrationTicks { get; }
+
+    /// <summary>Sign comparison only — magnitude significance is NOT CALIBRATED.</summary>
+    public FacilitationComponentAlignment StructureAlignment { get; }
+
+    // --- Maintenance component (v1.3 §5.2): did pullbacks hold? ---
+
+    public long? MaintenanceProgressRetainedTicks { get; }
+
+    /// <summary>Retained / maximum favorable. Raw ratio, no threshold applied.</summary>
+    public decimal? MaintenanceProgressRetentionRatio { get; }
+
+    public TimeSpan? MaintenanceTimeAtMaximumExcursion { get; }
+
+    /// <summary>How many of the four required components are measurable (0..4).</summary>
+    public int AvailableComponentCount { get; }
+
+    /// <summary>G-TF-002 precondition: a verdict is impossible while this is false.</summary>
+    public bool ComponentsComplete =>
+        AvailableComponentCount >= TradeFacilitationPolicyConfig.RequiredComponents;
 
     public long StateVersion { get; }
     public long EventRevision { get; }

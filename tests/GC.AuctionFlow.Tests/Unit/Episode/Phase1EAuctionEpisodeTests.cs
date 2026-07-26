@@ -334,7 +334,7 @@ public sealed class Phase1EAuctionEpisodeTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: host.Current);
-        Assert.Equal("0.18.0", snap.Version);
+        Assert.Equal("0.19.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
     }
 

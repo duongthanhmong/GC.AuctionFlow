@@ -192,6 +192,28 @@ public sealed class TradeFacilitationHost
             _                             => TradeFacilitationDataQuality.Complete
         };
 
+        // --- Structure component (v1.3 §5.2): did POC / value migrate WITH the attempt? ---
+        // Volume POC is preferred over TPO POC: it reflects executed activity rather than
+        // time distribution, which is the question facilitation actually asks.
+        var pocMigration = eff.Result.VolumePocMigrationTicks ?? eff.Result.TpoPocMigrationTicks;
+        var valueMigration = eff.Result.VolumeValueCentroidMigrationTicks
+                             ?? eff.Result.TpoValueCentroidMigrationTicks;
+        var structureAlignment = DeriveAlignment(eff.ResultDirection, pocMigration ?? valueMigration);
+
+        // --- Maintenance component (v1.3 §5.2): did pullbacks hold? ---
+        var retainedTicks = eff.Result.ProgressRetainedTicks;
+        var retentionRatio = eff.Result.ProgressRetentionRatio;
+        var timeAtExcursion = eff.Result.TimeAtMaximumExcursion;
+
+        // G-TF-002: count what is actually measurable. A verdict needs all four.
+        var componentCount = 0;
+        if (dirConsistentVolume.HasValue) componentCount++;                       // Activity
+        if (favorableTicks.HasValue) componentCount++;                            // Progress
+        if (structureAlignment is FacilitationComponentAlignment.Aligned
+            or FacilitationComponentAlignment.Opposed
+            or FacilitationComponentAlignment.Flat) componentCount++;             // Structure
+        if (retentionRatio.HasValue) componentCount++;                            // Maintenance
+
         var lim = new List<string>
         {
             TradeFacilitationPolicyConfig.LimitationNotCalibrated,
@@ -205,6 +227,13 @@ public sealed class TradeFacilitationHost
             lim.Add(TradeFacilitationPolicyConfig.LimitationProgressUnavailable);
         if (eff.ResultDirection == EfficiencyResultDirection.Unknown)
             lim.Add(TradeFacilitationPolicyConfig.LimitationDirectionUnavailable);
+        if (structureAlignment is FacilitationComponentAlignment.Unavailable
+            or FacilitationComponentAlignment.Unknown)
+            lim.Add(TradeFacilitationPolicyConfig.LimitationStructureUnavailable);
+        if (!retentionRatio.HasValue)
+            lim.Add(TradeFacilitationPolicyConfig.LimitationMaintenanceUnavailable);
+        if (componentCount < TradeFacilitationPolicyConfig.RequiredComponents)
+            lim.Add(TradeFacilitationPolicyConfig.LimitationComponentsIncomplete);
 
         return new TradeFacilitationSnapshot(
             tfId,
@@ -220,6 +249,13 @@ public sealed class TradeFacilitationHost
             dirConsistentRatio,
             favorableTicks,
             ticksPerUnit,
+            pocMigration,
+            valueMigration,
+            structureAlignment,
+            retainedTicks,
+            retentionRatio,
+            timeAtExcursion,
+            componentCount,
             eff.StateVersion,
             eff.EventRevision,
             nowUtc,
@@ -287,5 +323,28 @@ public sealed class TradeFacilitationHost
             null, 0, 0,
             _createdAtUtc, now,
             lim);
+    }
+
+    /// <summary>
+    /// Sign comparison between a structural migration and the attempted direction.
+    /// Deliberately magnitude-free: whether a migration is LARGE ENOUGH to count is
+    /// the calibrated question (v1.3 G-TF-004, stratified by regime).
+    /// </summary>
+    private static FacilitationComponentAlignment DeriveAlignment(
+        EfficiencyResultDirection direction, long? migrationTicks)
+    {
+        if (!migrationTicks.HasValue)
+            return FacilitationComponentAlignment.Unavailable;
+
+        if (direction is EfficiencyResultDirection.Unknown or EfficiencyResultDirection.Flat)
+            return FacilitationComponentAlignment.Unknown;
+
+        var m = migrationTicks.Value;
+        if (m == 0L) return FacilitationComponentAlignment.Flat;
+
+        var followsAttempt = direction == EfficiencyResultDirection.Up ? m > 0L : m < 0L;
+        return followsAttempt
+            ? FacilitationComponentAlignment.Aligned
+            : FacilitationComponentAlignment.Opposed;
     }
 }

@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2G CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 2F-b CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.18.0** (Phase 2G: Old Value Reclaim) |
+| Runtime snapshot schema | **0.19.0** (Phase 2F-b: Facilitation components) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -27,7 +27,8 @@
 | Signal Maturity policy | **SIGNAL_MATURITY_POLICY_V1** (Phase 3B) |
 | Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
-| Test count | **947** passed / 0 failed / 0 skipped |
+| Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
+| Test count | **975** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **14** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -302,6 +303,55 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 2F-b code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 975 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Runtime schema | `0.18.0` -> `0.19.0` |
+| Policy | `TRADE_FACILITATION_POLICY_V1` (extended; version unchanged) |
+| Source/deployed DLL SHA-256 | `7163C06ECB1E0971DCF393333D068922976E3F1D29980E699F6FEE0F286F3FEC` (exact match) |
+| Facilitation classification | **NOT CALIBRATED** — unchanged; completeness is a precondition, not a verdict |
+| GPS rows | 14 (unchanged — component rows nest inside the TRADE FACILITATION block) |
+| New Phase 2F-b tests | 28 tests (A01-E04); total 975 |
+| Spec source | v1.3 §5.2 `G-TF-002` / `G-TF-004`; KDK Ch 31 |
+
+### Why this phase exists
+
+KDK Ch 31 defines facilitation as a convergent conclusion from **four** components:
+Activity, Progress, Structure and Maintenance. Phase 2F shipped only the first two, so
+`G-TF-002` ("all four present or explicitly unavailable before Healthy/Failing") could
+not be satisfied even in principle.
+
+### Audit finding
+
+Every measurement needed already existed on `AuctionResultEvidenceVector` from Phase 2C —
+`VolumePocMigrationTicks`, `TpoPocMigrationTicks`, the value-centroid migrations,
+`ProgressRetainedTicks`, `ProgressRetentionRatio`, `TimeAtMaximumExcursion`. None of them
+had ever been surfaced to the facilitation module. No new measurement was required.
+
+### Phase 2F-b present (code/test)
+
+- `FacilitationComponentAlignment`: `Unavailable` / `Unknown` / `Aligned` / `Opposed` / `Flat`
+- `FacilitationComponent`: the four KDK Ch 31 components, named explicitly
+- **Structure**: signed POC migration (volume POC preferred over TPO POC — it reflects
+  executed activity rather than time distribution) plus value-centroid migration, compared
+  by SIGN against the attempted direction
+- **Maintenance**: `ProgressRetainedTicks`, `ProgressRetentionRatio`,
+  `TimeAtMaximumExcursion` — raw, unjudged
+- `AvailableComponentCount` (0..4) and `ComponentsComplete`, making `G-TF-002` assertable
+- Alignment is deliberately **magnitude-free** (test B11): whether a migration is large
+  enough to matter is regime-dependent and calibrated (`G-TF-004`)
+- Missing migration reports `Unavailable`, never `Flat` (test B07) — absent data must not
+  be read as "no migration"
+
+### Phase 2F-b NOT present (code/test)
+
+- Healthy / Failing verdict — still gated. Test D06 asserts that having all four
+  components does NOT unlock a classification: completeness is a precondition only.
+- Magnitude thresholds for migration or retention (`G-TF-004`, needs regime stratification)
 
 ## Phase 2G code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 
