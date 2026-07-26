@@ -10,6 +10,7 @@ using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
+using GC.AuctionFlow.Imbalance;
 using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
@@ -78,6 +79,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private ThesisContractHost? _thesisContractHost;
     private PlarHost? _plarHost;
     private PriceMemoryHost? _priceMemoryHost;
+    private ImbalanceHost? _imbalanceHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -144,6 +146,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowPlarDiagnostics = false;
         EnablePriceMemory = false;
         ShowPriceMemoryDiagnostics = false;
+        EnableImbalance = false;
+        ShowImbalanceDiagnostics = false;
         ShowThesisContractDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
@@ -478,6 +482,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Show the memory window and the most recent test records on the GPS card.")]
     public bool ShowPriceMemoryDiagnostics { get; set; }
 
+    [Category("Imbalance")]
+    [DisplayName("Enable Imbalance")]
+    [Description("Phase 2H imbalance context. Ratios come from Phase 2B; the qualifying rule and minimum-volume rule are NOT CALIBRATED, so no verdict is emitted.")]
+    public bool EnableImbalance { get; set; }
+
+    [Category("Imbalance")]
+    [DisplayName("Show Imbalance Diagnostics")]
+    [Description("Show per-level dominant side, classified volume and unknown-aggressor volume on the GPS card.")]
+    public bool ShowImbalanceDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -503,6 +517,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessAacThesis();
             ProcessPlar();
             ProcessPriceMemory();
+            ProcessImbalance();
             ProcessSignalMaturity();
             ProcessThesisContract();
             PublishRuntimeSnapshot();
@@ -1784,6 +1799,30 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessSignalMaturity();
     }
 
+    private void ProcessImbalance()
+    {
+        if (!EnableImbalance || Volatile.Read(ref _disposed) != 0)
+        {
+            _imbalanceHost = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new ImbalancePolicyConfig(enabled: true);
+            var cluster = EnableClusterRawFeatures ? _clusterHost?.Current : null;
+            var location = EnableDirectionalContext ? _directionalHost?.Current?.PriceLocation : null;
+
+            _imbalanceHost ??= new ImbalanceHost(policy);
+            _imbalanceHost.Configure(policy);
+            _imbalanceHost.Rebuild(cluster, location);
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
     private void ProcessPriceMemory()
     {
         if (!EnablePriceMemory || Volatile.Read(ref _disposed) != 0)
@@ -2268,6 +2307,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var thesisContract = EnableThesisContract ? _thesisContractHost?.Current : null;
             var plarSetForPublish = EnablePlar ? _plarHost?.Current : null;
             var priceMemory = EnablePriceMemory ? _priceMemoryHost?.Current : null;
+            var imbalance = EnableImbalance ? _imbalanceHost?.Current : null;
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
@@ -2322,7 +2362,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 plar: plarSetForPublish,
                 showPlarDiagnostics: ShowPlarDiagnostics,
                 priceMemory: priceMemory,
-                showPriceMemoryDiagnostics: ShowPriceMemoryDiagnostics);
+                showPriceMemoryDiagnostics: ShowPriceMemoryDiagnostics,
+                imbalance: imbalance,
+                showImbalanceDiagnostics: ShowImbalanceDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

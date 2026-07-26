@@ -6,6 +6,7 @@ using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Facilitation;
+using GC.AuctionFlow.Imbalance;
 using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Plar;
@@ -210,6 +211,7 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildThesisContractLines(snapshot.ThesisContract, snapshot.ShowThesisContractDiagnostics));
         details.AddRange(BuildPlarLines(snapshot.Plar, snapshot.ShowPlarDiagnostics));
         details.AddRange(BuildPriceMemoryLines(snapshot.PriceMemory, snapshot.ShowPriceMemoryDiagnostics));
+        details.AddRange(BuildImbalanceLines(snapshot.Imbalance, snapshot.ShowImbalanceDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -262,7 +264,10 @@ public static class AuctionGpsCardMapper
                     : "PATH: " + snapshot.Plar.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.PriceMemory is null
                     ? "MEMORY: NOT AVAILABLE"
-                    : "MEMORY: " + snapshot.PriceMemory.ModuleState.ToString().ToUpperInvariant()
+                    : "MEMORY: " + snapshot.PriceMemory.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.Imbalance is null
+                    ? "IMBALANCE: NOT AVAILABLE"
+                    : "IMBALANCE: " + snapshot.Imbalance.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1787,6 +1792,55 @@ public static class AuctionGpsCardMapper
                          + r.Outcome.ToString().ToUpperInvariant()
                          + " ATT " + r.AttemptCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
+
+        return rows;
+    }
+
+    /// <summary>
+    /// Imbalance rows (Phase 2H, KDK Ch 25). Ratios are shown with the volume they
+    /// came from, because a huge ratio on tiny volume is meaningless. No verdict is
+    /// emitted: both the ratio rule and the minimum-volume rule are calibrated.
+    /// </summary>
+    public static IReadOnlyList<string> BuildImbalanceLines(
+        ImbalanceSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case ImbalanceModuleState.Disabled:
+                rows.Add("IMBALANCE: DISABLED");
+                return rows;
+            case ImbalanceModuleState.AwaitingCluster:
+                rows.Add("IMBALANCE: AWAITING CLUSTER");
+                rows.Add("IMBALANCE RULE: NOT CALIBRATED");
+                return rows;
+            case ImbalanceModuleState.Invalid:
+                rows.Add("IMBALANCE: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == ImbalanceModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("IMBALANCE: " + state + " (" + set.Levels.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) + " LEVELS)");
+        rows.Add("IMBALANCE POLICY: " + set.PolicyVersion);
+        rows.Add("IMBALANCE RULE: NOT CALIBRATED");
+        rows.Add("MINIMUM VOLUME RULE: NOT CALIBRATED");
+        rows.Add("STACKED RULE: NOT CALIBRATED");
+        rows.Add("IMBALANCE LOCATION: " + set.LocationContext.ToString().ToUpperInvariant());
+        rows.Add("MAX SAME-SIDE RUN: " + set.MaximumConsecutiveDominanceTicks.ToString(System.Globalization.CultureInfo.InvariantCulture) + " TICKS");
+        if (set.LevelsWithoutRatioCount > 0)
+            rows.Add("LEVELS WITHOUT RATIO: " + set.LevelsWithoutRatioCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        if (!showDiagnostics) return rows;
+
+        rows.Add("IMBALANCE NOTE: EXECUTION ASYMMETRY, NOT ACCEPTANCE");
+        foreach (var l in set.Levels.Take(3))
+            rows.Add("  LVL " + l.DecimalPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + ": " + l.RawDominantSide.ToString().ToUpperInvariant()
+                     + " VOL " + l.ClassifiedVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + " UNK " + l.UnknownAggressorVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + " [" + l.Qualification.ToString().ToUpperInvariant() + "]");
 
         return rows;
     }

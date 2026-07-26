@@ -8,6 +8,7 @@ using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
+using GC.AuctionFlow.Imbalance;
 using GC.AuctionFlow.Memory;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
@@ -93,7 +94,9 @@ public sealed class GcaeRuntimeEngine
         PlarSetSnapshot? plar = null,
         bool showPlarDiagnostics = false,
         PriceMemorySetSnapshot? priceMemory = null,
-        bool showPriceMemoryDiagnostics = false)
+        bool showPriceMemoryDiagnostics = false,
+        ImbalanceSetSnapshot? imbalance = null,
+        bool showImbalanceDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -139,6 +142,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("PLAR_STATUS=" + plar.ModuleState);
         if (priceMemory is not null)
             profileExtra.Add("PRICE_MEMORY_STATUS=" + priceMemory.ModuleState);
+        if (imbalance is not null)
+            profileExtra.Add("IMBALANCE_STATUS=" + imbalance.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -198,6 +203,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(plar.Limitations);
         if (priceMemory?.Limitations is not null)
             limitations.AddRange(priceMemory.Limitations);
+        if (imbalance?.Limitations is not null)
+            limitations.AddRange(imbalance.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -251,7 +258,9 @@ public sealed class GcaeRuntimeEngine
             plar,
             showPlarDiagnostics,
             priceMemory,
-            showPriceMemoryDiagnostics);
+            showPriceMemoryDiagnostics,
+            imbalance,
+            showImbalanceDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 1I CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 2H CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.22.0** (Phase 1I: Price memory) |
+| Runtime snapshot schema | **0.23.0** (Phase 2H: Imbalance) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -28,14 +28,16 @@
 | Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
 | PLAR policy | **PLAR_POLICY_V1** (Phase 3E) |
 | Price Memory policy | **PRICE_MEMORY_POLICY_V1** (Phase 1I) |
+| Imbalance policy | **IMBALANCE_POLICY_V1** (Phase 2H) |
 | Phase 2G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Old Value Reclaim Test (extends `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
 | Phase 3E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR / Target Engine (`PLAR_POLICY_V1`) |
 | Phase 3E-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR published to runtime + GPS |
 | Phase 1I | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Price Memory / Retest Ledger (`PRICE_MEMORY_POLICY_V1`) |
-| Test count | **1103** passed / 0 failed / 0 skipped |
-| GPS diagnostic rows | **16** |
+| Phase 2H | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Imbalance context + gate (`IMBALANCE_POLICY_V1`) |
+| Test count | **1137** passed / 0 failed / 0 skipped |
+| GPS diagnostic rows | **17** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
@@ -309,6 +311,60 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 2H code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1137 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Runtime schema | `0.22.0` -> `0.23.0` |
+| Policy | `IMBALANCE_POLICY_V1` |
+| Source/deployed DLL SHA-256 | `0C2F2D1258C00451EF34BA60D9DC6C5D9B7BE80410E0D929FA462173CC305CF5` (exact match) |
+| Qualification / Stacked | **NOT CALIBRATED** — both rules reserved |
+| GPS rows | **17** (was 16); `IMBALANCE:` row added |
+| New Phase 2H tests | 34 tests (A01-F04); total 1137 |
+| Spec source | KDK Ch 25; v1.3 AP-018 |
+
+### Scope note — read before expecting new measurement
+
+Phase 2B already computes **every ratio KDK Ch 25 needs**: same-price both directions,
+diagonal both directions, raw dominant side, consecutive dominance run.
+
+The rest of Ch 25 — the ratio rule and the minimum-volume rule — is calibrated. So this
+phase adds **one new measurement** (location context) and is otherwise a **gate and
+context module**, not a measurement module. That is stated plainly rather than dressed up.
+
+### The one new measurement
+
+`ImbalanceLocationContext` (KDK Ch 25 "Vị trí"): mid-value imbalance may be nothing more
+than part of a rotation; imbalance at a boundary inside an episode is more notable.
+`MidValue` / `ValueBoundary` / `OutsideValue` / `Unavailable`.
+
+Location is resolved **before** any early return, because knowing where price sits does
+not require a populated ladder. Reporting `Unavailable` while the location is actually
+known would be a lie — a test caught this during implementation.
+
+### Phase 2H present (code/test)
+
+- Both comparison modes named (`SamePrice`, `Diagonal`) — KDK ranks neither as
+  universally correct, so both ratios travel together
+- Ratio **never carried without the volume behind it**: `ClassifiedVolume`,
+  `UnknownAggressorVolume` and `AggressorCoverageRatio` are on every level, because a
+  huge ratio on tiny volume is meaningless
+- Unknown-aggressor volume is **disclosed, not dropped** (KDK Ch 25 mistake list)
+- `LevelsWithoutRatioCount` — levels where aggressor classification produced no ratio at
+  all; `Unavailable`, never zero
+- AP-018 enforced structurally: test B05 asserts the snapshots carry **no acceptance,
+  re-entry, resolution or thesis surface**, so acceptance cannot be read out of an
+  imbalance
+- `IMBALANCE_IS_NOT_PERMANENT_SUPPORT_RESISTANCE` — the KDK Ch 25 mistake of treating a
+  stack as permanent support or resistance
+
+### Phase 2H NOT present (code/test)
+
+- Ask/Bid imbalance qualification (ratio rule calibrated)
+- Stacked imbalance labelling (stack size calibrated)
+- Any threshold constant — test D04 asserts the policy exposes none
 
 ## Phase 1I code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 

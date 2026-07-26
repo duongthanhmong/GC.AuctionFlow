@@ -522,8 +522,8 @@ public sealed class Phase3CThesisContractTests
     }
 
     [Fact]
-    public void K01_SnapshotVersion_is_0_22_0() =>
-        Assert.Equal("0.22.0", GcaeRuntimeSnapshot.SnapshotVersion);
+    public void K01_SnapshotVersion_is_0_23_0() =>
+        Assert.Equal("0.23.0", GcaeRuntimeSnapshot.SnapshotVersion);
 
     [Fact]
     public void K02_Contract_defaults_to_null_on_snapshot() =>
@@ -541,10 +541,10 @@ public sealed class Phase3CThesisContractTests
     // ========== L: GPS card ==========
 
     [Fact]
-    public void L01_GpsCard_has_16_diagnostic_rows()
+    public void L01_GpsCard_has_17_diagnostic_rows()
     {
         var vm = AuctionGpsCardMapper.FromSnapshot(PublishWith(null), showDiagnostics: true);
-        Assert.Equal(16, vm.DiagnosticRows.Count);
+        Assert.Equal(17, vm.DiagnosticRows.Count);
         Assert.Contains("CONTRACT: NOT AVAILABLE", vm.DiagnosticRows);
     }
 
