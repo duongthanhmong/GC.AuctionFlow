@@ -8,6 +8,7 @@ using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
+using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Resolution;
@@ -199,6 +200,7 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildAacThesisLines(
             snapshot.AacThesis,
             snapshot.ShowAacThesisDiagnostics));
+        details.AddRange(BuildParticipationLines(snapshot.Participation));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -1068,6 +1070,37 @@ public static class AuctionGpsCardMapper
 
         return rows;
     }
+
+    public static IReadOnlyList<string> BuildParticipationLines(ParticipationSetSnapshot? set)
+    {
+        if (set is null)
+            return Array.Empty<string>();
+
+        var rows = new List<string>
+        {
+            "SETTLEMENT TAG: " + FormatSettlementTag(set.SettlementProximity.Tag),
+            "THIN PARTICIPATION: " + FormatThinParticipation(set.ThinParticipation.Label)
+        };
+        return rows;
+    }
+
+    private static string FormatSettlementTag(SettlementProximityTag tag) => tag switch
+    {
+        SettlementProximityTag.PreSettlement => "PRE_SETTLEMENT",
+        SettlementProximityTag.SettlementTransition => "SETTLEMENT_TRANSITION",
+        SettlementProximityTag.PostSettlement => "POST_SETTLEMENT",
+        _ => "UNKNOWN"
+    };
+
+    private static string FormatThinParticipation(ThinParticipationLabel label) => label switch
+    {
+        ThinParticipationLabel.NotCalibrated => "NOT CALIBRATED",
+        ThinParticipationLabel.NormalParticipation => "NORMAL",
+        ThinParticipationLabel.ReducedParticipation => "REDUCED",
+        ThinParticipationLabel.ThinParticipation => "THIN",
+        ThinParticipationLabel.DislocatedParticipation => "DISLOCATED",
+        _ => label.ToString().ToUpperInvariant()
+    };
 
     private static void AppendAuctionEfficiencyCoreRows(List<string> rows, AuctionEfficiencyEvidenceSnapshot? a)
     {

@@ -489,7 +489,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: ep.Current, acceptanceReentryEvidence: ev.Current);
-        Assert.Equal("0.13.0", snap.Version);
+        Assert.Equal("0.14.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(ev.Current, snap.AcceptanceReentryEvidence);
 
@@ -574,7 +574,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
     public void Policy_VersionAndLimitations()
     {
         Assert.Equal("ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1", AcceptanceReentryEvidencePolicyConfig.PolicyVersion);
-        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.14.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.Equal("CENTERLINE_ACCEPTANCE_GEOMETRY_NOT_APPLICABLE",
             AcceptanceReentryEvidencePolicyConfig.LimitationCenterlineNotApplicable);
     }

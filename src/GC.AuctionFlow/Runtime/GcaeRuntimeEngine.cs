@@ -7,6 +7,7 @@ using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
+using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
@@ -78,7 +79,8 @@ public sealed class GcaeRuntimeEngine
         FarThesisSetSnapshot? farThesis = null,
         bool showFarThesisDiagnostics = false,
         AacThesisSetSnapshot? aacThesis = null,
-        bool showAacThesisDiagnostics = false)
+        bool showAacThesisDiagnostics = false,
+        ParticipationSetSnapshot? participation = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -164,6 +166,12 @@ public sealed class GcaeRuntimeEngine
         if (aacThesis?.Limitations is not null)
             limitations.AddRange(aacThesis.Limitations);
 
+        var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
+            SettlementProximityClassifier.Classify(now),
+            ThinParticipationClassifier.ClassifyNotCalibrated());
+        if (resolvedParticipation.KnownLimitations is not null)
+            limitations.AddRange(resolvedParticipation.KnownLimitations);
+
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
             contract,
@@ -200,7 +208,8 @@ public sealed class GcaeRuntimeEngine
             farThesis,
             showFarThesisDiagnostics,
             aacThesis,
-            showAacThesisDiagnostics);
+            showAacThesisDiagnostics,
+            resolvedParticipation);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

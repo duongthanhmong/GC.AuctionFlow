@@ -607,7 +607,7 @@ public sealed class Phase2DAcceptanceReentryResolutionTests
 
         Assert.NotNull(snap.AuctionResolution);
         Assert.Equal(ResolutionModuleState.Ready, snap.AuctionResolution!.ModuleState);
-        Assert.Equal("0.13.0", snap.Version);
+        Assert.Equal("0.14.0", snap.Version);
     }
 
     [Fact]
@@ -636,7 +636,7 @@ public sealed class Phase2DAcceptanceReentryResolutionTests
     [Fact]
     public void I03_RuntimeSnapshot_Version_Bumped_To_0_11_0()
     {
-        Assert.Equal("0.13.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.14.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     // â”€â”€â”€ J. ResolutionIdentity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

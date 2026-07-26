@@ -9,6 +9,7 @@ using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Orderflow;
+using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
@@ -2014,6 +2015,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var effortResult = EnableEffortResultClassifier ? _effortResultHost?.Current : null;
             var farThesis = EnableFarThesis ? _farThesisHost?.Current : null;
             var aacThesis = EnableAacThesis ? _aacThesisHost?.Current : null;
+            var participation = new ParticipationSetSnapshot(
+                SettlementProximityClassifier.Classify(DateTime.UtcNow),
+                ThinParticipationClassifier.ClassifyNotCalibrated());
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -2055,7 +2059,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 farThesis: farThesis,
                 showFarThesisDiagnostics: ShowFarThesisDiagnostics,
                 aacThesis: aacThesis,
-                showAacThesisDiagnostics: ShowAacThesisDiagnostics);
+                showAacThesisDiagnostics: ShowAacThesisDiagnostics,
+                participation: participation);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
