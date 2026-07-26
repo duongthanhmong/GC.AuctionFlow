@@ -1,4 +1,4 @@
-using GC.AuctionFlow.Core;
+﻿using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -9,7 +9,7 @@ using Xunit;
 
 namespace GC.AuctionFlow.Tests.Unit.Episode;
 
-/// <summary>Phase 1E Auction Episode Observation Foundation — geometric, no Acceptance/Sweep.</summary>
+/// <summary>Phase 1E Auction Episode Observation Foundation â€” geometric, no Acceptance/Sweep.</summary>
 public sealed class Phase1EAuctionEpisodeTests
 {
     private const decimal Tick = 0.1m;
@@ -237,7 +237,7 @@ public sealed class Phase1EAuctionEpisodeTests
         var r = Ref(ReferenceType.PreviousPrimaryTpoVah, 100.2m);
         host.RebuildContext(Profiles(), RefSet(r), null, Utc(24));
         host.ProcessTrade(Trade(1, 100.3m, 5m, ask: true), Utc(24).AddSeconds(1));
-        host.ProcessTrade(Trade(2, 100.1m, 99m, ask: true), Utc(24).AddSeconds(2)); // inside — not outside volume
+        host.ProcessTrade(Trade(2, 100.1m, 99m, ask: true), Utc(24).AddSeconds(2)); // inside â€” not outside volume
         var ep = host.Current!.ActiveEpisodes[0];
         Assert.Equal(5m, ep.CanonicalOutsideExecutedVolume);
         Assert.Equal(1, ep.CanonicalOutsideTradeCount);
@@ -334,7 +334,7 @@ public sealed class Phase1EAuctionEpisodeTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: host.Current);
-        Assert.Equal("0.9.0", snap.Version);
+        Assert.Equal("0.11.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
     }
 

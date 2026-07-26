@@ -2,12 +2,14 @@ using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
+using GC.AuctionFlow.Resolution;
 
 namespace GC.AuctionFlow.Runtime;
 
@@ -64,7 +66,11 @@ public sealed class GcaeRuntimeEngine
         ExecutedOrderflowSetSnapshot? executedOrderflow = null,
         bool showExecutedOrderflowDiagnostics = false,
         ClusterRawSetSnapshot? clusterRaw = null,
-        bool showClusterRawDiagnostics = false)
+        bool showClusterRawDiagnostics = false,
+        AuctionEfficiencyEvidenceSetSnapshot? auctionEfficiency = null,
+        bool showAuctionEfficiencyDiagnostics = false,
+        AuctionResolutionSetSnapshot? auctionResolution = null,
+        bool showAuctionResolutionDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -90,6 +96,10 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("ORDERFLOW_STATUS=" + executedOrderflow.ModuleState);
         if (clusterRaw is not null)
             profileExtra.Add("CLUSTER_RAW_STATUS=" + clusterRaw.ModuleState);
+        if (auctionEfficiency is not null)
+            profileExtra.Add("AUCTION_EFFICIENCY_STATUS=" + auctionEfficiency.ModuleState);
+        if (auctionResolution is not null)
+            profileExtra.Add("RESOLUTION_STATUS=" + auctionResolution.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -129,6 +139,10 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(executedOrderflow.Limitations);
         if (clusterRaw?.Limitations is not null)
             limitations.AddRange(clusterRaw.Limitations);
+        if (auctionEfficiency?.Limitations is not null)
+            limitations.AddRange(auctionEfficiency.Limitations);
+        if (auctionResolution?.Limitations is not null)
+            limitations.AddRange(auctionResolution.Limitations);
 
         var snapshot = new GcaeRuntimeSnapshot(
             gate,
@@ -156,7 +170,11 @@ public sealed class GcaeRuntimeEngine
             executedOrderflow,
             showExecutedOrderflowDiagnostics,
             clusterRaw,
-            showClusterRawDiagnostics);
+            showClusterRawDiagnostics,
+            auctionEfficiency,
+            showAuctionEfficiencyDiagnostics,
+            auctionResolution,
+            showAuctionResolutionDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;
@@ -287,6 +305,11 @@ public sealed class GcaeRuntimeEngine
             "EpisodeActiveCount",
             previous?.AuctionEpisodes?.ActiveEpisodes.Count.ToString(),
             next.AuctionEpisodes?.ActiveEpisodes.Count.ToString() ?? "",
+            next.DataGate.PrimaryReasonCode);
+        Track(
+            "AuctionEfficiencyState",
+            previous?.AuctionEfficiency?.ModuleState.ToString(),
+            next.AuctionEfficiency?.ModuleState.ToString() ?? "",
             next.DataGate.PrimaryReasonCode);
     }
 

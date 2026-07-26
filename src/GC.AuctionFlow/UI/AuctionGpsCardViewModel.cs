@@ -3,11 +3,13 @@ using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
+using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Runtime;
 
 namespace GC.AuctionFlow.UI;
@@ -180,6 +182,12 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildClusterRawLines(
             snapshot.ClusterRaw,
             snapshot.ShowClusterRawDiagnostics));
+        details.AddRange(BuildAuctionEfficiencyLines(
+            snapshot.AuctionEfficiency,
+            snapshot.ShowAuctionEfficiencyDiagnostics));
+        details.AddRange(BuildAuctionResolutionLines(
+            snapshot.AuctionResolution,
+            snapshot.ShowAuctionResolutionDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -203,6 +211,12 @@ public static class AuctionGpsCardMapper
                 snapshot.ClusterRaw is null
                     ? "CLUSTER RAW: NOT AVAILABLE"
                     : "CLUSTER RAW: " + snapshot.ClusterRaw.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.AuctionEfficiency is null
+                    ? "AUCTION EFFICIENCY: NOT AVAILABLE"
+                    : "AUCTION EFFICIENCY: " + snapshot.AuctionEfficiency.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.AuctionResolution is null
+                    ? "RESOLUTION: NOT AVAILABLE"
+                    : "RESOLUTION: " + snapshot.AuctionResolution.ModuleState.ToString().ToUpperInvariant(),
                 "THESIS: NOT AVAILABLE"
             }
             : new List<string>();
@@ -754,6 +768,199 @@ public static class AuctionGpsCardMapper
         }
 
         return rows;
+    }
+
+    public static IReadOnlyList<string> BuildAuctionEfficiencyLines(
+        AuctionEfficiencyEvidenceSetSnapshot? set,
+        bool showDiagnostics)
+    {
+        if (set is null || set.ModuleState == EfficiencyModuleState.Disabled)
+            return Array.Empty<string>();
+
+        var rows = new List<string>();
+        switch (set.ModuleState)
+        {
+            case EfficiencyModuleState.AwaitingOrderflow:
+                rows.Add("AUCTION EFFICIENCY: AWAITING ORDERFLOW");
+                rows.Add("EFFICIENCY POLICY: " + set.PolicyVersion);
+                break;
+            case EfficiencyModuleState.AwaitingEpisode:
+                rows.Add("AUCTION EFFICIENCY: PARTIAL");
+                rows.Add("EFFICIENCY POLICY: " + set.PolicyVersion);
+                rows.Add("EFFICIENCY SCOPE: CURRENT AUCTION");
+                rows.Add("EPISODE EFFICIENCY: AWAITING EPISODE");
+                AppendAuctionEfficiencyCoreRows(rows, set.CurrentAuctionEvidence);
+                break;
+            case EfficiencyModuleState.Partial:
+                rows.Add("AUCTION EFFICIENCY: PARTIAL");
+                rows.Add("EFFICIENCY POLICY: " + set.PolicyVersion);
+                AppendAuctionEfficiencyCoreRows(rows, set.CurrentAuctionEvidence);
+                AppendEpisodeEfficiencyRows(rows, set);
+                break;
+            case EfficiencyModuleState.Ready:
+                rows.Add("AUCTION EFFICIENCY: READY");
+                rows.Add("EFFICIENCY POLICY: " + set.PolicyVersion);
+                AppendAuctionEfficiencyCoreRows(rows, set.CurrentAuctionEvidence);
+                AppendEpisodeEfficiencyRows(rows, set);
+                break;
+            case EfficiencyModuleState.Invalid:
+                rows.Add("AUCTION EFFICIENCY: INVALID");
+                rows.Add("EFFICIENCY POLICY: " + set.PolicyVersion);
+                rows.Add("EFFICIENCY LIMITATION: " + (set.Limitations.FirstOrDefault() ?? "INVALID"));
+                break;
+            default:
+                rows.Add("AUCTION EFFICIENCY: " + set.ModuleState.ToString().ToUpperInvariant());
+                break;
+        }
+
+        rows.Add("EFFICIENCY HISTORY: LIVE_ONLY");
+        rows.Add("EFFICIENCY CLASSIFICATION: NOT CALIBRATED");
+
+        if (showDiagnostics
+            && set.ModuleState is EfficiencyModuleState.Ready or EfficiencyModuleState.Partial
+                or EfficiencyModuleState.AwaitingEpisode or EfficiencyModuleState.AwaitingOrderflow)
+        {
+            var a = set.CurrentAuctionEvidence;
+            if (a is not null)
+            {
+                rows.Add("EFFICIENCY SNAPSHOT ID: " + Truncate(a.SnapshotId, 96));
+                rows.Add("EFFICIENCY STATE VER: " + a.StateVersion.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EFFICIENCY EVENT REV: " + a.EventRevision.ToString(CultureInfo.InvariantCulture));
+                rows.Add("EFFICIENCY FINGERPRINT: " + Truncate(a.InputFingerprint, 96));
+                rows.Add("EFFORT ASK/BID/UNK: "
+                         + FormatOptionalVolume(a.Effort.AskVolume) + "/"
+                         + FormatOptionalVolume(a.Effort.BidVolume) + "/"
+                         + a.Effort.UnknownAggressorVolume.ToString(CultureInfo.InvariantCulture));
+                rows.Add("RESULT FIRST/LATEST: "
+                         + (a.Result.FirstPriceTick?.ToString(CultureInfo.InvariantCulture) ?? "—") + "/"
+                         + (a.Result.LatestPriceTick?.ToString(CultureInfo.InvariantCulture) ?? "—"));
+                rows.Add("TPO POC START/LATEST: "
+                         + (a.Result.DevelopingTpoPocStartTick?.ToString(CultureInfo.InvariantCulture) ?? "—") + "/"
+                         + (a.Result.DevelopingTpoPocLatestTick?.ToString(CultureInfo.InvariantCulture) ?? "—"));
+            }
+
+            if (set.InputFingerprint.HasValue)
+                rows.Add("EFFICIENCY INPUT FP: " + Truncate(set.InputFingerprint.Value.ToString(), 96));
+            if (!string.IsNullOrEmpty(set.LastRejectionReason))
+                rows.Add("EFFICIENCY LAST REJECT: " + set.LastRejectionReason);
+            if (set.Limitations.Count > 0)
+                rows.Add("EFFICIENCY LIMITATIONS: " + Truncate(string.Join(",", set.Limitations.Take(6)), 96));
+        }
+
+        return rows;
+    }
+
+    public static IReadOnlyList<string> BuildAuctionResolutionLines(
+        AuctionResolutionSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case ResolutionModuleState.Disabled:
+                rows.Add("RESOLUTION: DISABLED");
+                return rows;
+            case ResolutionModuleState.AwaitingEvidence:
+                rows.Add("RESOLUTION: AWAITING EVIDENCE");
+                rows.Add("RESOLUTION POLICY: " + set.PolicyVersion);
+                rows.Add("RESOLUTION CONCLUSION: NOT CALIBRATED");
+                return rows;
+            case ResolutionModuleState.Invalid:
+                rows.Add("RESOLUTION: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == ResolutionModuleState.Ready ? "READY" : "PARTIAL";
+        rows.Add("RESOLUTION: " + state + " (" + set.ActiveResolutions.Count + " ACTIVE)");
+        rows.Add("RESOLUTION POLICY: " + set.PolicyVersion);
+        rows.Add("RESOLUTION CONCLUSION: NOT CALIBRATED");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("ACCEPTANCE RESOLUTION: " + latest.AcceptanceResolution.ToString().ToUpperInvariant());
+            rows.Add("REENTRY RESOLUTION: " + latest.ReentryResolution.ToString().ToUpperInvariant());
+            if (!string.IsNullOrEmpty(latest.ReferenceId))
+                rows.Add("RESOLUTION REF: " + Truncate(latest.ReferenceId, 48));
+        }
+
+        if (showDiagnostics)
+        {
+            rows.Add("RESOLUTION ACTIVE: " + set.ActiveResolutions.Count.ToString(CultureInfo.InvariantCulture));
+            rows.Add("RESOLUTION CLOSED: " + set.RecentlyClosedResolutions.Count.ToString(CultureInfo.InvariantCulture));
+            rows.Add("RESOLUTION READY: " + set.ReadyCount.ToString(CultureInfo.InvariantCulture)
+                     + " PARTIAL: " + set.PartialCount.ToString(CultureInfo.InvariantCulture));
+            if (latest is not null)
+            {
+                rows.Add("RESOLUTION ID: " + Truncate(latest.ResolutionId, 56));
+                rows.Add("RESOLUTION ACC OBS: " + latest.InputAcceptanceObservation.ToString().ToUpperInvariant());
+                rows.Add("RESOLUTION REENTRY OBS: " + latest.InputReentryObservation.ToString().ToUpperInvariant());
+                rows.Add("RESOLUTION STATE VER: " + latest.StateVersion.ToString(CultureInfo.InvariantCulture));
+                rows.Add("RESOLUTION EVENT REV: " + latest.EventRevision.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        return rows;
+    }
+
+    private static void AppendAuctionEfficiencyCoreRows(List<string> rows, AuctionEfficiencyEvidenceSnapshot? a)
+    {
+        if (a is null)
+            return;
+
+        rows.Add("EFFICIENCY COVERAGE: " + a.CoverageMode.ToString().ToUpperInvariant());
+        rows.Add("EFFORT VOLUME: " + a.Effort.TotalExecutedVolume.ToString(CultureInfo.InvariantCulture));
+        rows.Add("EFFORT TRADES: " + a.Effort.TradeCount.ToString(CultureInfo.InvariantCulture));
+        rows.Add("EFFORT CLASSIFIED DELTA: "
+                 + (a.Effort.AskVolume is null || a.Effort.BidVolume is null
+                     ? "unavailable"
+                     : a.Effort.ClassifiedDelta.ToString(CultureInfo.InvariantCulture)));
+        rows.Add("RESULT NET PROGRESS: "
+                 + (a.Result.NetPriceProgressTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable") + " ticks");
+        rows.Add("RESULT RANGE: "
+                 + (a.Result.GrossRangeTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable") + " ticks");
+        rows.Add("RESULT FAVORABLE / ADVERSE: "
+                 + (a.Result.MaximumFavorableProgressTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable")
+                 + " / "
+                 + (a.Result.MaximumAdverseProgressTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"));
+        rows.Add("RESULT RETAINED: "
+                 + (a.Result.ProgressRetainedTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable") + " ticks");
+        rows.Add("PROGRESS PER CONTRACT: "
+                 + FormatOptionalRatio(a.RawRelationships.NetProgressPerExecutedContract));
+        rows.Add("PROGRESS PER TRADE: "
+                 + FormatOptionalRatio(a.RawRelationships.NetProgressPerTrade));
+    }
+
+    private static void AppendEpisodeEfficiencyRows(List<string> rows, AuctionEfficiencyEvidenceSetSnapshot set)
+    {
+        var ep = set.ActiveEpisodeEvidence.FirstOrDefault() ?? set.LatestUpdatedEvidence;
+        if (ep is null || ep.ScopeType == EfficiencyScopeType.CurrentPrimaryAuction)
+            return;
+
+        rows.Add("EPISODE EFFICIENCY: " + ep.MeasurementStatus.ToString().ToUpperInvariant());
+        if (!string.IsNullOrEmpty(ep.ReferenceId))
+            rows.Add("EPISODE REF: " + Truncate(ep.ReferenceId, 48));
+        rows.Add("EPISODE DIRECTION: " + ep.ResultDirection.ToString().ToUpperInvariant());
+        rows.Add("EPISODE EFFORT VOLUME: " + ep.Effort.TotalExecutedVolume.ToString(CultureInfo.InvariantCulture));
+        rows.Add("EPISODE RESULT PROGRESS: "
+                 + (ep.Result.NetPriceProgressTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable") + " ticks");
+        rows.Add("EPISODE OUTSIDE RATIOS: "
+                 + FormatOptionalRatio(ep.Result.OutsideTimeRatio) + "/"
+                 + FormatOptionalRatio(ep.Result.OutsideVolumeRatio) + "/"
+                 + FormatOptionalRatio(ep.Result.OutsideTradeRatio));
+        rows.Add("EPISODE GEOMETRIC REENTRY: "
+                 + (ep.Result.GeometricReentryObserved is null
+                     ? "unavailable"
+                     : ep.Result.GeometricReentryObserved.Value ? "YES" : "NO"));
+        rows.Add("EPISODE POC MIGRATION: "
+                 + (ep.Result.TpoPocMigrationTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable")
+                 + "/"
+                 + (ep.Result.VolumePocMigrationTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"));
+        rows.Add("EPISODE VALUE MIGRATION: "
+                 + (ep.Result.TpoValueCentroidMigrationTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable")
+                 + "/"
+                 + (ep.Result.VolumeValueCentroidMigrationTicks?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"));
     }
 
     private static void AppendClusterRawCoreRows(List<string> rows, ClusterRawSetSnapshot set)

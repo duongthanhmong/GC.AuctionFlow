@@ -1,4 +1,4 @@
-using GC.AuctionFlow.Core;
+﻿using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Probe;
@@ -12,7 +12,7 @@ namespace GC.AuctionFlow.Tests.Unit.Evidence;
 
 /// <summary>
 /// Phase 1F Acceptance / Re-entry Evidence Measurement Foundation.
-/// Measurement only — no Established Acceptance, Stable Reacceptance, FAR/AAC, or Thesis.
+/// Measurement only â€” no Established Acceptance, Stable Reacceptance, FAR/AAC, or Thesis.
 /// </summary>
 public sealed class Phase1FAcceptanceReentryEvidenceTests
 {
@@ -390,7 +390,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
         var sv = s0.StateVersion;
         var er = s0.EventRevision;
 
-        // Duplicate episode event — drain already empty; re-process same measurement should no-op.
+        // Duplicate episode event â€” drain already empty; re-process same measurement should no-op.
         ep.ProcessTrade(t1, Utc(24).AddSeconds(2));
         Assert.Empty(ep.DrainMeasurementEvents());
         var republish = ev.RebuildContext(ep.Current, Utc(24).AddSeconds(2));
@@ -455,7 +455,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
         ep.RebuildContext(Profiles(), RefSet(r), null, Utc(24));
         Drive(ep, ev, Trade(1, 100.3m), Utc(24).AddSeconds(1));
 
-        // Force invalid via stale/mismatch trade identity epoch — use host invalid path if available.
+        // Force invalid via stale/mismatch trade identity epoch â€” use host invalid path if available.
         // Simulate closed InvalidData by syncing a frozen invalid snapshot through Rebuild after marking.
         var active = ep.Current!.ActiveEpisodes[0];
         // Rebuild with empty refs closes episodes; then evidence sync freezes.
@@ -489,7 +489,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, DateTime.UtcNow, false, false, false, false, false, false,
             Profiles(), auctionEpisodes: ep.Current, acceptanceReentryEvidence: ev.Current);
-        Assert.Equal("0.9.0", snap.Version);
+        Assert.Equal("0.11.0", snap.Version);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState);
         Assert.Same(ev.Current, snap.AcceptanceReentryEvidence);
 
@@ -575,7 +575,7 @@ public sealed class Phase1FAcceptanceReentryEvidenceTests
     public void Policy_VersionAndLimitations()
     {
         Assert.Equal("ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1", AcceptanceReentryEvidencePolicyConfig.PolicyVersion);
-        Assert.Equal("0.9.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.11.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.Equal("CENTERLINE_ACCEPTANCE_GEOMETRY_NOT_APPLICABLE",
             AcceptanceReentryEvidencePolicyConfig.LimitationCenterlineNotApplicable);
     }

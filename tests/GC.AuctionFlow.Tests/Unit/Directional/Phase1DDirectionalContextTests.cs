@@ -1,4 +1,4 @@
-using GC.AuctionFlow.Composite;
+﻿using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Probe;
@@ -10,7 +10,7 @@ using Xunit;
 
 namespace GC.AuctionFlow.Tests.Unit.Directional;
 
-/// <summary>Phase 1D Multi-Horizon Directional Context Foundation — deterministic categorical evidence.</summary>
+/// <summary>Phase 1D Multi-Horizon Directional Context Foundation â€” deterministic categorical evidence.</summary>
 public sealed class Phase1DDirectionalContextTests
 {
     private const decimal Tick = 0.1m;
@@ -140,7 +140,7 @@ public sealed class Phase1DDirectionalContextTests
     public void A07_IncompleteNonOpposing_Transition()
     {
         var prev = MakeAuction("A", D(1), D(2), true, 100.5m, 99.5m, 100.0m, 100.2m, 99.8m, 100.0m, 100.2m, 99.8m);
-        // Fully above but POC unchanged → not Discovery; Transition.
+        // Fully above but POC unchanged â†’ not Discovery; Transition.
         var cur = MakeAuction("B", D(2), D(3), true, 101.5m, 100.6m, 100.0m, 101.2m, 100.6m, 100.0m, 101.2m, 100.6m);
         var e = PairwiseAuctionComparer.Compare(prev, cur, Tick);
         Assert.Equal(DirectionalAuctionState.Transition, e.ClassifiedState);
@@ -411,10 +411,10 @@ public sealed class Phase1DDirectionalContextTests
             directionalContext: s1);
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Directional Ready must not force global Ready
-        Assert.Equal("0.9.0", snap.Version);
+        Assert.Equal("0.11.0", snap.Version);
         Assert.Equal(DirectionalPolicyConfig.PolicyVersion, s1.PolicyVersion);
 
-        // Overlay cosmetic must not be in fingerprint — reference overlay absence unchanged.
+        // Overlay cosmetic must not be in fingerprint â€” reference overlay absence unchanged.
         var withRefsOff = DirectionalInputFingerprint.Build(
             true, true, profiles, null, null, Tick, Epoch, AtasTimestampNormalizer.PolicyVersion);
         Assert.Equal(unchanged.EvidenceKey, withRefsOff.EvidenceKey);

@@ -1,18 +1,20 @@
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
+using GC.AuctionFlow.Resolution;
 
 namespace GC.AuctionFlow.Runtime;
 
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.9.0";
+    public const string SnapshotVersion = "0.11.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -40,7 +42,11 @@ public sealed class GcaeRuntimeSnapshot
         ExecutedOrderflowSetSnapshot? executedOrderflow = null,
         bool showExecutedOrderflowDiagnostics = false,
         ClusterRawSetSnapshot? clusterRaw = null,
-        bool showClusterRawDiagnostics = false)
+        bool showClusterRawDiagnostics = false,
+        AuctionEfficiencyEvidenceSetSnapshot? auctionEfficiency = null,
+        bool showAuctionEfficiencyDiagnostics = false,
+        AuctionResolutionSetSnapshot? auctionResolution = null,
+        bool showAuctionResolutionDiagnostics = false)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -68,6 +74,10 @@ public sealed class GcaeRuntimeSnapshot
         ShowExecutedOrderflowDiagnostics = showExecutedOrderflowDiagnostics;
         ClusterRaw = clusterRaw;
         ShowClusterRawDiagnostics = showClusterRawDiagnostics;
+        AuctionEfficiency = auctionEfficiency;
+        ShowAuctionEfficiencyDiagnostics = showAuctionEfficiencyDiagnostics;
+        AuctionResolution = auctionResolution;
+        ShowAuctionResolutionDiagnostics = showAuctionResolutionDiagnostics;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -84,6 +94,8 @@ public sealed class GcaeRuntimeSnapshot
     public AcceptanceReentryEvidenceSetSnapshot? AcceptanceReentryEvidence { get; }
     public ExecutedOrderflowSetSnapshot? ExecutedOrderflow { get; }
     public ClusterRawSetSnapshot? ClusterRaw { get; }
+    public AuctionEfficiencyEvidenceSetSnapshot? AuctionEfficiency { get; }
+    public AuctionResolutionSetSnapshot? AuctionResolution { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
@@ -97,6 +109,8 @@ public sealed class GcaeRuntimeSnapshot
     public bool ShowAcceptanceReentryEvidenceDiagnostics { get; }
     public bool ShowExecutedOrderflowDiagnostics { get; }
     public bool ShowClusterRawDiagnostics { get; }
+    public bool ShowAuctionEfficiencyDiagnostics { get; }
+    public bool ShowAuctionResolutionDiagnostics { get; }
 }
 
 /// <summary>Thread-safe non-blocking publisher of immutable runtime snapshots.</summary>

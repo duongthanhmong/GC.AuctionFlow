@@ -1,4 +1,4 @@
-using GC.AuctionFlow.Cluster;
+﻿using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Orderflow;
@@ -12,7 +12,7 @@ namespace GC.AuctionFlow.Tests.Unit.Cluster;
 
 /// <summary>
 /// Phase 2B Cluster Raw Feature Measurement Foundation.
-/// Raw measurements only — no imbalance/extreme/absorption/Trade Facilitation.
+/// Raw measurements only â€” no imbalance/extreme/absorption/Trade Facilitation.
 /// </summary>
 public sealed class Phase2BClusterRawFeatureTests
 {
@@ -291,7 +291,7 @@ public sealed class Phase2BClusterRawFeatureTests
         Assert.NotEqual(firstVol + 1m, cl.Current.CurrentAuction.TotalExecutedVolume); // no cross-auction carry
 
         var rev = cl.Current.InputOrderflowEventRevision;
-        // fabricate stale by rebuilding with older publish without advancing — ProcessOrderflowUpdate rejects lower
+        // fabricate stale by rebuilding with older publish without advancing â€” ProcessOrderflowUpdate rejects lower
         // Covered by equal-revision idempotence above; stale counter path:
         Assert.True(rev >= 1);
     }
@@ -308,7 +308,7 @@ public sealed class Phase2BClusterRawFeatureTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, Utc(24), false, false, false, false, false, false,
             Profiles(), executedOrderflow: of.Current, clusterRaw: cl.Current, showClusterRawDiagnostics: true);
-        Assert.Equal("0.9.0", snap.Version);
+        Assert.Equal("0.11.0", snap.Version);
         Assert.Same(cl.Current, snap.ClusterRaw);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Cluster does not clear Data Gate
 
@@ -370,7 +370,8 @@ public sealed class Phase2BClusterRawFeatureTests
         Assert.Contains("EnableClusterRawFeatures = false", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.Equal("CLUSTER_RAW_FEATURE_POLICY_V1", ClusterRawFeaturePolicyConfig.PolicyVersion);
-        Assert.Equal("0.9.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.11.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Efficiency")));
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
     }
 }

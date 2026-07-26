@@ -2,10 +2,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 2B LOCKED — FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION** |
+| Current phase | **Phase 2D CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.9.0** (Cluster Raw fields) |
+| Runtime snapshot schema | **0.11.0** (Acceptance/Re-entry Resolution fields) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -14,7 +14,8 @@
 | Episode policy | **AUCTION_EPISODE_POLICY_V1** (unchanged) |
 | Evidence policy | **ACCEPTANCE_REENTRY_EVIDENCE_POLICY_V1** (unchanged) |
 | Orderflow policy | **EXECUTED_ORDERFLOW_POLICY_V1** (unchanged) |
-| Cluster Raw policy | **CLUSTER_RAW_FEATURE_POLICY_V1** |
+| Cluster Raw policy | **CLUSTER_RAW_FEATURE_POLICY_V1** (unchanged) |
+| Auction Efficiency policy | **AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1** |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
 | Phase 1A | **LOCKED** — `gcae-p1a-primary-tpo-volume-profile-pass` |
@@ -25,6 +26,8 @@
 | Phase 1F | **LOCKED FINAL PASS WITH DOCUMENTED LIVE EVIDENCE-LIFECYCLE COVERAGE LIMITATION** — `gcae-p1f-acceptance-reentry-evidence-measurement-pass` @ `bd892ea` |
 | Phase 2A | **LOCKED FINAL PASS WITH DOCUMENTED LIVE RAW-FEATURE COVERAGE LIMITATION** — `gcae-p2a-executed-orderflow-raw-feature-foundation-pass` @ `1603dfa` |
 | Phase 2B | **LOCKED FINAL PASS WITH DOCUMENTED LIVE CLASSIFIED-CLUSTER COVERAGE LIMITATION** — `gcae-p2b-cluster-raw-feature-measurement-pass` |
+| Phase 2C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Auction Efficiency Raw Evidence (`AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1`) |
+| Phase 2D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Acceptance/Re-entry Resolution (`ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -144,6 +147,78 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 | Acceptance/Re-entry Resolution | **NOT STARTED** |
 | FAR/AAC | **NOT STARTED** |
 
+## Phase 2C code/test (2026-07-25) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 497 passed ×2 / 0 failed / 0 skipped; Probe/Recorder 183 green; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Commit/tag | **HOLD** until live acceptance |
+| Runtime schema | `0.10.0` |
+| Policy | `AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Source/deployed DLL SHA-256 | `A22FFA7250AC89A26CEC4C92AF5FA81897B4B2ACAC7C3AE58BC03733439EFAA2` (exact match) |
+| Effort / Result | **raw evidence vectors only** — classification NOT CALIBRATED |
+| History | **LIVE_ONLY** |
+| Aggressor | may remain Unknown-only (Partial) |
+| Effort vs Result classifier | **NOT STARTED** |
+| Trade Facilitation | **NOT STARTED** |
+| Absorption / Exhaustion | **NOT STARTED** |
+| Resolution / FAR / AAC | **NOT STARTED** |
+
+### Phase 2C present (code/test)
+
+- Immutable Effort + Result vectors from Phase 2A/2B/1E/1F/Profile
+- Descriptive raw progress-per-unit relationships (null-safe; no EfficiencyScore)
+- Current-auction / active / closed Episode scopes; fingerprint-gated rebuild
+- Module default OFF; GPS rows; diagnostics OFF by default; no overlay/alerts
+- Does not mutate Orderflow/Cluster/Profile/Composite/Reference/Directional/Episode/Evidence
+
+### Explicitly deferred after Phase 2C
+
+- EffortResultBalanced / AggressionEffective/Ineffective
+- PotentialPassiveAbsorption / PotentialExhaustion
+- TradeFacilitationHealthy / TradeFacilitationFailing
+- Acceptance/Re-entry Resolution / FAR / AAC / Thesis / Entry / Risk
+
+## Phase 2D code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 544 passed / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Live acceptance | **REQUIRED** — focused gate pending |
+| Commit/tag | **HOLD** until live acceptance |
+| Runtime schema | `0.11.0` |
+| Policy | `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1` |
+| Assembly | `0.0.6` (unchanged) |
+| Source/deployed DLL SHA-256 | `981F5177721926D83BFFB228D542A0494E7536864D0C69670D6D07DED0DFAE48` (exact match) |
+| AcceptanceResolution | Early/Developing pass-through; Unresolved/Established/Failed → **NOT CALIBRATED** |
+| ReentryResolution | GeometricReentry/Developing pass-through; Unresolved/Stable/Failed → **NOT CALIBRATED** |
+| Overall conclusion | Always **NOT CALIBRATED** — FAR/AAC calibrated thresholds NOT AUTHORIZED |
+| History | **LIVE_ONLY** (inherited) |
+| New Phase 2D tests | 47 tests (A01–K04); total 544 |
+
+### Phase 2D present (code/test)
+
+- `AuctionResolutionHost` — fingerprint-gated rebuild from `AcceptanceReentryEvidenceSetSnapshot`
+- `AuctionResolutionSnapshot` / `AuctionResolutionSetSnapshot` — immutable versioned snapshots
+- `ResolutionIdentity.BuildFromEvidenceId()` — `ARES|{sanitized}|{policyVersion}` format
+- `ResolutionInputFingerprint` — IEquatable struct gating rebuild on evidence revision change
+- `AuctionResolutionPolicyConfig` — `ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`; 15 limitation constants
+- Resolution enums: `ResolutionModuleState`, `AcceptanceResolutionState`, `ReentryResolutionState`, `AuctionResolutionConclusion`, `ResolutionDataQuality`
+- GPS card rows via `AuctionGpsCardMapper.BuildAuctionResolutionLines()`; showDiagnostics-gated ID/version rows
+- RuntimeSnapshot schema bumped `0.10.0` → `0.11.0`; `AuctionResolution` property on `GcaeRuntimeSnapshot`
+- Indicator: `EnableAcceptanceReentryResolution` / `ShowAuctionResolutionDiagnostics` settings; module default OFF
+- GPS diagnostics list: `RESOLUTION:` status row added (9 rows total; was 8)
+
+### Explicitly deferred after Phase 2D
+
+- Established acceptance / Failed acceptance calibration (gated: NOT CALIBRATED)
+- Stable re-acceptance / Re-entry failed calibration (gated: NOT CALIBRATED)
+- FAR / AAC overall conclusion (NOT CALIBRATED)
+- Thesis / Entry / Risk phases
+- Overlay alerts
+
 ## Phase 2B final closeout (2026-07-25) — LOCKED
 
 | Gate | Result |
@@ -168,7 +243,7 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 | Imbalance / Stacked Imbalance | **NOT STARTED** |
 | Extreme Delta / Extreme Volume | **NOT STARTED** |
 | Big Trade | **NOT STARTED** |
-| Effort vs Result | **NOT STARTED** |
+| Effort vs Result classifier | **NOT STARTED** (Phase 2C is raw evidence only) |
 | Trade Facilitation | **NOT STARTED** |
 | Resolution/FAR/AAC | **NOT STARTED** |
 

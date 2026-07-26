@@ -4,6 +4,7 @@ using ATAS.Indicators;
 using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
+using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
@@ -12,6 +13,7 @@ using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
 using GC.AuctionFlow.Reference;
+using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Runtime;
 using GC.AuctionFlow.UI;
 using OFT.Rendering.Context;
@@ -54,6 +56,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private OrderflowInputFingerprint? _lastAppliedOrderflowFingerprint;
     private ClusterRawHost? _clusterHost;
     private ClusterRawInputFingerprint? _lastAppliedClusterFingerprint;
+    private AuctionEfficiencyHost? _efficiencyHost;
+    private EfficiencyInputFingerprint? _lastAppliedEfficiencyFingerprint;
+    private AuctionResolutionHost? _resolutionHost;
+    private ResolutionInputFingerprint? _lastAppliedResolutionFingerprint;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -102,6 +108,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowExecutedOrderflowDiagnostics = false;
         EnableClusterRawFeatures = false;
         ShowClusterRawDiagnostics = false;
+        EnableAuctionEfficiencyEvidence = false;
+        ShowAuctionEfficiencyDiagnostics = false;
+        EnableAcceptanceReentryResolution = false;
+        ShowAuctionResolutionDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -340,6 +350,26 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Cluster Raw provenance and limitations. Default false. No Bid/Ask Imbalance or Extreme wording.")]
     public bool ShowClusterRawDiagnostics { get; set; }
 
+    [Category("Auction Efficiency Evidence")]
+    [DisplayName("Enable Auction Efficiency Evidence")]
+    [Description("Raw Effort/Result evidence (AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1). Default false. No Effective/Ineffective/Absorption/Trade Facilitation.")]
+    public bool EnableAuctionEfficiencyEvidence { get; set; }
+
+    [Category("Auction Efficiency Evidence")]
+    [DisplayName("Show Auction Efficiency Diagnostics")]
+    [Description("Efficiency vector/fingerprint diagnostics. Default false. Classification remains NOT CALIBRATED.")]
+    public bool ShowAuctionEfficiencyDiagnostics { get; set; }
+
+    [Category("Acceptance/Reentry Resolution")]
+    [DisplayName("Enable Acceptance/Reentry Resolution")]
+    [Description("Reads Phase 1F evidence and maps observation states to resolution states (ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1). Default false. Established/Failed/FAR/AAC NOT CALIBRATED.")]
+    public bool EnableAcceptanceReentryResolution { get; set; }
+
+    [Category("Acceptance/Reentry Resolution")]
+    [DisplayName("Show Auction Resolution Diagnostics")]
+    [Description("Resolution id/state/revision diagnostics. Default false. Conclusions remain NOT CALIBRATED.")]
+    public bool ShowAuctionResolutionDiagnostics { get; set; }
+
     protected override void OnCalculate(int bar, decimal value)
     {
         EnsureProbesStarted();
@@ -356,8 +386,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessDirectionalContext();
             ProcessAuctionEpisodes();
             ProcessAcceptanceReentryEvidence();
+            ProcessAcceptanceReentryResolution();
             ProcessExecutedOrderflow();
             ProcessClusterRawFeatures();
+            ProcessAuctionEfficiencyEvidence();
             PublishRuntimeSnapshot();
         }
     }
@@ -745,6 +777,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _evidenceHost = null;
                 _orderflowHost = null;
                 _clusterHost = null;
+                _efficiencyHost = null;
+                _resolutionHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
@@ -752,6 +786,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _lastAppliedEvidenceFingerprint = null;
                 _lastAppliedOrderflowFingerprint = null;
                 _lastAppliedClusterFingerprint = null;
+                _lastAppliedEfficiencyFingerprint = null;
+                _lastAppliedResolutionFingerprint = null;
             }
 
             try { runtime?.Stop(); } catch { /* contained */ }
@@ -1236,6 +1272,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     evt.ReceiveTimestampUtc ?? evt.ExchangeTimestampUtc);
                 if (_clusterHost?.LastAppliedFingerprint is { } cfp)
                     _lastAppliedClusterFingerprint = cfp;
+
+                if (EnableAuctionEfficiencyEvidence)
+                {
+                    EnsureAuctionEfficiencyInitializedForPublish();
+                    ProcessAuctionEfficiencyEvidence();
+                }
             }
         }
         catch
@@ -1336,6 +1378,142 @@ public sealed class GcAuctionFlowIndicator : Indicator
         {
             // Contained.
         }
+    }
+
+    private void ProcessAuctionEfficiencyEvidence()
+    {
+        if (!EnableAuctionEfficiencyEvidence || Volatile.Read(ref _disposed) != 0)
+        {
+            _efficiencyHost = null;
+            _lastAppliedEfficiencyFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+            var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                           ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+            var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var policy = new AuctionEfficiencyEvidencePolicyConfig(enabled: true);
+            var orderflow = EnableExecutedOrderflow ? _orderflowHost?.Current : null;
+            var cluster = EnableClusterRawFeatures ? _clusterHost?.Current : null;
+            var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+            var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+            var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
+
+            _efficiencyHost ??= new AuctionEfficiencyHost(tick, identity, epoch, AtasTimestampNormalizer.PolicyVersion, policy);
+            _efficiencyHost.Configure(tick, identity, epoch, policy, AtasTimestampNormalizer.PolicyVersion);
+            _efficiencyHost.Rebuild(orderflow, cluster, episodes, evidence, profiles);
+
+            if (_efficiencyHost.Current is not null && _efficiencyHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedEfficiencyFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void ProcessAcceptanceReentryResolution()
+    {
+        if (!EnableAcceptanceReentryResolution || Volatile.Read(ref _disposed) != 0)
+        {
+            _resolutionHost = null;
+            _lastAppliedResolutionFingerprint = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new AuctionResolutionPolicyConfig(enabled: true);
+            var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
+
+            _resolutionHost ??= new AuctionResolutionHost(policy);
+            _resolutionHost.Configure(policy);
+            _resolutionHost.Rebuild(evidence);
+
+            if (_resolutionHost.Current is not null && _resolutionHost.LastAppliedFingerprint is { } fp)
+                _lastAppliedResolutionFingerprint = fp;
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureAcceptanceReentryResolutionInitializedForPublish()
+    {
+        if (!EnableAcceptanceReentryResolution || Volatile.Read(ref _disposed) != 0)
+        {
+            _resolutionHost = null;
+            _lastAppliedResolutionFingerprint = null;
+            return;
+        }
+
+        var evRegistryRev = _evidenceHost?.Current?.RegistryRevision ?? -1L;
+        var evFp = _evidenceHost?.Current?.InputFingerprint ?? "";
+        var current = new ResolutionInputFingerprint(
+            true, evRegistryRev, evFp, AuctionResolutionPolicyConfig.PolicyVersion);
+
+        if (_lastAppliedResolutionFingerprint.HasValue
+            && _lastAppliedResolutionFingerprint.Value.Equals(current)
+            && _resolutionHost?.Current is not null)
+            return;
+
+        ProcessAcceptanceReentryResolution();
+    }
+
+    private void EnsureAuctionEfficiencyInitializedForPublish()
+    {
+        if (!EnableAuctionEfficiencyEvidence || Volatile.Read(ref _disposed) != 0)
+        {
+            _efficiencyHost = null;
+            _lastAppliedEfficiencyFingerprint = null;
+            return;
+        }
+
+        var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+        var identity = _tradeProbe?.GetObservedInstrument()?.IdentityKey
+                       ?? (string.IsNullOrWhiteSpace(ExpectedInstrumentCode) ? "Unknown" : ExpectedInstrumentCode);
+        var epoch = identity + "|tick=" + tick.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var ofA = _orderflowHost?.Current?.CurrentAuction;
+        var clA = _clusterHost?.Current?.CurrentAuction;
+        var epKey = _episodeHost?.Current is null
+            ? ""
+            : string.Join(",", _episodeHost.Current.ActiveEpisodes.Select(e => e.EpisodeId + ":" + e.EventRevision));
+        var evKey = _evidenceHost?.Current is null
+            ? ""
+            : string.Join(",", _evidenceHost.Current.ActiveEvidence.Select(e => e.EvidenceId + ":" + e.EventRevision));
+        var pf = _profileHost?.Current?.CurrentAuction;
+        var pfKey = pf is null
+            ? ""
+            : (pf.AuctionId + ":" + (pf.TpoProfile?.TpoPoc?.ToString() ?? "") + ":" + (pf.VolumeProfile?.VolumePoc?.ToString() ?? ""));
+        var current = new EfficiencyInputFingerprint(
+            true,
+            ofA?.SnapshotId ?? "",
+            ofA?.EventRevision ?? 0,
+            ofA?.StateVersion ?? 0,
+            clA?.SnapshotId ?? "",
+            clA?.EventRevision ?? 0,
+            clA?.StateVersion ?? 0,
+            epKey,
+            evKey,
+            pfKey,
+            ofA?.PrimaryAuctionId ?? "",
+            epoch,
+            tick,
+            AtasTimestampNormalizer.PolicyVersion,
+            AuctionEfficiencyEvidencePolicyConfig.PolicyVersion);
+
+        if (!EfficiencyPublishInitialization.ShouldProcess(
+                EnableAuctionEfficiencyEvidence,
+                _efficiencyHost,
+                _lastAppliedEfficiencyFingerprint,
+                current))
+            return;
+
+        ProcessAuctionEfficiencyEvidence();
     }
 
     private void EnsureClusterRawInitializedForPublish()
@@ -1614,6 +1792,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureAcceptanceReentryEvidenceInitializedForPublish();
             EnsureExecutedOrderflowInitializedForPublish();
             EnsureClusterRawInitializedForPublish();
+            EnsureAuctionEfficiencyInitializedForPublish();
+            EnsureAcceptanceReentryResolutionInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -1623,6 +1803,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var evidence = EnableAcceptanceReentryEvidence ? _evidenceHost?.Current : null;
             var orderflow = EnableExecutedOrderflow ? _orderflowHost?.Current : null;
             var cluster = EnableClusterRawFeatures ? _clusterHost?.Current : null;
+            var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
+            var resolution = EnableAcceptanceReentryResolution ? _resolutionHost?.Current : null;
 
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
@@ -1654,7 +1836,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 executedOrderflow: orderflow,
                 showExecutedOrderflowDiagnostics: ShowExecutedOrderflowDiagnostics,
                 clusterRaw: cluster,
-                showClusterRawDiagnostics: ShowClusterRawDiagnostics);
+                showClusterRawDiagnostics: ShowClusterRawDiagnostics,
+                auctionEfficiency: efficiency,
+                showAuctionEfficiencyDiagnostics: ShowAuctionEfficiencyDiagnostics,
+                auctionResolution: resolution,
+                showAuctionResolutionDiagnostics: ShowAuctionResolutionDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

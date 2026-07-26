@@ -1,4 +1,4 @@
-using GC.AuctionFlow.Composite;
+﻿using GC.AuctionFlow.Composite;
 using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
@@ -9,7 +9,7 @@ using Xunit;
 
 namespace GC.AuctionFlow.Tests.Unit.Reference;
 
-/// <summary>Phase 1C Structural Reference Foundation — deterministic extraction/registry/runtime/UI.</summary>
+/// <summary>Phase 1C Structural Reference Foundation â€” deterministic extraction/registry/runtime/UI.</summary>
 public sealed class Phase1CStructuralReferenceTests
 {
     private const decimal Tick = 0.1m;
@@ -316,7 +316,7 @@ public sealed class Phase1CStructuralReferenceTests
         var s2 = host.Rebuild(Profiles(cur, prev), null, Utc(21).AddMinutes(1));
         Assert.Contains(s2.ActiveReferences, r => r.Status == ReferenceStatus.Active);
 
-        // Previous auction replaced by a different previous → old source expires.
+        // Previous auction replaced by a different previous â†’ old source expires.
         var prev2 = MakeAuction("PI-2026-07-19", Utc(19), Utc(20), true);
         var s3 = host.Rebuild(Profiles(cur, prev2), null, Utc(21).AddMinutes(2));
         Assert.DoesNotContain(s3.ConfirmedReferences, r => r.SourceId == "PI-2026-07-20");
@@ -411,8 +411,8 @@ public sealed class Phase1CStructuralReferenceTests
             indicatorDisposed: false,
             profiles: profiles,
             structuralReferences: null);
-        Assert.Equal("0.9.0", GcaeRuntimeSnapshot.SnapshotVersion);
-        Assert.Equal("0.9.0", snap.Version);
+        Assert.Equal("0.11.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.11.0", snap.Version);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
         // Bid/Ask unknown keeps degraded independently of references.
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
