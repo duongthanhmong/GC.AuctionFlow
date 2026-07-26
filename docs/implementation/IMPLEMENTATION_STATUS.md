@@ -1,11 +1,14 @@
 # Implementation Status
 
+> **Spec backbone:** `docs/spec/GC_AuctionFlow_Engine_v1.2_Post_Cross_Review_Final_Spec_VI.md` (architecture/roadmap)
+> **+ `docs/spec/GC_AuctionFlow_Engine_v1.3_Knowledge_Grounded_Spec_VI.md`** (semantics/discriminators/calibration contracts; source: KIM ĐẤU KINH; GEX out of scope). Precedence: v1.3 §0.2.
+
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 3A CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 1G CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.13.0** (FAR + AAC Thesis state machine fields) |
+| Runtime snapshot schema | **0.14.0** (Phase 1G: Participation — SettlementProximity + ThinParticipation) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -29,7 +32,10 @@
 | Phase 2C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Auction Efficiency Raw Evidence (`AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1`) |
 | Phase 2D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Acceptance/Re-entry Resolution (`ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1`) |
 | Phase 2E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Effort vs Result Classifier (`EFFORT_RESULT_CLASSIFIER_POLICY_V1`) |
+| Phase 1G | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Participation Regime: Settlement Proximity Tags + Thin Participation Classifier |
+| Phase 2F | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Trade Facilitation Index (`TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — FAR + AAC Thesis State Machine Foundation (`FAR_THESIS_POLICY_V1`, `AAC_THESIS_POLICY_V1`) |
+| Phase 3B | **NOT STARTED** — Signal Maturity (§29) |
 | P0-07C4 | **NOT STARTED** |
 
 ## Phase 1D final closeout (2026-07-24)
@@ -260,6 +266,30 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - FAR / AAC overall conclusion (NOT AUTHORIZED in Phase 2E)
 - Thesis / Entry / Risk phases
 - Overlay alerts
+
+## Phase 2F code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 758 passed / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| SHA-256 source==deployed | `619CB118B2CB44A46E695F27D4FB2EBFDD42FC5A8CBC6D6FF6E8AC0932312FE0` |
+| Schema version | `0.15.0` |
+| GPS rows | 12 (TRADE FACILITATION added as 12th row) |
+
+### Phase 2F present (code/test)
+
+- `TradeFacilitationPolicyConfig` (`TRADE_FACILITATION_POLICY_V1`): `LimitationNotCalibrated`, `LimitationHealthyNotCalibrated`, `LimitationFailingNotCalibrated`, `LimitationLiveOnly`, `LimitationNoFarAac`
+- `TradeFacilitationSnapshot` / `TradeFacilitationSetSnapshot` v1.0.0 — raw index components stored for calibration
+- `TradeFacilitationHost`: fingerprint-gated Rebuild from `AuctionEfficiencyEvidenceSetSnapshot?`; direction-consistent effort (AskVol if Up, BidVol if Down, null if Unknown); `FavorableProgressPerDirectionUnit` raw research value
+- Classification always `NotCalibrated` — calibration NOT authorized in Phase 2F
+- GPS card: 12th diagnostic row `TRADE FACILITATION:` added
+- Runtime schema: `0.14.0` → `0.15.0`
+
+### Phase 2F NOT present (code/test)
+
+- Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
+- FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
+- Historical reconstruction (LIVE_ONLY enforced)
 
 ## Phase 3A code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
 
