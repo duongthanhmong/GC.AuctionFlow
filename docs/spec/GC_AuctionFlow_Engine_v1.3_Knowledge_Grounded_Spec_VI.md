@@ -851,30 +851,65 @@ G-CAL-003  Mở khóa một trạng thái PHẢI bump schema version và ghi
 
 # 15. Lộ trình v1.3 — việc cần làm tiếp
 
-## 15.1 Ưu tiên tức thời
+## 15.1 Đã hoàn thành (cập nhật 2026-07-27)
 
-| # | Việc | Lý do | Quy mô |
+| # | Việc | Kết quả | Commit |
 |---|---|---|---|
-| **1** | **Phase 3B — Signal Maturity** (§9) | Là phase kế tiếp theo roadmap; KDK Ch 63 giờ đã cho tiêu chí đo được | 1 phase đầy đủ |
-| **2** | **Phase 3B-b — Expected Behavior Contract** (§9.3) | Nền tảng cho Time Invalidation; hiện hoàn toàn thiếu | gộp vào 3B |
-| **3** | **Sửa `AacState` mapping** (§8.2 lưu ý) | Phase 3A đang map `ReentryDeveloping → Invalidated` — quá sớm theo `G-DISC-002` | sửa nhỏ + test |
-| **4** | **Anti-Pattern Guard Tests** (§12) | 28 bất biến, hiện chưa có file test riêng | 1 file test |
+| 1 | Phase 3B — Signal Maturity (§9) | ✅ CODE/TEST PASS | `7dd6b7c` |
+| 2 | Expected Behavior Contract (§9.3) | ✅ gộp vào 3B | `7dd6b7c` |
+| 3 | Sửa `AacState` mapping (§8.2) | ✅ `ReentryDeveloping → Pullback` + NotCalibrated | `352bbdc` |
+| 4 | Anti-Pattern Guard Tests (§12) | ✅ 22 test phủ AP-001..AP-028 | `352bbdc` |
+| 5 | Vô hiệu năm chiều (§11.3) | ✅ Phase 3C | `b554adf` |
+| 6 | Thesis Contract 7 trường + 5 khung (§11.1–11.2) | ✅ Phase 3C | `b554adf` |
 
-## 15.2 Sau đó
+> **Lưu ý:** mục 9 (Location gate) từng được xếp vào 3C nhưng **không** triển khai ở 3C —
+> 3C chỉ nhận maturity làm đầu vào, chưa đọc `PriceValueLocation`. Vẫn còn nợ.
 
-| # | Việc | Phase đề xuất |
-|---|---|---|
-| 5 | Vô hiệu năm chiều — bổ sung chiều **theo bằng chứng** (§11.3) | 3C |
-| 6 | Thesis Contract 7 trường + 5 khung thời gian (§11.1–11.2) | 3C |
-| 7 | `OldValueReclaim` 3 trạng thái (§6.2 `G-ACC-005`) | 2G (bổ sung Resolution) |
-| 8 | Facilitation: thêm thành phần **Cấu trúc** + **Sự duy trì** (§5.2) | 2F-b |
-| 9 | Location gate (§10) | 3C |
-| 10 | PLAR / Target Engine — POC như **barrier** (§7.4 `G-FAR-006`) | 3D |
-| 11 | Imbalance classification (KDK Ch 25) | 2H |
-| 12 | Day Structure Classifier (KDK Ch 11) | 1H |
-| 13 | Ký ức mức giá / retest ledger (§13) | 1I |
-| 14 | Risk / Position Sizing (KDK Ch 62) | 4A |
-| 15 | Historical Scanner + Calibration (§14.1) | 5A — **mở khóa mọi `[C]`** |
+## 15.2 Việc còn lại
+
+### Nhóm A — Bổ sung module đã có (nhỏ, độc lập, không đổi schema lớn)
+
+| # | Việc | Phase | Vì sao cần |
+|---|---|---|---|
+| 7 | `OldValueReclaim` 3 trạng thái (§6.2 `G-ACC-005`) | **2G** | Đây là **trục quyết định FAR vs AAC** (KDK Ch 18). Hiện Resolution chưa có trường này ⇒ không phân biệt được "lấy lại và duy trì" với "lấy lại thất bại" |
+| 8 | Facilitation thêm **Cấu trúc** + **Sự duy trì** (§5.2) | **2F-b** | 2F mới có 2/4 thành phần (Hoạt động, Tiến triển). `G-TF-002` đòi đủ 4 mới được phát Healthy/Failing |
+| 9 | Location gate (§10, `G-LOC-001..003`) | **3D** | v1.2 §2.3 tuyên bố "Orderflow chỉ có nghĩa trong Context và Location" nhưng chưa module nào ép điều đó |
+
+### Nhóm B — Module mới
+
+| # | Việc | Phase | Phụ thuộc |
+|---|---|---|---|
+| 10 | PLAR / Target Engine — POC là **barrier** (§7.4 `G-FAR-006`) | **3E** | cần Location gate (9) |
+| 11 | Imbalance classification (KDK Ch 25) | **2H** | Cluster raw đã có (2B) |
+| 12 | Day Structure Classifier (KDK Ch 11) | **1H** | Profile đã LOCKED |
+| 13 | Ký ức mức giá / retest ledger (§13) | **1I** | Reference đã LOCKED |
+| 14 | Risk / Position Sizing (KDK Ch 62) | **4A** | cần Target Engine (10) |
+
+### Nhóm C — Mở khóa
+
+| # | Việc | Phase | Tác động |
+|---|---|---|---|
+| 15 | Historical Scanner + Calibration (§14.1) | **5A** | **Mở khóa toàn bộ trạng thái `[C]`** — đây là nút thắt duy nhất của cả dự án |
+
+### Thứ tự đề xuất
+
+```text
+7 (2G)  →  8 (2F-b)  →  9 (3D)  →  10 (3E)  →  14 (4A)
+                          ↘ 11 (2H), 12 (1H), 13 (1I) chạy song song được
+                                    ↘ 15 (5A) mở khóa [C]
+```
+
+**Lý do xếp 7 trước:** `OldValueReclaim` là trường mà FAR (§7.1 điều kiện 4) và AAC
+(§8.1 điều kiện 4) **đều** cần. Không có nó, cả hai họ chiến lược vĩnh viễn không thể
+rời `NotCalibrated` dù Historical Scanner có chạy xong.
+
+**Lưu ý về nợ kỹ thuật hiện tại:**
+
+- Live acceptance đang pending cho **8 phase**: 1G, 2C, 2D, 2E, 2F, 3A, 3B, 3C.
+  Không phase nào trong số này được gọi là FINAL PASS.
+- `src/Oac.Core`, `src/Oac.Atas`, `tests/Oac.Core.Tests` vẫn untracked, ngoài phạm vi.
+- Bản dual-install cũ tại `Documents\ATAS\Indicators\GC.AuctionFlow.dll`
+  (2026-07-23) chưa được xử lý — vi phạm `D-P0-02A-003`.
 
 ## 15.3 Bất biến vận hành không đổi
 

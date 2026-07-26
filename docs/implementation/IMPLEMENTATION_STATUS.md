@@ -19,6 +19,16 @@
 | Orderflow policy | **EXECUTED_ORDERFLOW_POLICY_V1** (unchanged) |
 | Cluster Raw policy | **CLUSTER_RAW_FEATURE_POLICY_V1** (unchanged) |
 | Auction Efficiency policy | **AUCTION_EFFICIENCY_EVIDENCE_POLICY_V1** |
+| Resolution policy | **ACCEPTANCE_REENTRY_RESOLUTION_POLICY_V1** (Phase 2D) |
+| Effort/Result policy | **EFFORT_RESULT_CLASSIFIER_POLICY_V1** (Phase 2E) |
+| Trade Facilitation policy | **TRADE_FACILITATION_POLICY_V1** (Phase 2F) |
+| FAR thesis policy | **FAR_THESIS_POLICY_V1** (Phase 3A) |
+| AAC thesis policy | **AAC_THESIS_POLICY_V1** (Phase 3A) |
+| Signal Maturity policy | **SIGNAL_MATURITY_POLICY_V1** (Phase 3B) |
+| Thesis Contract policy | **THESIS_CONTRACT_POLICY_V1** (Phase 3C) |
+| Test count | **920** passed / 0 failed / 0 skipped |
+| GPS diagnostic rows | **14** |
+| Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
 | Phase 1A | **LOCKED** — `gcae-p1a-primary-tpo-volume-profile-pass` |
