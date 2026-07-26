@@ -4,6 +4,7 @@ using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Thesis;
+using GC.AuctionFlow.UI;
 using Xunit;
 
 namespace GC.AuctionFlow.Tests.Unit.Plar;
@@ -447,5 +448,82 @@ public sealed class Phase3EPlarTests
     {
         var path = Path(PathDirection.Up, 1000L, Ref(ReferenceType.PreviousPrimaryTpoVah, 1040L, 1041L));
         Assert.Equal(SignalMaturityLevel.NotCalibrated, Mature(path).MaturityLevel);
+    }
+
+    // ========== H: GPS publication (Phase 3E-b) ==========
+
+    private static PlarSetSnapshot Set(long price, params StructuralReferenceSnapshot[] refs) =>
+        EnabledHost().Rebuild(refs, price, Utc());
+
+    [Fact]
+    public void H01_PlarLines_null_is_empty() =>
+        Assert.Empty(AuctionGpsCardMapper.BuildPlarLines(null, false));
+
+    [Fact]
+    public void H02_PlarLines_disabled_is_single_row()
+    {
+        var host = new PlarHost(new PlarPolicyConfig(enabled: false));
+        var rows = AuctionGpsCardMapper.BuildPlarLines(host.Rebuild(null, null, Utc()), false);
+        Assert.Single(rows);
+        Assert.Equal("PATH: DISABLED", rows[0]);
+    }
+
+    [Fact]
+    public void H03_PlarLines_declare_permeability_not_calibrated()
+    {
+        var rows = AuctionGpsCardMapper.BuildPlarLines(
+            Set(1000L, Ref(ReferenceType.PreviousPrimaryTpoVah, 1040L, 1041L)), false);
+        Assert.Contains("BARRIER PERMEABILITY: NOT CALIBRATED", rows);
+    }
+
+    [Fact]
+    public void H04_PlarLines_show_distance_when_room_exists()
+    {
+        var rows = AuctionGpsCardMapper.BuildPlarLines(
+            Set(1000L, Ref(ReferenceType.PreviousPrimaryTpoVah, 1040L, 1041L)), false);
+        Assert.Contains("UP TARGET SPACE: 40 ticks", rows);
+    }
+
+    /// <summary>
+    /// A measured veto and an unmeasurable space must never render alike — that is the
+    /// whole G-LOC-002 distinction, and the operator has to see which one it is.
+    /// </summary>
+    [Fact]
+    public void H05_Veto_and_unmeasurable_render_differently()
+    {
+        var vetoRows = AuctionGpsCardMapper.BuildPlarLines(
+            Set(1000L, Ref(ReferenceType.PreviousPrimaryTpoVal, 900L, 901L)), false);
+        Assert.Contains("UP TARGET SPACE: NONE AHEAD (VETO)", vetoRows);
+
+        var unmeasurableRows = AuctionGpsCardMapper.BuildPlarLines(
+            Set(1000L), false);
+        Assert.Contains("TARGET SPACE: NOT MEASURABLE", unmeasurableRows);
+        Assert.DoesNotContain(unmeasurableRows, r => r.Contains("VETO", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void H06_Diagnostics_list_the_corridor_with_roles()
+    {
+        var rows = AuctionGpsCardMapper.BuildPlarLines(
+            Set(1000L,
+                Ref(ReferenceType.PreviousPrimaryVpoc, 1020L, 1021L),
+                Ref(ReferenceType.PreviousPrimaryTpoVah, 1060L, 1061L)),
+            showDiagnostics: true);
+
+        Assert.Contains(rows, r => r.StartsWith("UP CORRIDOR: 1/3", StringComparison.Ordinal));
+        Assert.Contains(rows, r => r.StartsWith("UP BARRIER 1:", StringComparison.Ordinal)
+                                   && r.Contains("TARGETANDBARRIER", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void H07_PlarLines_never_emit_a_permeability_verdict()
+    {
+        var text = string.Join(" | ", AuctionGpsCardMapper.BuildPlarLines(
+            Set(1000L,
+                Ref(ReferenceType.PreviousPrimaryVpoc, 1020L, 1021L),
+                Ref(ReferenceType.PreviousPrimaryTpoVah, 1060L, 1061L)),
+            showDiagnostics: true));
+        Assert.DoesNotContain("LOWFRICTION", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("HIGHFRICTION", text, StringComparison.OrdinalIgnoreCase);
     }
 }

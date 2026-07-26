@@ -10,6 +10,7 @@ using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
+using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Reference;
@@ -87,7 +88,9 @@ public sealed class GcaeRuntimeEngine
         SignalMaturitySetSnapshot? signalMaturity = null,
         bool showSignalMaturityDiagnostics = false,
         ThesisContractSetSnapshot? thesisContract = null,
-        bool showThesisContractDiagnostics = false)
+        bool showThesisContractDiagnostics = false,
+        PlarSetSnapshot? plar = null,
+        bool showPlarDiagnostics = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -129,6 +132,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("SIGNAL_MATURITY_STATUS=" + signalMaturity.ModuleState);
         if (thesisContract is not null)
             profileExtra.Add("THESIS_CONTRACT_STATUS=" + thesisContract.ModuleState);
+        if (plar is not null)
+            profileExtra.Add("PLAR_STATUS=" + plar.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -184,6 +189,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(signalMaturity.Limitations);
         if (thesisContract?.Limitations is not null)
             limitations.AddRange(thesisContract.Limitations);
+        if (plar?.Limitations is not null)
+            limitations.AddRange(plar.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -233,7 +240,9 @@ public sealed class GcaeRuntimeEngine
             signalMaturity,
             showSignalMaturityDiagnostics,
             thesisContract,
-            showThesisContractDiagnostics);
+            showThesisContractDiagnostics,
+            plar,
+            showPlarDiagnostics);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

@@ -7,6 +7,7 @@ using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Maturity;
+using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
@@ -206,6 +207,7 @@ public static class AuctionGpsCardMapper
         details.AddRange(BuildTradeFacilitationLines(snapshot.TradeFacilitation, false));
         details.AddRange(BuildSignalMaturityLines(snapshot.SignalMaturity, snapshot.ShowSignalMaturityDiagnostics));
         details.AddRange(BuildThesisContractLines(snapshot.ThesisContract, snapshot.ShowThesisContractDiagnostics));
+        details.AddRange(BuildPlarLines(snapshot.Plar, snapshot.ShowPlarDiagnostics));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -252,7 +254,10 @@ public static class AuctionGpsCardMapper
                     : "MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.ThesisContract is null
                     ? "CONTRACT: NOT AVAILABLE"
-                    : "CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant()
+                    : "CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.Plar is null
+                    ? "PATH: NOT AVAILABLE"
+                    : "PATH: " + snapshot.Plar.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1649,4 +1654,79 @@ public static class AuctionGpsCardMapper
 
         return rows;
     }
+
+    /// <summary>
+    /// Path rows (Phase 3E). Shows what lies ahead and how much room is left, and
+    /// distinguishes "no room" from "cannot measure" — the G-LOC-002 distinction.
+    /// </summary>
+    public static IReadOnlyList<string> BuildPlarLines(
+        PlarSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case PlarModuleState.Disabled:
+                rows.Add("PATH: DISABLED");
+                return rows;
+            case PlarModuleState.AwaitingReferences:
+                rows.Add("PATH: AWAITING REFERENCES");
+                rows.Add("PATH POLICY: " + set.PolicyVersion);
+                rows.Add("TARGET SPACE: NOT MEASURABLE");
+                return rows;
+            case PlarModuleState.Invalid:
+                rows.Add("PATH: INVALID");
+                return rows;
+        }
+
+        rows.Add("PATH: READY (" + set.ReferenceCount.ToString(System.Globalization.CultureInfo.InvariantCulture) + " REFS)");
+        rows.Add("PATH POLICY: " + set.PolicyVersion);
+        rows.Add("BARRIER PERMEABILITY: NOT CALIBRATED");
+
+        AppendPathSide(rows, "UP", set.UpPath, showDiagnostics);
+        AppendPathSide(rows, "DOWN", set.DownPath, showDiagnostics);
+
+        return rows;
+    }
+
+    private static void AppendPathSide(
+        List<string> rows, string label, AuctionPathSnapshot? path, bool showDiagnostics)
+    {
+        if (path is null) return;
+
+        rows.Add(label + " TARGET SPACE: " + FormatTargetSpace(path));
+
+        if (path.NearestBarrier is { } b)
+            rows.Add(label + " NEXT BARRIER: " + b.ReferenceType.ToString().ToUpperInvariant()
+                     + " @ " + b.DistanceTicks.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks");
+        if (path.NearestTarget is { } t)
+            rows.Add(label + " NEXT TARGET: " + t.ReferenceType.ToString().ToUpperInvariant()
+                     + " @ " + t.DistanceTicks.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks");
+
+        if (!showDiagnostics) return;
+
+        rows.Add(label + " CORRIDOR: " + path.Corridor.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                 + "/" + PlarPolicyConfig.CorridorBarrierCapacity.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        foreach (var o in path.Corridor)
+            rows.Add(label + " BARRIER " + (o.CorridorIndex + 1).ToString(System.Globalization.CultureInfo.InvariantCulture) + ": "
+                     + o.ReferenceType.ToString().ToUpperInvariant()
+                     + " @ " + o.DistanceTicks.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks"
+                     + " [" + o.Role.ToString().ToUpperInvariant() + "]");
+        if (path.FinalTarget is { } f)
+            rows.Add(label + " FINAL TARGET: " + f.ReferenceType.ToString().ToUpperInvariant()
+                     + " @ " + f.DistanceTicks.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks");
+    }
+
+    /// <summary>
+    /// "unavailable" and "0 ticks" mean different things and must never render alike:
+    /// one is unmeasurable, the other is a measured hard veto.
+    /// </summary>
+    private static string FormatTargetSpace(AuctionPathSnapshot path) => path.TargetSpaceAvailability switch
+    {
+        TargetSpaceAvailability.Available =>
+            (path.RemainingTargetSpaceTicks?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?") + " ticks",
+        TargetSpaceAvailability.NoTargetAhead => "NONE AHEAD (VETO)",
+        _ => "NOT MEASURABLE"
+    };
 }

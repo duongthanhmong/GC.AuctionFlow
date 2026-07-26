@@ -139,6 +139,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowSignalMaturityDiagnostics = false;
         EnableThesisContract = false;
         EnablePlar = false;
+        ShowPlarDiagnostics = false;
         ShowThesisContractDiagnostics = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
@@ -457,6 +458,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Enable PLAR")]
     [Description("Phase 3E path projection from structural references. Geometry only: no friction estimate, no entry, no TP ladder. Supplies the target-space veto to Signal Maturity.")]
     public bool EnablePlar { get; set; }
+
+    [Category("Path of Least Auction Resistance")]
+    [DisplayName("Show PLAR Diagnostics")]
+    [Description("Show the barrier corridor and final target per direction on the GPS card.")]
+    public bool ShowPlarDiagnostics { get; set; }
 
     protected override void OnCalculate(int bar, decimal value)
     {
@@ -2222,6 +2228,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var tradeFacilitation = EnableTradeFacilitation ? _tradeFacilitationHost?.Current : null;
             var signalMaturity = EnableSignalMaturity ? _signalMaturityHost?.Current : null;
             var thesisContract = EnableThesisContract ? _thesisContractHost?.Current : null;
+            var plarSetForPublish = EnablePlar ? _plarHost?.Current : null;
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
@@ -2272,7 +2279,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 signalMaturity: signalMaturity,
                 showSignalMaturityDiagnostics: ShowSignalMaturityDiagnostics,
                 thesisContract: thesisContract,
-                showThesisContractDiagnostics: ShowThesisContractDiagnostics);
+                showThesisContractDiagnostics: ShowThesisContractDiagnostics,
+                plar: plarSetForPublish,
+                showPlarDiagnostics: ShowPlarDiagnostics);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **Phase 3E CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
+| Current phase | **Phase 3E-b CODE/TEST PASS — LIVE ACCEPTANCE PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.20.0** (Phase 3D: Location gate) |
+| Runtime snapshot schema | **0.21.0** (Phase 3E-b: PLAR published) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -31,8 +31,9 @@
 | Phase 2F-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Facilitation Structure + Maintenance components (extends `TRADE_FACILITATION_POLICY_V1`) |
 | Phase 3D | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Location Gate (extends `SIGNAL_MATURITY_POLICY_V1`) |
 | Phase 3E | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR / Target Engine (`PLAR_POLICY_V1`) |
-| Test count | **1052** passed / 0 failed / 0 skipped |
-| GPS diagnostic rows | **14** |
+| Phase 3E-b | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — PLAR published to runtime + GPS |
+| Test count | **1059** passed / 0 failed / 0 skipped |
+| GPS diagnostic rows | **15** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
@@ -306,6 +307,35 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - Calibrated Healthy/Failing thresholds (spec §23.4 calibration gate: NOT_CALIBRATED enforced)
 - FAR/AAC thesis signals in facilitation (no `LimitationNoFarAac` bypass)
 - Historical reconstruction (LIVE_ONLY enforced)
+
+## Phase 3E-b code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
+
+| Gate | Result |
+|------|--------|
+| Code/test | **PASS** — 1059 passed x2 / 0 failed / 0 skipped; 0 errors / 0 warnings |
+| Runtime schema | `0.20.0` -> `0.21.0` |
+| Source/deployed DLL SHA-256 | `F064322B55075DF738CEDD55ADB2BCF58D43B45D7CE294327AED4FA848B5E62F` (exact match) |
+| GPS rows | **15** (was 14); `PATH:` row added |
+| New tests | 7 (H01-H07); total 1059 |
+
+### Gap this closes
+
+Phase 3E built the PLAR module and correctly fed it into the location gate, but never
+published `PlarSetSnapshot`. The corridor, barriers and remaining target space existed
+only inside the engine — the operator could see a candidate vetoed for "no room" without
+being able to see what room was measured. That is now on the card.
+
+### Present
+
+- `GcaeRuntimeSnapshot.Plar` + `ShowPlarDiagnostics`; `PLAR_STATUS=` in profile extras;
+  PLAR limitations merged into `KnownLimitations`
+- GPS diagnostic row 15: `PATH:`
+- `BuildPlarLines` — per-direction target space, next barrier, next target; diagnostics
+  add the full corridor with each obstacle's role and the final target
+- Target space rendering keeps the three cases visually distinct:
+  `40 ticks` / `NONE AHEAD (VETO)` / `NOT MEASURABLE`. A measured veto and an
+  unmeasurable space must never look alike (test H05)
+- Indicator: `ShowPlarDiagnostics`
 
 ## Phase 3E code/test (2026-07-27) — LIVE ACCEPTANCE PENDING
 
