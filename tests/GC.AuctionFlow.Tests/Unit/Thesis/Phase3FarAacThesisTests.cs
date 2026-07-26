@@ -666,7 +666,7 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(11, vm.DiagnosticRows.Count);
+        Assert.Equal(12, vm.DiagnosticRows.Count);
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("FAR:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("AAC:", StringComparison.Ordinal));
     }
@@ -687,15 +687,15 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(vm.AllLines(false).Count + 11, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 12, vm.AllLines(true).Count);
     }
 
-    // ========== P: Schema version bumped to 0.14.0 ==========
+    // ========== P: Schema version bumped to 0.15.0 ==========
 
     [Fact]
-    public void P01_SnapshotVersion_is_0_14_0()
+    public void P01_SnapshotVersion_is_0_15_0()
     {
-        Assert.Equal("0.14.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.15.0", GcaeRuntimeSnapshot.SnapshotVersion);
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
             null, "GCQ6",
@@ -703,7 +703,7 @@ public sealed class Phase3FarAacThesisTests
             DeclaredFeedProvider.Unknown, FeedProviderProvenance.Unknown,
             false, null, false, false, false, false, false, false,
             timestampUtc: Utc());
-        Assert.Equal("0.14.0", snap.Version);
+        Assert.Equal("0.15.0", snap.Version);
     }
 
     // ========== Q: FAR/AAC both wired into runtime publish ==========

@@ -411,8 +411,8 @@ public sealed class Phase1CStructuralReferenceTests
             indicatorDisposed: false,
             profiles: profiles,
             structuralReferences: null);
-        Assert.Equal("0.14.0", GcaeRuntimeSnapshot.SnapshotVersion);
-        Assert.Equal("0.14.0", snap.Version);
+        Assert.Equal("0.15.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.15.0", snap.Version);
         Assert.Equal(ReferencePlaceholderState.NotAvailable, snap.Reference);
         // Bid/Ask unknown keeps degraded independently of references.
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
@@ -558,7 +558,7 @@ public sealed class Phase1CStructuralReferenceTests
         Assert.DoesNotContain("ProductionThesis", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("FarAacEngine", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("TradeFacilitation", indicator, StringComparison.Ordinal);
+        Assert.Contains("TradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("Telegram", indicator, StringComparison.Ordinal);
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Evidence")));
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Thesis")));

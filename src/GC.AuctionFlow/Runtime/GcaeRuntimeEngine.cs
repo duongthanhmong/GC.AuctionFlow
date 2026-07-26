@@ -6,6 +6,7 @@ using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
+using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Probe;
@@ -80,7 +81,8 @@ public sealed class GcaeRuntimeEngine
         bool showFarThesisDiagnostics = false,
         AacThesisSetSnapshot? aacThesis = null,
         bool showAacThesisDiagnostics = false,
-        ParticipationSetSnapshot? participation = null)
+        ParticipationSetSnapshot? participation = null,
+        TradeFacilitationSetSnapshot? tradeFacilitation = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -116,6 +118,8 @@ public sealed class GcaeRuntimeEngine
             profileExtra.Add("FAR_THESIS_STATUS=" + farThesis.ModuleState);
         if (aacThesis is not null)
             profileExtra.Add("AAC_THESIS_STATUS=" + aacThesis.ModuleState);
+        if (tradeFacilitation is not null)
+            profileExtra.Add("TRADE_FACILITATION_STATUS=" + tradeFacilitation.ModuleState);
 
         var capability = RuntimeCapabilitySnapshotBuilder.Build(
             mode, modeProvenance, provider, providerProvenance,
@@ -165,6 +169,8 @@ public sealed class GcaeRuntimeEngine
             limitations.AddRange(farThesis.Limitations);
         if (aacThesis?.Limitations is not null)
             limitations.AddRange(aacThesis.Limitations);
+        if (tradeFacilitation?.Limitations is not null)
+            limitations.AddRange(tradeFacilitation.Limitations);
 
         var resolvedParticipation = participation ?? new ParticipationSetSnapshot(
             SettlementProximityClassifier.Classify(now),
@@ -209,7 +215,8 @@ public sealed class GcaeRuntimeEngine
             showFarThesisDiagnostics,
             aacThesis,
             showAacThesisDiagnostics,
-            resolvedParticipation);
+            resolvedParticipation,
+            tradeFacilitation);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

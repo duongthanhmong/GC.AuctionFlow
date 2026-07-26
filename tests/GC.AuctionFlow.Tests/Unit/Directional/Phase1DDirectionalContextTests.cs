@@ -411,7 +411,7 @@ public sealed class Phase1DDirectionalContextTests
             directionalContext: s1);
         Assert.True(snap.DataGate.DataState is DataState.Degraded or DataState.Ready or DataState.Invalid);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Directional Ready must not force global Ready
-        Assert.Equal("0.14.0", snap.Version);
+        Assert.Equal("0.15.0", snap.Version);
         Assert.Equal(DirectionalPolicyConfig.PolicyVersion, s1.PolicyVersion);
 
         // Overlay cosmetic must not be in fingerprint â€” reference overlay absence unchanged.
@@ -480,7 +480,7 @@ public sealed class Phase1DDirectionalContextTests
         Assert.Contains("EnableClusterRawFeatures", indicator, StringComparison.Ordinal);
         Assert.Contains("EnableDirectionalContext", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableThesis", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.DoesNotContain("AcceptanceOutside", Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
             .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}Episode{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                      && !p.Contains($"{Path.DirectorySeparatorChar}Evidence{Path.DirectorySeparatorChar}", StringComparison.Ordinal)

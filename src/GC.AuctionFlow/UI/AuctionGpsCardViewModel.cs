@@ -5,6 +5,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Efficiency;
+using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Orderflow;
@@ -201,6 +202,7 @@ public static class AuctionGpsCardMapper
             snapshot.AacThesis,
             snapshot.ShowAacThesisDiagnostics));
         details.AddRange(BuildParticipationLines(snapshot.Participation));
+        details.AddRange(BuildTradeFacilitationLines(snapshot.TradeFacilitation, false));
 
         var diagnostics = showDiagnostics
             ? new List<string>
@@ -238,7 +240,10 @@ public static class AuctionGpsCardMapper
                     : "FAR: " + snapshot.FarThesis.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.AacThesis is null
                     ? "AAC: NOT AVAILABLE"
-                    : "AAC: " + snapshot.AacThesis.ModuleState.ToString().ToUpperInvariant()
+                    : "AAC: " + snapshot.AacThesis.ModuleState.ToString().ToUpperInvariant(),
+                snapshot.TradeFacilitation is null
+                    ? "TRADE FACILITATION: NOT AVAILABLE"
+                    : "TRADE FACILITATION: " + snapshot.TradeFacilitation.ModuleState.ToString().ToUpperInvariant()
             }
             : new List<string>();
 
@@ -1081,6 +1086,66 @@ public static class AuctionGpsCardMapper
             "SETTLEMENT TAG: " + FormatSettlementTag(set.SettlementProximity.Tag),
             "THIN PARTICIPATION: " + FormatThinParticipation(set.ThinParticipation.Label)
         };
+        return rows;
+    }
+
+    public static IReadOnlyList<string> BuildTradeFacilitationLines(
+        TradeFacilitationSetSnapshot? set, bool showDiagnostics)
+    {
+        if (set is null) return Array.Empty<string>();
+        var rows = new List<string>();
+
+        switch (set.ModuleState)
+        {
+            case TradeFacilitationModuleState.Disabled:
+                rows.Add("TRADE FACILITATION: DISABLED");
+                return rows;
+            case TradeFacilitationModuleState.AwaitingEfficiency:
+                rows.Add("TRADE FACILITATION: AWAITING EFFICIENCY");
+                rows.Add("TRADE FACILITATION POLICY: " + set.PolicyVersion);
+                rows.Add("TRADE FACILITATION INDEX: NOT CALIBRATED");
+                return rows;
+            case TradeFacilitationModuleState.Invalid:
+                rows.Add("TRADE FACILITATION: INVALID");
+                return rows;
+        }
+
+        var state = set.ModuleState == TradeFacilitationModuleState.Ready ? "READY" : "PARTIAL";
+        var total = (set.CurrentAuctionFacilitation is not null ? 1 : 0)
+                    + set.ActiveEpisodeFacilitations.Count;
+        rows.Add("TRADE FACILITATION: " + state + " (" + total + " SCOPE)");
+        rows.Add("TRADE FACILITATION POLICY: " + set.PolicyVersion);
+        rows.Add("TRADE FACILITATION INDEX: NOT CALIBRATED");
+
+        var latest = set.LatestUpdated;
+        if (latest is not null)
+        {
+            rows.Add("TRADE FACILITATION SCOPE: " + latest.ScopeType.ToString().ToUpperInvariant());
+            if (!string.IsNullOrEmpty(latest.ReferenceId))
+                rows.Add("TRADE FACILITATION REF: " + Truncate(latest.ReferenceId, 48));
+            rows.Add("DIR CONSISTENT EFFORT: "
+                + (latest.DirectionConsistentEffortVolume.HasValue
+                    ? latest.DirectionConsistentEffortVolume.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    : "unavailable"));
+            rows.Add("FAVORABLE PROGRESS: "
+                + (latest.AchievedFavorableProgressTicks.HasValue
+                    ? latest.AchievedFavorableProgressTicks.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ticks"
+                    : "unavailable"));
+        }
+
+        if (showDiagnostics && latest is not null)
+        {
+            rows.Add("TRADE FACILITATION READY: " + set.ReadyCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                     + " PARTIAL: " + set.PartialCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            rows.Add("TRADE FACILITATION ID: " + Truncate(latest.SnapshotId, 56));
+            rows.Add("TRADE FACILITATION STATE VER: " + latest.StateVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            rows.Add("TRADE FACILITATION EVENT REV: " + latest.EventRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            if (latest.FavorableProgressPerDirectionUnit.HasValue)
+                rows.Add("FAV PROGRESS PER UNIT: " + FormatOptionalRatio(latest.FavorableProgressPerDirectionUnit));
+            if (latest.DirectionConsistentEffortRatio.HasValue)
+                rows.Add("DIR CONSISTENT RATIO: " + FormatOptionalRatio(latest.DirectionConsistentEffortRatio));
+        }
+
         return rows;
     }
 

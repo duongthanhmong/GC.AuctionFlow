@@ -308,7 +308,7 @@ public sealed class Phase2BClusterRawFeatureTests
             DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
             true, Utc(24), false, false, false, false, false, false,
             Profiles(), executedOrderflow: of.Current, clusterRaw: cl.Current, showClusterRawDiagnostics: true);
-        Assert.Equal("0.14.0", snap.Version);
+        Assert.Equal("0.15.0", snap.Version);
         Assert.Same(cl.Current, snap.ClusterRaw);
         Assert.NotEqual(DataState.Ready, snap.DataGate.DataState); // Cluster does not clear Data Gate
 
@@ -324,7 +324,8 @@ public sealed class Phase2BClusterRawFeatureTests
         Assert.DoesNotContain("EXTREME DELTA", text);
         Assert.DoesNotContain("BIG TRADE", text);
         Assert.DoesNotContain("ABSORPTION", text);
-        Assert.DoesNotContain("TRADE FACILITATION", text);
+        Assert.DoesNotContain("TRADE FACILITATION HEALTHY", text);
+        Assert.DoesNotContain("TRADE FACILITATION FAILING", text);
         Assert.DoesNotContain("\nLONG", text);
         Assert.DoesNotContain("\nSHORT", text);
         Assert.DoesNotContain("PROBABILITY", text);
@@ -368,9 +369,9 @@ public sealed class Phase2BClusterRawFeatureTests
         Assert.False(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Far")));
         var indicator = File.ReadAllText(Path.Combine(root, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
         Assert.Contains("EnableClusterRawFeatures = false", indicator, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
+        Assert.Contains("EnableTradeFacilitation", indicator, StringComparison.Ordinal);
         Assert.Equal("CLUSTER_RAW_FEATURE_POLICY_V1", ClusterRawFeaturePolicyConfig.PolicyVersion);
-        Assert.Equal("0.14.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.15.0", GcaeRuntimeSnapshot.SnapshotVersion);
         Assert.True(Directory.Exists(Path.Combine(root, "src", "GC.AuctionFlow", "Efficiency")));
         Assert.Equal("EXECUTED_ORDERFLOW_POLICY_V1", ExecutedOrderflowPolicyConfig.PolicyVersion);
     }

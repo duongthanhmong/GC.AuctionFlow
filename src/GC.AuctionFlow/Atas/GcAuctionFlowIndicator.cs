@@ -6,6 +6,7 @@ using GC.AuctionFlow.Core;
 using GC.AuctionFlow.Directional;
 using GC.AuctionFlow.Efficiency;
 using GC.AuctionFlow.Episode;
+using GC.AuctionFlow.Facilitation;
 using GC.AuctionFlow.Evidence;
 using GC.AuctionFlow.Cluster;
 using GC.AuctionFlow.Orderflow;
@@ -69,6 +70,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private FarThesisInputFingerprint? _lastAppliedFarThesisFingerprint;
     private AacThesisHost? _aacThesisHost;
     private AacThesisInputFingerprint? _lastAppliedAacThesisFingerprint;
+    private TradeFacilitationHost? _tradeFacilitationHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -127,6 +129,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ShowFarThesisDiagnostics = false;
         EnableAacThesis = false;
         ShowAacThesisDiagnostics = false;
+        EnableTradeFacilitation = false;
         TpoPeriodMinutes = PrimaryAuctionClockConfig.DefaultPeriodMinutes;
         ValueAreaFraction = PrimaryAuctionClockConfig.DefaultValueAreaFraction;
         AnchorHourLocal = 8;
@@ -414,6 +417,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Show AAC Thesis Diagnostics")]
     [Description("AAC id/state/revision diagnostics. Default false. Thesis remains NOT CALIBRATED.")]
     public bool ShowAacThesisDiagnostics { get; set; }
+
+    [Category("Trade Facilitation")]
+    [DisplayName("Enable Trade Facilitation")]
+    [Description("Phase 2F Trade Facilitation Index classifier. Requires Auction Efficiency. Index NOT CALIBRATED.")]
+    public bool EnableTradeFacilitation { get; set; }
 
     protected override void OnCalculate(int bar, decimal value)
     {
@@ -830,6 +838,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _effortResultHost = null;
                 _farThesisHost = null;
                 _aacThesisHost = null;
+                _tradeFacilitationHost = null;
                 _lastAppliedCompositeConfiguration = null;
                 _lastAppliedReferenceFingerprint = null;
                 _lastAppliedDirectionalFingerprint = null;
@@ -1623,6 +1632,49 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessAacThesis();
     }
 
+    private void ProcessTradeFacilitation()
+    {
+        if (!EnableTradeFacilitation || Volatile.Read(ref _disposed) != 0)
+        {
+            _tradeFacilitationHost = null;
+            return;
+        }
+
+        try
+        {
+            var policy = new TradeFacilitationPolicyConfig(enabled: true);
+            var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
+
+            _tradeFacilitationHost ??= new TradeFacilitationHost(policy);
+            _tradeFacilitationHost.Configure(policy);
+            _tradeFacilitationHost.Rebuild(efficiency);
+        }
+        catch
+        {
+            // Contained.
+        }
+    }
+
+    private void EnsureTradeFacilitationInitializedForPublish()
+    {
+        if (!EnableTradeFacilitation || Volatile.Read(ref _disposed) != 0)
+        {
+            _tradeFacilitationHost = null;
+            return;
+        }
+
+        var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
+        var fpKey = TradeFacilitationPolicyConfig.PolicyVersion
+            + "|" + (efficiency?.InputFingerprint?.ToString() ?? "")
+            + "|" + (efficiency?.ModuleState.ToString() ?? "");
+
+        if (_tradeFacilitationHost?.Current is not null
+            && string.Equals(_tradeFacilitationHost.Current.PolicyVersion, TradeFacilitationPolicyConfig.PolicyVersion, StringComparison.Ordinal))
+            return;
+
+        ProcessTradeFacilitation();
+    }
+
     private void EnsureEffortResultInitializedForPublish()
     {
         if (!EnableEffortResultClassifier || Volatile.Read(ref _disposed) != 0)
@@ -2001,6 +2053,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureEffortResultInitializedForPublish();
             EnsureFarThesisInitializedForPublish();
             EnsureAacThesisInitializedForPublish();
+            EnsureTradeFacilitationInitializedForPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
@@ -2015,6 +2068,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var effortResult = EnableEffortResultClassifier ? _effortResultHost?.Current : null;
             var farThesis = EnableFarThesis ? _farThesisHost?.Current : null;
             var aacThesis = EnableAacThesis ? _aacThesisHost?.Current : null;
+            var tradeFacilitation = EnableTradeFacilitation ? _tradeFacilitationHost?.Current : null;
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
@@ -2060,7 +2114,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 showFarThesisDiagnostics: ShowFarThesisDiagnostics,
                 aacThesis: aacThesis,
                 showAacThesisDiagnostics: ShowAacThesisDiagnostics,
-                participation: participation);
+                participation: participation,
+                tradeFacilitation: tradeFacilitation);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
