@@ -32,7 +32,7 @@ public sealed class EpisodeDatasetStoreTests : IDisposable
     {
         // The flush is dispatched, not synchronous — that is the point of the design, so the
         // test waits for the effect rather than assuming it already happened.
-        for (var i = 0; i < 100; i++)
+        for (var i = 0; i < 500; i++)
         {
             var rows = await store.LoadAsync();
             if (rows.Count > 0) return rows;
@@ -79,7 +79,10 @@ public sealed class EpisodeDatasetStoreTests : IDisposable
         var second = Store();
         second.Append(new[] { EpisodeDatasetRecord.FromEpisode(Episode("EP-2")) });
 
-        for (var i = 0; i < 100; i++)
+        // Generous, because the write is genuinely asynchronous and the whole suite
+        // competes for the same disk. A short budget here measures the machine, not the
+        // store.
+        for (var i = 0; i < 500; i++)
         {
             if ((await second.LoadAsync()).Count == 2) break;
             await Task.Delay(20);
@@ -196,6 +199,103 @@ public sealed class EpisodeDatasetStoreTests : IDisposable
 
         Assert.Equal(2, restarted.RecoveredRows);
         Assert.Equal(2, restarted.Current!.RowsCollected);
+    }
+
+    /// <summary>
+    /// A restart must not re-append what it just recovered.
+    ///
+    /// The dedup set is seeded by the load, and the load is asynchronous, so a rebuild that
+    /// folds before it lands writes episodes that are already in the file. Measured on the
+    /// live dataset: 5,126 lines holding 2,098 distinct episodes — the sample looked twice
+    /// the size it was, and every distribution built on it would have been weighted by how
+    /// often the operator restarted.
+    /// </summary>
+    [Fact]
+    public async Task D03_A_restart_does_not_duplicate_the_episodes_it_recovered()
+    {
+        var closed = Phase5AHistoricalScannerTests.ClosedForStore(Episode("EP-1"), Episode("EP-2"));
+        var at = new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+        var first = new HistoricalScannerHost(
+            new HistoricalScannerPolicyConfig(enabled: true), Store());
+        for (var i = 0; i < 20; i++) first.Rebuild(closed, at);
+        await Settle(Store());
+
+        Assert.Equal(2, (await Store().LoadAsync()).Count);
+
+        // A new process, seeing the very same rolling window of closed episodes. It folds
+        // them before its own recovery lands — which is exactly the sequence that produced
+        // the duplicates — so the store has to be the thing that refuses them.
+        var reopened = Store();
+        var restarted = new HistoricalScannerHost(
+            new HistoricalScannerPolicyConfig(enabled: true), reopened);
+
+        for (var i = 0; i < 200 && reopened.DuplicatesRejected < 2; i++)
+        {
+            restarted.Rebuild(closed, at);
+            await Task.Delay(20);
+        }
+
+        Assert.Equal(2, reopened.DuplicatesRejected);
+        Assert.Equal(0, reopened.RowsWritten);
+
+        // The file is what matters: still one line per episode.
+        Assert.Equal(2, (await Store().LoadAsync()).Count);
+    }
+
+    /// <summary>
+    /// The regression that shipped, and the reason this file exists in its current form.
+    ///
+    /// The first version dispatched a `Task.Run` flush per append and wrote through
+    /// `File.AppendAllText`, which opens and closes the file every call. A live session
+    /// produced 2,098 rows, so it produced thousands of open/write/close operations on the
+    /// ThreadPool — the same pool ATAS pumps market data through. The abnormal chart bar
+    /// came straight back, and turning the scanner off was what made it stop.
+    ///
+    /// Off-thread was never the requirement. Not competing for the platform's threads, and
+    /// not opening the file per row, are the requirements. Row count and file-open count
+    /// must be allowed to diverge, so this asserts they do.
+    /// </summary>
+    [Fact]
+    public async Task E01_A_burst_of_rows_costs_a_handful_of_file_opens_not_one_each()
+    {
+        const int rows = 2_000;
+        var store = Store();
+
+        for (var i = 0; i < rows; i++)
+            store.Append(new[] { EpisodeDatasetRecord.FromEpisode(Episode("EP-" + i)) });
+
+        for (var i = 0; i < 400 && store.RowsWritten < rows; i++)
+            await Task.Delay(20);
+
+        Assert.Equal(rows, store.RowsWritten);
+        Assert.Equal(0, store.WriteFailures);
+
+        // The bound is loose on purpose — the exact coalescing depends on scheduling. What
+        // it forbids is the shape that broke the platform: one open per row.
+        Assert.True(
+            store.WriteBatches < rows / 4,
+            $"{rows} rows opened the file {store.WriteBatches} times; a per-row open is the "
+            + "defect this guards.");
+
+        Assert.Equal(rows, (await store.LoadAsync()).Count);
+    }
+
+    /// <summary>
+    /// The writer must not be a ThreadPool work item. ATAS's data pump uses that pool, and
+    /// starving it is indistinguishable from blocking it.
+    /// </summary>
+    [Fact]
+    public async Task E02_Writing_happens_off_the_thread_pool()
+    {
+        var store = Store();
+        store.Append(new[] { EpisodeDatasetRecord.FromEpisode(Episode("EP-1")) });
+        await Settle(store);
+
+        // The store reports which kind of thread did the writing. `Task.Run` would make
+        // this true, and `Task.Run` is what broke the chart.
+        Assert.False(store.WroteOnThreadPoolThread);
+        Assert.Equal(1, store.WriteBatches);
     }
 
     [Fact]

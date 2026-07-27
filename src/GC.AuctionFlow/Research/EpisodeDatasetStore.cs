@@ -19,10 +19,18 @@ namespace GC.AuctionFlow.Research;
 /// partially written last line is skipped on load rather than failing the read — the same
 /// reasoning the recorder applies to an unsealed segment.
 ///
-/// **All I/O runs off the caller's thread.** The scanner is driven from the module schedule,
-/// which runs on ATAS threads, and this project has already shipped one defect where disk
-/// work there stalled the platform's data pump and corrupted a chart. Loads are dispatched
-/// and merged when they arrive; writes are queued and flushed in the background.
+/// **All I/O runs on one dedicated thread that this store owns.**
+///
+/// The first version of this class dispatched each flush with `Task.Run` and wrote through
+/// `File.AppendAllText`, which opens, writes and closes the file every time. That looked
+/// off-thread and was not: ATAS pumps its own data through the same ThreadPool, so a session
+/// producing thousands of rows produced thousands of open/write/close operations competing
+/// for the very threads the platform needed, and the abnormal chart bar came straight back.
+/// It was the original stall moved rather than removed.
+///
+/// So: one long-running background thread, outside the ThreadPool entirely, holding one
+/// FileStream open for the life of the store. Appends hand a row to a queue and return.
+/// However many rows a session yields, the platform never waits on any of them.
 /// </summary>
 public sealed class EpisodeDatasetStore
 {
@@ -31,14 +39,31 @@ public sealed class EpisodeDatasetStore
 
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = false };
 
+    /// <summary>
+    /// How long the writer thread waits for more rows before retiring. A session's rows
+    /// arrive in bursts, so the thread exists during a burst and not between them.
+    /// </summary>
+    private const int IdleRetireMilliseconds = 5_000;
+
     private readonly object _gate = new();
-    private readonly List<EpisodeDatasetRecord> _pending = new();
+    private readonly Queue<EpisodeDatasetRecord> _pending = new();
     private readonly string _path;
 
-    private int _flushDispatched;
+    /// <summary>
+    /// Episode ids already on disk. Touched only by the writer thread, so it needs no lock
+    /// — and must stay that way.
+    /// </summary>
+    private readonly HashSet<string> _onDisk = new(StringComparer.Ordinal);
+    private bool _knownIdsLoaded;
+
+    private Thread? _writer;
+    private long _duplicatesRejected;
     private long _rowsAppended;
+    private long _rowsWritten;
     private long _rowsLoaded;
     private long _writeFailures;
+    private long _writeBatches;
+    private int _wroteOnPoolThread;
 
     public EpisodeDatasetStore(string? userProfileOverride = null)
     {
@@ -62,10 +87,35 @@ public sealed class EpisodeDatasetStore
     /// </summary>
     public long WriteFailures => Interlocked.Read(ref _writeFailures);
 
+    /// <summary>Rows that have reached disk.</summary>
+    public long RowsWritten => Interlocked.Read(ref _rowsWritten);
+
+    /// <summary>Rows refused because the episode was already in the file.</summary>
+    public long DuplicatesRejected => Interlocked.Read(ref _duplicatesRejected);
+
     /// <summary>
-    /// Queues rows and schedules a background flush.
+    /// How many times the file has been opened to write.
     ///
-    /// Returns immediately. Never touches the disk on the calling thread.
+    /// Measured because it is the quantity that broke the platform: the previous design
+    /// opened the file once per append, so this tracked the row count. It must now track
+    /// bursts instead, and a test asserts the difference.
+    /// </summary>
+    public long WriteBatches => Interlocked.Read(ref _writeBatches);
+
+    /// <summary>
+    /// True if any write ran on a ThreadPool thread.
+    ///
+    /// Reported rather than assumed. ATAS pumps market data through that pool, so a store
+    /// that quietly moves back onto it is back to the defect that corrupted a chart, and
+    /// nothing about the file on disk would show it.
+    /// </summary>
+    public bool WroteOnThreadPoolThread => Volatile.Read(ref _wroteOnPoolThread) != 0;
+
+    /// <summary>
+    /// Queues rows for the writer thread.
+    ///
+    /// Returns immediately. Touches neither the disk nor the ThreadPool on the calling
+    /// thread — the scanner is driven from ATAS callbacks, and both are the platform's.
     /// </summary>
     public void Append(IEnumerable<EpisodeDatasetRecord>? rows)
     {
@@ -74,19 +124,66 @@ public sealed class EpisodeDatasetStore
 
         lock (_gate)
         {
+            var queued = 0;
             foreach (var row in rows)
             {
                 if (row is null) continue;
-                _pending.Add(row);
+                _pending.Enqueue(row);
                 Interlocked.Increment(ref _rowsAppended);
+                queued++;
             }
 
-            if (_pending.Count == 0)
+            if (queued == 0)
                 return;
-        }
 
-        if (Interlocked.CompareExchange(ref _flushDispatched, 1, 0) == 0)
-            _ = Task.Run(Flush);
+            // Started under the lock so two callers cannot race one into existence twice,
+            // and restarted freely: the previous thread retires when a burst ends.
+            if (_writer is null)
+            {
+                _writer = new Thread(WriterLoop)
+                {
+                    IsBackground = true,
+                    Name = "gcae-episode-dataset",
+                };
+                _writer.Start();
+            }
+
+            Monitor.Pulse(_gate);
+        }
+    }
+
+    /// <summary>
+    /// Drains the queue onto disk, one file open per burst rather than per row.
+    ///
+    /// Retires after an idle spell instead of spinning for the life of the process. A
+    /// research store should cost nothing on a session that closes no episodes.
+    /// </summary>
+    private void WriterLoop()
+    {
+        while (true)
+        {
+            List<EpisodeDatasetRecord> batch;
+
+            lock (_gate)
+            {
+                while (_pending.Count == 0)
+                {
+                    if (!Monitor.Wait(_gate, IdleRetireMilliseconds))
+                    {
+                        // Nothing arrived. Retire, and let the next append start a
+                        // successor.
+                        _writer = null;
+                        return;
+                    }
+                }
+
+                batch = new List<EpisodeDatasetRecord>(_pending.Count);
+                while (_pending.Count > 0)
+                    batch.Add(_pending.Dequeue());
+            }
+
+            WriteBatch(batch);
+        }
     }
 
     /// <summary>
@@ -132,37 +229,115 @@ public sealed class EpisodeDatasetStore
         return (IReadOnlyList<PersistedEpisodeRow>)rows;
     });
 
-    private void Flush()
+    /// <summary>
+    /// Reads the ids already in the file, once, on the writer thread.
+    ///
+    /// Deliberately not the caller's thread and deliberately not the ThreadPool: this is
+    /// the read that has to happen before the first write, and both of those threads belong
+    /// to the platform.
+    /// </summary>
+    private void EnsureKnownIdsLoaded()
     {
+        if (_knownIdsLoaded)
+            return;
+
+        _knownIdsLoaded = true;
+
         try
         {
-            List<EpisodeDatasetRecord> batch;
-            lock (_gate)
-            {
-                if (_pending.Count == 0) return;
-                batch = new List<EpisodeDatasetRecord>(_pending);
-                _pending.Clear();
-            }
+            if (!File.Exists(_path))
+                return;
 
+            foreach (var line in File.ReadLines(_path))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                try
+                {
+                    var row = JsonSerializer.Deserialize<PersistedEpisodeRow>(line, Json);
+                    if (row is not null && !string.IsNullOrEmpty(row.EpisodeId))
+                        _onDisk.Add(row.EpisodeId);
+                }
+                catch (JsonException)
+                {
+                    // A truncated tail is expected; it simply is not a known id.
+                }
+            }
+        }
+        catch (IOException)
+        {
+            // Unreadable means unknown, which costs a duplicate rather than a lost row.
+        }
+    }
+
+    private void WriteBatch(List<EpisodeDatasetRecord> batch)
+    {
+        if (batch.Count == 0)
+            return;
+
+        if (Thread.CurrentThread.IsThreadPoolThread)
+            Volatile.Write(ref _wroteOnPoolThread, 1);
+
+        try
+        {
             var dir = Path.GetDirectoryName(_path);
             if (!string.IsNullOrEmpty(dir))
                 Directory.CreateDirectory(dir);
 
+            // One episode, one line — enforced here rather than by the caller.
+            //
+            // The scanner dedups within a session, but it learns what a *previous* session
+            // wrote from an asynchronous load, so anything folded before that landed was
+            // appended again. Measured on the live file: 5,126 lines holding 2,098 distinct
+            // episodes. Every distribution built on it would have been weighted by how
+            // often the operator restarted.
+            //
+            // Making the scanner wait for the load instead would tie whether a module
+            // collects anything to disk latency. The file's uniqueness is the file's
+            // invariant, so it is kept where the file is written.
+            EnsureKnownIdsLoaded();
+
             var text = new StringBuilder();
+            var written = 0;
             foreach (var row in batch)
+            {
+                if (!_onDisk.Add(row.EpisodeId))
+                {
+                    Interlocked.Increment(ref _duplicatesRejected);
+                    continue;
+                }
+
                 text.AppendLine(JsonSerializer.Serialize(PersistedEpisodeRow.From(row), Json));
+                written++;
+            }
+
+            if (written == 0)
+                return;
 
             // Append, never rewrite. A rewrite that fails halfway loses everything already
             // earned; an append that fails halfway loses one line.
-            File.AppendAllText(_path, text.ToString(), new UTF8Encoding(false));
+            //
+            // Shared for reading so a concurrent load — or an operator looking at the file —
+            // is not an error, and closed at the end of the burst so nothing external is
+            // blocked between bursts.
+            var bytes = new UTF8Encoding(false).GetBytes(text.ToString());
+            using (var stream = new FileStream(
+                       _path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite,
+                       bufferSize: 4096, FileOptions.None))
+            {
+                stream.Write(bytes, 0, bytes.Length);
+                // Flushed to the OS, never to the platter. `flushToDisk: true` inside a
+                // callback is the defect that started all of this; there is no reason to
+                // pay a device sync for research rows.
+                stream.Flush();
+            }
+
+            Interlocked.Add(ref _rowsWritten, written);
+            Interlocked.Increment(ref _writeBatches);
         }
         catch (Exception)
         {
             Interlocked.Increment(ref _writeFailures);
-        }
-        finally
-        {
-            Volatile.Write(ref _flushDispatched, 0);
         }
     }
 }

@@ -115,6 +115,9 @@ public sealed class HistoricalScannerHost
 
         var newRows = new List<EpisodeDatasetRecord>();
 
+        // Folding is never gated on recovery landing. It was, briefly, and that made
+        // whether a module collected anything depend on disk latency. Duplicate rows are
+        // the file's problem and the store rejects them at the boundary.
         if (episodes is not null)
         {
             foreach (var episode in episodes.RecentlyClosedEpisodes)
