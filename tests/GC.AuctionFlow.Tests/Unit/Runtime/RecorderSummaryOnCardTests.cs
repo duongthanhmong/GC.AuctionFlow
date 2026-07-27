@@ -138,6 +138,48 @@ public sealed class RecorderSummaryOnCardTests
         }
     }
 
+    /// <summary>
+    /// Recorder startup must not run on the ATAS thread.
+    ///
+    /// TryCompleteStartupFromLifecycle creates directories and writes the manifest with
+    /// Flush(flushToDisk: true) — two forced fsyncs — and it was being called inside
+    /// OnCalculate. A blocked OnCalculate stalls the platform's data pump; when the pump
+    /// resumed it delivered everything queued, and the chart aggregated 42,511 backlogged
+    /// trades into a single bar 47.7 points tall, on this chart and on others sharing the
+    /// workspace.
+    ///
+    /// Established by bisection, not inference: disabling the recorder removed the artifact
+    /// and dropped the backlog from 42,511 to 68, while disabling either renderer changed
+    /// nothing.
+    /// </summary>
+    [Fact]
+    public void A06_Recorder_startup_does_not_run_on_the_atas_thread()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var text = File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+
+        var start = text.IndexOf("private void TryCompleteRecorderStartup", StringComparison.Ordinal);
+        Assert.True(start >= 0, "TryCompleteRecorderStartup not found");
+
+        var end = text.IndexOf("\n    /// <summary>", start + 1, StringComparison.Ordinal);
+        var body = end < 0 ? text[start..] : text[start..end];
+
+        // The call, not the mention: the explanatory comment above it names the method.
+        var call = body.IndexOf("host.TryCompleteStartupFromLifecycle(", StringComparison.Ordinal);
+        Assert.True(call >= 0, "startup is no longer invoked at all");
+
+        Assert.Contains("Task.Run", body, StringComparison.Ordinal);
+        Assert.True(
+            body.IndexOf("Task.Run", StringComparison.Ordinal) < call,
+            "TryCompleteStartupFromLifecycle must be dispatched off the ATAS thread; "
+            + "it creates directories and fsyncs the manifest");
+    }
+
     [Fact]
     public void A03_A_recorder_that_is_off_still_reads_clearly() =>
         Assert.DoesNotContain(

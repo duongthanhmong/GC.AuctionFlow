@@ -2801,8 +2801,35 @@ public sealed class GcAuctionFlowIndicator : Indicator
             // were being written into it.
             userProfileOverride: null,
             enableDepthRecording: EnableDepthAndQuoteRecording);
-        host.TryCompleteStartupFromLifecycle();
+
+        // Off the ATAS thread. TryCompleteStartupFromLifecycle creates directories and
+        // writes the manifest with Flush(flushToDisk: true) — two forced fsyncs — and it
+        // was running inside OnCalculate. A blocked OnCalculate stalls the platform's data
+        // pump, and when the pump resumes it delivers everything it queued: one live run
+        // produced 42,511 backlogged trades, which the chart then aggregated into a single
+        // bar 47.7 points tall, on this chart and on others sharing the workspace.
+        //
+        // Confirmed by bisection: disabling the recorder removed the artifact and dropped
+        // the backlog from 42,511 to 68. Disabling either renderer changed nothing.
+        //
+        // The recorder's own rule already said the callback path must never create
+        // directories, open files or wait. The startup path was the one place that did.
+        if (Interlocked.CompareExchange(ref _recorderStartupDispatched, 1, 0) == 0)
+        {
+            _ = Task.Run(() =>
+            {
+                try { host.TryCompleteStartupFromLifecycle(); }
+                catch (Exception ex) { RecordFault("RecorderStartup", ex); }
+                finally { Volatile.Write(ref _recorderStartupDispatched, 0); }
+            });
+        }
     }
+
+    /// <summary>
+    /// Guards against queueing a second startup while one is still running. Reset in the
+    /// task's finally so a failed attempt can be retried on a later bar.
+    /// </summary>
+    private int _recorderStartupDispatched;
 
     private TradeRecorderHost? TryGetRecorderReady()
     {
