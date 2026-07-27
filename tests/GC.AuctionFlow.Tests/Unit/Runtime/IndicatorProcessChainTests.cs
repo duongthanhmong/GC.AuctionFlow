@@ -313,7 +313,7 @@ public sealed class ModuleFaultVisibilityTests
             // fault ledger — a recorder that silently stops writing depth is exactly the
             // kind of failure this ledger exists to surface — but neither has a Process
             // method for the name to match.
-            if (call.Groups[1].Value is "ModuleSchedule" or "DepthRecording" or "RecorderStartup")
+            if (call.Groups[1].Value is "ModuleSchedule" or "DepthRecording" or "RecorderStartup" or "MboRecording")
                 continue;
 
             var owner = methods.LastOrDefault(m => m.Pos < call.Index);

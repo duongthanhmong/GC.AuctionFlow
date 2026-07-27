@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using GC.AuctionFlow.Recorder;
@@ -385,9 +385,10 @@ public sealed class MboLockAndHygieneTests
     public void Mbo_schema_present_but_recording_blocked()
     {
         Assert.True(MboOperationalLock.MboSchemaSupported);
-        Assert.False(MboOperationalLock.MboRecordingEnabled);
-        Assert.Equal(MboIsolationRequirement.IsolatedEnvironmentOnly, MboOperationalLock.MboIsolationRequirement);
-        Assert.Contains("Same-process GC chart-data side effect", MboOperationalLock.MboOperationalBlockReason, StringComparison.Ordinal);
+        Assert.False(MboOperationalLock.MboRecordingEnabledDefault);
+        Assert.Equal(MboIsolationRequirement.OperatorDecision, MboOperationalLock.MboIsolationRequirement);
+        // The reason is retained but withdrawn: the side effect was our own fsync.
+        Assert.Contains("WITHDRAWN", MboOperationalLock.MboOperationalBlockReason, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -306,8 +306,12 @@ public sealed class P008ARuntimeDataGateTests
         Assert.Contains("OnRender", src, StringComparison.Ordinal);
         Assert.Contains("PublishRuntimeSnapshot", src, StringComparison.Ordinal);
         Assert.DoesNotContain("EnableDomRecording", src, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableMboRecording", src, StringComparison.Ordinal);
         Assert.Contains("EnableMboLifecycleProbe", src, StringComparison.Ordinal);
+
+        // MBO recording is authorised as of 2026-07-27 and defaults off. The card is the
+        // subject of this test, and it must not require any recording stream to render —
+        // that separation is what the assertion is actually for.
+        Assert.Contains("EnableMboRecording", src, StringComparison.Ordinal);
     }
 
     [Fact]

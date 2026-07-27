@@ -36,6 +36,7 @@ public sealed class TradeRecorderHost : IDisposable
         public string? UserProfileOverride { get; init; }
         public required bool EnableTradeRecording { get; init; }
         public required bool EnableDepthRecording { get; init; }
+        public required bool EnableMboRecording { get; init; }
     }
 
     public RecorderCounters Counters { get; } = new();
@@ -63,7 +64,8 @@ public sealed class TradeRecorderHost : IDisposable
         Guid sessionId,
         TradeStreamAtasMapper tradeMapper,
         string? userProfileOverride = null,
-        bool enableDepthRecording = false)
+        bool enableDepthRecording = false,
+        bool enableMboRecording = false)
     {
         if (_disposed)
             return FanOut.RecorderSinkOutcome.StoppedAccepting;
@@ -74,7 +76,7 @@ public sealed class TradeRecorderHost : IDisposable
         if (!enableTradeRecording)
             return FanOut.RecorderSinkOutcome.StreamDisabled;
 
-        _ = MboOperationalLock.MboRecordingEnabled;
+
 
         if (_startupFailed)
             return FanOut.RecorderSinkOutcome.Faulted;
@@ -123,7 +125,8 @@ public sealed class TradeRecorderHost : IDisposable
                 TradeMapper = tradeMapper,
                 UserProfileOverride = userProfileOverride,
                 EnableTradeRecording = enableTradeRecording,
-                EnableDepthRecording = enableDepthRecording
+                EnableDepthRecording = enableDepthRecording,
+                EnableMboRecording = enableMboRecording
             };
         }
 
@@ -155,6 +158,7 @@ public sealed class TradeRecorderHost : IDisposable
             var streams = new List<string>(2);
             if (pending.EnableTradeRecording) streams.Add("Trade");
             if (pending.EnableDepthRecording) streams.Add("Dom");
+            if (pending.EnableMboRecording) streams.Add("Mbo");
             var enabledStreams = streams.ToArray();
             var adapter = new TradeToRawEventAdapter(pending.TradeMapper);
             var session = new RawEventRecorderSession(
@@ -167,7 +171,8 @@ public sealed class TradeRecorderHost : IDisposable
                 cfg,
                 counters: Counters,
                 userProfileOverride: pending.UserProfileOverride,
-                enabledStreams: enabledStreams);
+                enabledStreams: enabledStreams,
+                mboRecordingEnabled: pending.EnableMboRecording);
 
             lock (_gate)
             {

@@ -30,6 +30,7 @@ public sealed class RawEventRecorderSession : IDisposable
     private readonly string _providerProvenance;
     private readonly string? _userProfileOverride;
     private readonly IReadOnlyList<string> _enabledStreams;
+    private readonly bool _mboRecordingEnabled;
 
     private SegmentWriter? _writer;
     private ObservedInstrumentIdentity? _currentIdentity;
@@ -56,7 +57,8 @@ public sealed class RawEventRecorderSession : IDisposable
         IDiskSpaceProbe? diskSpaceProbe = null,
         string? userProfileOverride = null,
         RecorderCounters? counters = null,
-        IReadOnlyList<string>? enabledStreams = null)
+        IReadOnlyList<string>? enabledStreams = null,
+        bool mboRecordingEnabled = false)
     {
         _sessionId = sessionId;
         _processId = processInstanceId;
@@ -72,6 +74,7 @@ public sealed class RawEventRecorderSession : IDisposable
         _enabledStreams = enabledStreams is { Count: > 0 }
             ? enabledStreams.ToArray()
             : new[] { "Trade" };
+        _mboRecordingEnabled = mboRecordingEnabled;
         _startUtc = DateTime.UtcNow;
 
         RecorderStoragePaths.EnsureSessionLayout(sessionId, userProfileOverride);
@@ -149,7 +152,7 @@ public sealed class RawEventRecorderSession : IDisposable
     /// <summary>Recorder sink outcome helper for fan-out (no market NormalizedObservations).</summary>
     public FanOut.RecorderSinkOutcome TryAcceptDraft(RawEventDraft draft)
     {
-        if (!MboOperationalLock.MboRecordingEnabled && draft.StreamKind == RecorderStreamKind.Mbo)
+        if (!_mboRecordingEnabled && draft.StreamKind == RecorderStreamKind.Mbo)
             return FanOut.RecorderSinkOutcome.StreamDisabled;
         if (_disposed)
             return FanOut.RecorderSinkOutcome.StoppedAccepting;
@@ -724,7 +727,7 @@ public sealed class RawEventRecorderSession : IDisposable
                 _enabledStreams,
                 new[] { new DisabledStreamRecord("Mbo", MboOperationalLock.MboOperationalBlockReason) },
                 MboOperationalLock.MboSchemaSupported,
-                MboOperationalLock.MboRecordingEnabled,
+                _mboRecordingEnabled,
                 MboOperationalLock.MboIsolationRequirement.ToString(),
                 MboOperationalLock.MboOperationalBlockReason,
                 segments,

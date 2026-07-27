@@ -246,7 +246,7 @@ public static class RecoveryScanner
                 new DisabledStreamRecord("Mbo", MboOperationalLock.MboOperationalBlockReason)
             },
             MboOperationalLock.MboSchemaSupported,
-            MboOperationalLock.MboRecordingEnabled,
+            MboOperationalLock.MboRecordingEnabledDefault,
             MboOperationalLock.MboIsolationRequirement.ToString(),
             MboOperationalLock.MboOperationalBlockReason,
             segments,

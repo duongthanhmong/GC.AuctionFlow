@@ -255,6 +255,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnablePlar = false;
         ShowPlarDiagnostics = false;
         EnableDepthAndQuoteRecording = false;
+        EnableMboRecording = MboOperationalLock.MboRecordingEnabledDefault;
         EnableHistoricalScanner = false;
         VolatilityRegimeLowerBoundaryTicks = 0;
         VolatilityRegimeUpperBoundaryTicks = 0;
@@ -324,6 +325,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Enable Trade Recording")]
     [Description("Effective only when Enable Raw Event Recorder is true. Default true.")]
     public bool EnableTradeRecording { get; set; }
+
+    [Category("Raw Event Recorder")]
+    [DisplayName("Enable MBO Recording")]
+    [Description("Records market-by-order events. v1.2 §46.5 lists queue lifecycle, pulling, stacking and cancellations as unobtainable from history. Previously locked because P0-06D blamed MBO for an abnormal chart bar; that was this project's own disk fsync on the ATAS thread, and a re-test after fixing it reproduced nothing. Requires Enable MBO Lifecycle Probe. Off by default because MBO completeness is still unproven, not because capture is unsafe.")]
+    public bool EnableMboRecording { get; set; }
 
     [Category("Raw Event Recorder")]
     [DisplayName("Enable Depth And Quote Recording")]
@@ -1020,6 +1026,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     var obs = MboAtasMapper.Map(
                         mbo, epoch, probe.NextSequence(), receiveUtc, sw, threadId, key);
                     probe.TryEnqueueMapped(obs);
+                    TryRecordMbo(obs);
                 }
                 catch
                 {
@@ -2555,6 +2562,51 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     private void NoteDepthCallback() => Interlocked.Increment(ref _depthCallbacksObserved);
 
+    private long _mboFramesRecorded;
+
+    /// <summary>
+    /// Hands one MBO observation to the recorder.
+    ///
+    /// v1.2 §46.5 lists queue lifecycle, pulling, stacking and cancellations as
+    /// unobtainable from downloaded history, so an unrecorded MBO event is gone for good.
+    /// Contained like every other callback path — a recorder fault must never escape into
+    /// ATAS, and a dropped frame is a smaller loss than a broken indicator.
+    /// </summary>
+    private void TryRecordMbo(MboObservation? observation)
+    {
+        if (!EnableMboRecording || observation is null)
+            return;
+
+        var host = TryGetRecorderReady();
+        if (host is null)
+            return;
+
+        try
+        {
+            var identity = ObservedInstrumentIdentityMapper.FromSnapshot(
+                _tradeProbe?.GetObservedInstrument() ?? new ObservedInstrumentSnapshot(
+                    null, null, null, null, null, null, null, null, null, null, null));
+
+            var draft = MboToRawEventAdapter.TryDraft(
+                observation,
+                host.Capture(RecorderCallbackSource.OnMarketByOrdersChanged),
+                identity,
+                host.SessionId,
+                host.ProcessId,
+                DeclaredDataSourceMode.ToString(),
+                DataSourceModeProvenance.ToString(),
+                DeclaredFeedProvider.ToString(),
+                FeedProviderProvenance.ToString());
+
+            if (host.ProcessDepthCallback(draft))
+                Interlocked.Increment(ref _mboFramesRecorded);
+        }
+        catch (Exception ex)
+        {
+            RecordFault("MboRecording", ex);
+        }
+    }
+
     private long _depthCaptureSequence;
 
     /// <summary>
@@ -2726,12 +2778,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 tradesObserved: Interlocked.Read(ref _tradesObserved),
                 tradesWithAggressorSide: Interlocked.Read(ref _tradesWithAggressorSide),
                 depthCallbacksObserved: Interlocked.Read(ref _depthCallbacksObserved),
-                mboRecordingUnlocked: MboOperationalLock.MboRecordingEnabled,
+                mboRecordingUnlocked: EnableMboRecording,
                 depthFramesRecorded: recorder is null
                     ? 0L
                     : Interlocked.Read(ref recorder.Counters.DepthFramesAccepted),
                 depthRecordingEnabled: EnableDepthAndQuoteRecording,
-                preStartReplayTrades: Interlocked.Read(ref _preStartReplayTrades));
+                preStartReplayTrades: Interlocked.Read(ref _preStartReplayTrades),
+                mboFramesRecorded: Interlocked.Read(ref _mboFramesRecorded));
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
@@ -2800,7 +2853,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             // it defaulting to false, and the session declared ["Trade"] while Dom frames
             // were being written into it.
             userProfileOverride: null,
-            enableDepthRecording: EnableDepthAndQuoteRecording);
+            enableDepthRecording: EnableDepthAndQuoteRecording,
+            enableMboRecording: EnableMboRecording);
 
         // Off the ATAS thread. TryCompleteStartupFromLifecycle creates directories and
         // writes the manifest with Flush(flushToDisk: true) — two forced fsyncs — and it
@@ -2857,7 +2911,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _sessionId,
             mapper,
             userProfileOverride: null,
-            enableDepthRecording: EnableDepthAndQuoteRecording);
+            enableDepthRecording: EnableDepthAndQuoteRecording,
+            enableMboRecording: EnableMboRecording);
 
         if (outcome == Recorder.FanOut.RecorderSinkOutcome.NotConfigured
             || outcome == Recorder.FanOut.RecorderSinkOutcome.StreamDisabled

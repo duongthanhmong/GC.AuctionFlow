@@ -592,7 +592,14 @@ public sealed class FanOutCoordinatorTests
         // The existing MBO subscribe path lives in this file and stays gated; the sibling
         // test forbids any new one appearing under Recorder/, which is where it would
         // matter. Asserting its absence here would only forbid what is already present.
-        Assert.DoesNotContain("EnableMboRecording", text, StringComparison.Ordinal);
+        // MBO recording is authorised as of 2026-07-27. The prohibition rested on P0-06D
+        // blaming MBO subscription for an abnormal chart bar; that bar was this project's
+        // own Flush(flushToDisk: true) inside OnCalculate, and a re-test after moving it
+        // off-thread reproduced nothing. It stays off by default because MBO completeness
+        // is unproven — a reason to distrust the contents, not to refuse the recording.
+        Assert.Contains("EnableMboRecording", text, StringComparison.Ordinal);
+
+        // The DOM snapshot pull is still an action rather than observation, and still out.
         Assert.DoesNotContain("EnableDomSnapshotRecording", text, StringComparison.Ordinal);
 
         // The passive path must stay passive: recording must never trigger a snapshot pull.
@@ -619,16 +626,16 @@ public sealed class FanOutCoordinatorTests
             Assert.DoesNotContain("this[bar]", text, StringComparison.Ordinal);
         }
         Assert.True(MboOperationalLock.MboSchemaSupported);
-        Assert.False(MboOperationalLock.MboRecordingEnabled);
-        Assert.Equal(MboIsolationRequirement.IsolatedEnvironmentOnly, MboOperationalLock.MboIsolationRequirement);
+        Assert.False(MboOperationalLock.MboRecordingEnabledDefault);
+        Assert.Equal(MboIsolationRequirement.OperatorDecision, MboOperationalLock.MboIsolationRequirement);
     }
 
     [Fact]
     public void Mbo_lock_schema_yes_recording_no()
     {
         Assert.True(MboOperationalLock.MboSchemaSupported);
-        Assert.False(MboOperationalLock.MboRecordingEnabled);
-        Assert.Equal(MboIsolationRequirement.IsolatedEnvironmentOnly, MboOperationalLock.MboIsolationRequirement);
+        Assert.False(MboOperationalLock.MboRecordingEnabledDefault);
+        Assert.Equal(MboIsolationRequirement.OperatorDecision, MboOperationalLock.MboIsolationRequirement);
     }
 
     [Fact]
