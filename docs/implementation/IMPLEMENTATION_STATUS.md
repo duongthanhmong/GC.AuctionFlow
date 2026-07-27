@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1375** passed / 0 failed / 0 skipped |
+| Test count | **1406** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -508,6 +508,42 @@ recorder is doing what it claimed.
 Session `bb623d6c` also confirms the manifest defect independently: it declares
 `enabledStreams: ["Trade"]` and contains 9,228 `BestBidAsk` frames — exactly the two-call-
 site bug, visible in the data rather than inferred.
+
+### Foundation audit — 2026-07-27, after eight defects in one day
+
+Every defect found today fell into one of two shapes. Both were swept for systematically
+rather than fixed case by case.
+
+**Shape A — a value computed correctly, then replaced by a constant at the display layer.**
+Five instances: pinned `bidAskClassificationState`/`domState`/`mboState`, `_ => "UNKNOWN"`
+swallowing `Unavailable`, the card ignoring `RecorderDiagnosticSummary`, the manifest
+declaring one stream while writing two, and the literal `mboLine: "MBO: BLOCKED"`.
+**Swept:** every card line now derives from the snapshot; no literals remain.
+
+**Shape B — the engine consuming data of the wrong kind.** Aggressor read from a field this
+feed never populates, the batch depth callback dropping every book update, and 853 minutes
+of replayed history consumed as live. **Swept:** all nine platform callbacks verified to
+both count and record what they observe.
+
+The common cause of Shape A is worth stating: **none of those rendered lines had a test.**
+Each fix compiled, each suite stayed green, and each defect surfaced only on a live
+screenshot. Every one is now covered, and the coverage asserts the *rendered row* rather
+than the helper behind it — an earlier attempt asserted the helper and passed while the card
+still emitted a constant.
+
+#### Still open, in the order they matter
+
+| # | Item | Severity | Fixable by |
+|---|---|---|---|
+| 1 | `AUCTION EFFICIENCY` can never reach `Ready`; drags `EffortResult` and `TradeFacilitation` with it | three card rows carry no information | code — Phase 2C semantics decision |
+| 2 | Profile ingests chart bars unfiltered; the replay gate covers trades, not bars | a corrupt bar still poisons TPO/VP | code |
+| 3 | Scanner dataset lives only in RAM | every restart discards accumulated rows | code (5A-e) |
+| 4 | Calibration protocol blocked at step 2 | `[C]` stays locked | research decision, not code |
+| 5 | Time — one day of recording | nothing can be calibrated from it | accumulation only |
+| 6 | One unreproduced test failure (`WriterTotalAccountingCloseoutTests`, once in ~40 runs) | unknown | unresolved; recorded rather than guessed at |
+
+Item 2 is the one most like today's defects: a known ingestion path with no freshness or
+plausibility gate, in a phase marked complete.
 
 ### Phase 5A — LIVE ACCEPTANCE PASS (2026-07-27, 19:20 VN / 08:20 ET rollover)
 
