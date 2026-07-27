@@ -361,6 +361,39 @@ worse than none.
   is non-empty and contains the indicator class, so a recurrence reports the real problem
   instead of failing confusingly downstream.
 
+### Closed: the CRLF integrity finding, properly this time
+
+Commit `5973489` recorded that `core.autocrlf = true` — with no `.gitattributes` — was
+rewriting source on disk after the DLL had been built from it, so a source-vs-binary
+SHA-256 check could disagree for reasons unrelated to the build. The response then was to
+fix the *order of operations* (commit -> clean -> build -> test -> deploy -> hash). That
+avoided the symptom; it did not remove the cause, and it left the order load-bearing.
+
+`.gitattributes` now pins `* text=auto eol=lf`, with `.ps1`/`.cmd`/`.bat` kept CRLF because
+Windows shells break on LF continuations.
+
+Two things were wrong in the tree and are now fixed:
+
+- 238 of 316 `.cs` files were CRLF on disk while the repository stored LF. The compiler
+  reads bytes, so the built DLL depended on which files a checkout had touched.
+- The first `--renormalize` was discarded by an operator error (`rm .git/index` to force a
+  refresh; the following `git reset` rebuilt the index from HEAD). Redone and verified.
+
+`git diff --ignore-cr-at-eol` across all 258 affected files returns nothing, so the change
+was line endings and nothing else. The repository content itself needed no commit — only
+`.gitattributes` did.
+
+**Determinism confirmed rather than assumed.** Two consecutive clean rebuilds of the same
+tree produce a byte-identical DLL, so a recorded hash is a real check. The build identity
+changed across this work (`E7706FAC` -> `B0543F6E`) purely because the source bytes changed;
+no code changed, and 1356 tests pass on both.
+
+| | |
+|---|---|
+| Deployed SHA-256 | `BB9F2214079A44821E661E63AA87C9E14F35C03F7FAE3F145441B91A8997C4AE` |
+| Build identity | `B0543F6E` |
+| Source == deployed | yes |
+
 ### Phase 5A-d — participation regime axis, and step 2 is now unblockable
 
 The last of the three axes. Unlike volatility, v1.2 §10.4 **does** specify this one, and
