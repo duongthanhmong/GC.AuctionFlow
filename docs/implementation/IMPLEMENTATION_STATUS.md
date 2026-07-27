@@ -5,7 +5,7 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **SKELETON COMPLETE — FIRST LIVE RUN DONE; PER-PHASE ACCEPTANCE STILL PENDING** |
+| Current phase | **SKELETON COMPLETE — FULL-CHAIN LIVE VALIDATION PASSED; PER-PHASE SEMANTIC ACCEPTANCE STILL PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
 | Runtime snapshot schema | **0.25.0** (module fault reporting) |
@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1252** passed / 0 failed / 0 skipped |
+| Test count | **1255** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -261,8 +261,9 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 | Gate | Result |
 |------|--------|
 | Modules reporting real state | **21 / 21** |
-| Modules confirmed behaving correctly | **20 / 21** |
-| Integration defects found | **3** — all invisible to 1226 green unit tests |
+| Modules confirmed behaving correctly | **21 / 21** |
+| Integration defects found | **4 classes** — all invisible to a green unit suite |
+| Final card | build `5FB94B79`, `FAULTS: none`, chain flowing end to end |
 | Card at close | build `FF75B587`, schema `0.25.0`, `FAULTS: none` |
 | Per-phase live acceptance | **STILL PENDING** — this proved the modules are alive, not that each phase's semantics are correct |
 
@@ -307,13 +308,53 @@ changed nothing on the card.
 - **GPS card compact mode**. With every module on, the card ran to several hundred lines
   and the status block sat below the bottom of any screen.
 
+
+### Chain closure (final state)
+
+```
+EPISODE (3) -> EVIDENCE (3) -> EFFICIENCY (4) -> FAR (3) + AAC (3) -> MATURITY (6) -> THESIS CONTRACT
+```
+
+`MATURITY: PARTIAL (6)` equals exactly the three FAR plus three AAC theses upstream. The
+arithmetic matching is what makes this a confirmation rather than merely a different
+result.
+
+### Fourth defect class: publish guards that froze their module
+
+`Ensure*InitializedForPublish` returned early whenever a snapshot already existed, so the
+module never rebuilt after its first publish. Four were affected: TradeFacilitation,
+SignalMaturity, ThesisContract, AcceptanceReentryResolution.
+
+Trade Facilitation computed a fingerprint and then ignored it in the condition.
+
+Signal Maturity is the instructive one. It froze at `AWAITINGTHESIS (0)` while FAR and AAC
+each carried three theses, and because "awaiting thesis" reads as a legitimate waiting
+state it survived several rounds of debugging unexamined. The symptom looked normal.
+
+The guards were pointless as well as harmful: every host already gates its own rebuild on
+an input fingerprint, so the redundant call costs nothing.
+
+The fourth instance, AcceptanceReentryResolution, was found by the shape test, not by
+reading the code — a hand review had already missed it.
+
+### Why the scope counts mattered
+
+`PARTIAL` alone cannot separate a module processing scopes from one running over nothing.
+`AUCTION EFFICIENCY: PARTIAL (4)` beside `TRADE FACILITATION: AWAITINGEFFICIENCY` made the
+contradiction visible in a single screenshot; without the count the two statements were
+both true and jointly uninformative.
+
+### Test-gap note
+
+`PublishPathCoverageTests.A03` was written as protection against the second defect and was
+vacuous — it accepted any host as driven because the publish body always contains the
+substring `Ensure`. It was rewritten and both guard sets were then verified by mutation:
+removing `ProcessTradeFacilitation` from the per-bar chain and `ProcessPlar` from the
+publish path each turn the relevant assertions red. A green assertion that cannot fail is
+worse than none.
+
 ### Open
 
-- `TRADE FACILITATION: AWAITINGEFFICIENCY` while `AUCTION EFFICIENCY: PARTIAL`.
-  Facilitation reports that when efficiency exposes no scope at all, and
-  `MATURITY: AWAITINGTHESIS` alongside `FAR/AAC: PARTIAL` fits the same shape — modules
-  running, content empty. Not established whether that is correct (no qualifying episode)
-  or a content-chain defect. Needs scope counts from the non-compact detail block.
 - One test failed once immediately after a clean rebuild and passed on four subsequent
   runs. Suspected source-file read racing the build. Recorded, not reproduced.
 - `COMPLETED PERIODS: 17` against `TPO PERIOD INDEX: 36`, indicator added mid-session.
