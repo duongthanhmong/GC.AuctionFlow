@@ -8,7 +8,7 @@
 | Current phase | **SKELETON COMPLETE — FULL-CHAIN LIVE VALIDATION PASSED; PER-PHASE SEMANTIC ACCEPTANCE STILL PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.25.0** (module fault reporting) |
+| Runtime snapshot schema | **0.26.0** (market clock + profile parity rows) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -44,8 +44,8 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1406** passed / 0 failed / 0 skipped |
-| GPS diagnostic rows | **21** |
+| Test count | **1444** passed / 0 failed / 0 skipped |
+| GPS diagnostic rows | **25** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
 | P0-08A | **PASS + LOCKED** |
@@ -66,6 +66,81 @@
 | Phase 3B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Signal Maturity (`SIGNAL_MATURITY_POLICY_V1`) |
 | Phase 3C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Thesis Contract + 5-dimension Invalidation (`THESIS_CONTRACT_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
+
+## Foundation repair day (2026-07-27/28) — CODE/TEST PASS, LIVE ACCEPTANCE MIXED
+
+Not a phase. A day spent on defects inside phases already marked passing, recorded
+here because the pattern matters more than the individual fixes.
+
+### What was wrong
+
+Eight defects in two families.
+
+**A value computed correctly and replaced at the display layer** — five instances, all
+in the GPS card, none with a test: the bid/ask row, the scanner row, a hard-coded
+`MBO: BLOCKED` string sitting beside a correct helper, the recorder summary re-derived
+from `RecorderState` alone, and the episode row collapsing active and closed into one
+number.
+
+**The engine consuming data of the wrong kind** — the aggressor side read from
+`IsAsk`/`IsBid`, which Rithmic never populates while `Direction` carried the answer;
+batch depth callbacks neither counted nor recorded; and 853 minutes of pre-start replay
+consumed as live.
+
+### The chart-stall family
+
+Three separate causes, one window — work done while ATAS builds the chart's history:
+
+1. `Flush(flushToDisk: true)` inside `OnCalculate`
+2. `EpisodeDatasetStore` opening the file once per row on the ThreadPool, which ATAS
+   also pumps market data through
+3. `RequestFixedProfileAsync` firing on the first publish
+
+Each shipped after a green test run. Each was found by the operator, not by the tests.
+
+`A02c` now fails any `RequestFixedProfileAsync` not preceded by a
+`HistoricalInitializationState.Complete` check in its own process method.
+
+**The abnormal bar itself is not ours.** Changing the chart timeframe removes it, and
+ATAS rebuilds bars from the same trades — a print that vanishes on a rebuild was never
+in the trade data. It is the platform's first-load bar construction. It does not
+corrupt anything recorded or derived. `PRE-START REPLAY` was wrongly used as the
+stall signal for two of these; it measures how much history ATAS delivered, not
+whether anything stalled.
+
+### What was added
+
+| | |
+|---|---|
+| `ModuleDriveSchedule` | one declaration of the 19 module steps; two hand-maintained call lists had drifted |
+| `TradeAggressorSide` | side resolved from `Direction`; mapping measured (2,336 buy-at-ask, 0 buy-at-bid), not assumed |
+| `TradeObservationFreshness` | threshold-free pre-start replay gate |
+| `SegmentReader` | the recording can be read back, which is how the aggressor answer was found |
+| `EpisodeDatasetStore` | dataset survives restart; dedicated writer thread, dedup at the file boundary |
+| `MarketClockProbe` | **measured: `UTC (n=89,323)`** — `ATAS_CANDLE_TIME_UTC_V1` holds, and now by measurement rather than by note |
+| `FixedProfileParity` | first independent check on profile arithmetic; reports, never adopts |
+
+### Open
+
+- **`PROFILE PARITY: DISAGREED`** — VPOC +331t, VAH +296t, VAL +425t against
+  `LastDay`. Three levels off in the same direction by the same order is not the shape
+  of an arithmetic error. Hypothesis: period mismatch — our "PREV" is the previous
+  primary auction, ATAS's `LastDay` is the previous calendar day, and GC trades nearly
+  around the clock. **Not to be resolved by adjusting any value.** The discriminator is
+  free: a period mismatch makes the offset jump session to session, an arithmetic error
+  keeps it structured. Observe across sessions before touching anything.
+- `AUCTION EFFICIENCY` cannot reach `Ready`, which pins `EFFORT RESULT` and
+  `TRADE FACILITATION` at `PARTIAL`. Needs a Phase 2C semantics decision.
+- Profile ingests chart bars unfiltered.
+- Volatility/participation regime boundaries unregistered — `CAL STEP 2/6` is blocked
+  on stratification, and every `NOTCALIBRATED` module sits behind it.
+- CFD left as-is at operator instruction.
+
+### Live acceptance
+
+`MARKET CLOCK` passed live. The three stall fixes and `PROFILE PARITY` are CODE/TEST
+PASS only. The abnormal bar is unresolved as a platform behaviour and has a working
+operator workaround (change timeframe once after first load).
 
 ## Phase 1D final closeout (2026-07-24)
 
