@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1336** passed / 0 failed / 0 skipped |
+| Test count | **1356** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -360,6 +360,44 @@ worse than none.
   fix attempted, because the cause is unobserved; the source readers now assert the file
   is non-empty and contains the indicator class, so a recurrence reports the real problem
   instead of failing confusingly downstream.
+
+### Phase 5A-d — participation regime axis, and step 2 is now unblockable
+
+The last of the three axes. Unlike volatility, v1.2 §10.4 **does** specify this one, and
+the specification carries a constraint that shaped the module: **volume percentile by
+clock bucket**. An overnight period and a cash-session period are not comparable on volume,
+so a single global boundary set would produce a distribution whose shape is mostly the
+session calendar. Registration is therefore per clock bucket, keyed on the engine's own TPO
+period index, and the axis stays unusable until **every observed bucket** has one.
+
+Partial registration is explicitly refused. Stratifying some periods and leaving the rest
+`Unavailable` produces a distribution over a silently self-selected subset — worse than no
+distribution, because it looks like one. `UnregisteredClockBuckets` names exactly which
+slots still need a decision, so the remaining work is visible and incremental rather than a
+flat "not calibrated".
+
+Boundaries are registered, not derived, for the reasons set out on 5A-c. The production
+limitation already said so: `THIN_PARTICIPATION_PERCENTILE_THRESHOLDS_NOT_CALIBRATED`.
+
+Two features of §10.4 are honestly unavailable and stay null:
+
+| Feature | Why |
+|---|---|
+| trade count | the volume profile keys volume by tick and carries no per-level count |
+| depth / spread | needs a bid/ask feed; this one reports `BID/ASK: UNKNOWN` |
+
+`Dislocated` is kept as its own regime rather than the top of `Normal`, per §10.4 — an
+event-driven period is not a busy normal one, and a thin overnight auction can still carry
+real information after a shock.
+
+**All three axes now exist.** With all three registered the protocol leaves step 2 and stops
+at step 3, which is where it should stop: sample criteria are pre-registered by a research
+process, and choosing them in the DLL after seeing rows is what `G-FAST-001` forbids. `D03`
+asserts that no combination of inputs to `CalibrationProtocol.Evaluate` ever permits an
+unlock — steps 4 to 6 are outside this build entirely.
+
+Verified by mutation: accepting partial registration fails `C06`; letting a bucket borrow
+another bucket's boundaries fails `B02`.
 
 ### Phase 5A-c — volatility regime axis
 

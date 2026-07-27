@@ -66,7 +66,8 @@ public sealed class HistoricalScannerHost
         AuctionEpisodeSetSnapshot? episodes,
         DateTime? nowUtc = null,
         HistoricalBarReplayHost? replay = null,
-        VolatilityRegimeHost? volatility = null)
+        VolatilityRegimeHost? volatility = null,
+        ParticipationRegimeHost? participation = null)
     {
         var now = nowUtc ?? DateTime.UtcNow;
 
@@ -106,7 +107,8 @@ public sealed class HistoricalScannerHost
 
         var protocol = CalibrationProtocol.Evaluate(
             hasCollectedRows: _rowsCollected > 0,
-            volatilityRegimeCanStratify: volatility?.CanStratify ?? false);
+            volatilityRegimeCanStratify: volatility?.CanStratify ?? false,
+            participationRegimeCanStratify: participation?.CanStratify ?? false);
 
         var limitations = new List<string>(HistoricalScannerPolicyConfig.StandingLimitations);
         if (protocol.MissingAxes.Count > 0)

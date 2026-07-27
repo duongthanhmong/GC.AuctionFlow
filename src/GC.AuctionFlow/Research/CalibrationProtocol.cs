@@ -83,7 +83,8 @@ public sealed class CalibrationProtocol
     /// <param name="hasCollectedRows">Whether the scanner has any dataset rows at all.</param>
     public static CalibrationProtocol Evaluate(
         bool hasCollectedRows,
-        bool volatilityRegimeCanStratify = false)
+        bool volatilityRegimeCanStratify = false,
+        bool participationRegimeCanStratify = false)
     {
         var axes = new[]
         {
@@ -92,13 +93,18 @@ public sealed class CalibrationProtocol
                 StratificationAxisAvailability.Available,
                 "ReferenceType is emitted on every episode"),
 
-            // ThinParticipationLabel exists but is itself calibration-gated, so it cannot
-            // key a distribution used to calibrate something else — that is circular.
+            // Raw measures per completed period are collected; boundaries are registered
+            // per clock bucket from outside, because §10.4 asks for volume percentile by
+            // clock bucket and an overnight period is not comparable to a cash-session one.
             new StratificationAxisStatus(
                 StratificationAxis.ParticipationRegime,
-                StratificationAxisAvailability.ImplementedButNotCalibrated,
-                "ThinParticipationLabel is THIN_PARTICIPATION_NOT_CALIBRATED; "
-                + "using it as a key would calibrate one gate with another"),
+                participationRegimeCanStratify
+                    ? StratificationAxisAvailability.Available
+                    : StratificationAxisAvailability.ImplementedButNotCalibrated,
+                participationRegimeCanStratify
+                    ? "executed volume per completed period, against per-clock-bucket boundaries"
+                    : "raw participation measures are collected, but not every observed "
+                      + "clock bucket has registered boundaries"),
 
             // The classifier now exists. Its boundaries are registered from outside the
             // build rather than derived here: boundaries computed from the observed sample

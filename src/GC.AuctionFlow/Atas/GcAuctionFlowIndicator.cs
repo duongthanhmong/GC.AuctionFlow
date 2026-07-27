@@ -188,6 +188,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private HistoricalScannerHost? _historicalScannerHost;
     private HistoricalBarReplayHost? _barReplayHost;
     private VolatilityRegimeHost? _volatilityRegimeHost;
+    private ParticipationRegimeHost? _participationRegimeHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -1286,7 +1287,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (EnableHistoricalScanner)
             {
-                _barReplayHost ??= new HistoricalBarReplayHost(enabled: true);
+                _participationRegimeHost ??= new ParticipationRegimeHost(enabled: true);
+            _participationRegimeHost.Configure(true);
+            _participationRegimeHost.Rebuild(
+                _profileHost?.Current?.CurrentAuction?.TpoProfile?.CompletedPeriods,
+                _profileHost?.Current?.CurrentAuction?.VolumeProfile);
+
+            _barReplayHost ??= new HistoricalBarReplayHost(enabled: true);
                 _barReplayHost.Configure(true);
                 _barReplayHost.ObserveBar(obs);
             }
@@ -2041,7 +2048,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _historicalScannerHost ??= new HistoricalScannerHost(policy);
             _historicalScannerHost.Configure(policy);
             _historicalScannerHost.Rebuild(
-                episodes, nowUtc: null, replay: _barReplayHost, volatility: _volatilityRegimeHost);
+                episodes,
+                nowUtc: null,
+                replay: _barReplayHost,
+                volatility: _volatilityRegimeHost,
+                participation: _participationRegimeHost);
             ClearFault("HistoricalScanner");
         }
         catch (Exception ex)
