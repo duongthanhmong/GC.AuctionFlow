@@ -262,3 +262,36 @@ public sealed class GpsCardScopeCountTests
                  && r.EndsWith("(0)", StringComparison.Ordinal));
     }
 }
+
+/// <summary>
+/// The card reports whether historical initialisation finished.
+///
+/// `COMPLETED PERIODS: 17` against `TPO PERIOD INDEX: 36` took a round trip and manual
+/// arithmetic to explain. It turned out correct — the auction was anchored 08:20 ET on a
+/// Sunday and COMEX gold does not reopen until 18:00 ET, so the first 19 periods had no
+/// trading at all and the engine was right to exclude them. Reporting 36 would have been
+/// the bug.
+///
+/// The card could not answer that question because it never showed the initialisation
+/// state, so a correct engine looked suspicious for a full debugging cycle.
+/// </summary>
+public sealed class GpsCardHistoryInitTests
+{
+    [Fact]
+    public void A01_History_init_state_is_on_the_card()
+    {
+        var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
+        var snap = engine.Publish(
+            null, "GCQ6",
+            GC.AuctionFlow.Core.DataSourceMode.Live,
+            GC.AuctionFlow.Core.DataSourceModeProvenance.OperatorDeclared,
+            GC.AuctionFlow.Probe.DeclaredFeedProvider.Rithmic,
+            GC.AuctionFlow.Probe.FeedProviderProvenance.OperatorDeclared,
+            true, null, false, true, false, false, false, false,
+            timestampUtc: new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc));
+
+        var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
+        Assert.Contains(vm.DiagnosticRows,
+            r => r.StartsWith("HISTORY INIT:", StringComparison.Ordinal));
+    }
+}

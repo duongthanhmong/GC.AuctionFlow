@@ -689,13 +689,13 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(21, vm.DiagnosticRows.Count);
+        Assert.Equal(22, vm.DiagnosticRows.Count);
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("FAR:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("AAC:", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void O02_GpsCard_diagnostics_AllLines_count_delta_is_21()
+    public void O02_GpsCard_diagnostics_AllLines_count_delta_is_22()
     {
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
@@ -710,7 +710,7 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(vm.AllLines(false).Count + 21, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 22, vm.AllLines(true).Count);
     }
 
     // ========== P: Schema version bumped to 0.16.0 ==========

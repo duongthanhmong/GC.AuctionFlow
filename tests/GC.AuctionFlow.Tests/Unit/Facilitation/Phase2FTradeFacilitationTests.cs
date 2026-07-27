@@ -472,7 +472,7 @@ public sealed class Phase2FTradeFacilitationTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(21, vm.DiagnosticRows.Count);
+        Assert.Equal(22, vm.DiagnosticRows.Count);
     }
 
     [Fact]
@@ -563,7 +563,7 @@ public sealed class Phase2FTradeFacilitationTests
     }
 
     [Fact]
-    public void J09_AllLines_difference_is_21_for_diagnostics()
+    public void J09_AllLines_difference_is_22_for_diagnostics()
     {
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
@@ -575,7 +575,7 @@ public sealed class Phase2FTradeFacilitationTests
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
         var withDiag = vm.AllLines(true).Count;
         var withoutDiag = vm.AllLines(false).Count;
-        Assert.Equal(21, withDiag - withoutDiag);
+        Assert.Equal(22, withDiag - withoutDiag);
     }
 
     // ---------- K: Enums ----------

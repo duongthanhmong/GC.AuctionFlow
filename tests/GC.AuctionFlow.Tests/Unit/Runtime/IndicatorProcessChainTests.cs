@@ -36,8 +36,16 @@ public sealed class IndicatorProcessChainTests
         while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
             dir = dir.Parent;
         Assert.NotNull(dir);
-        return File.ReadAllText(Path.Combine(
-            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+
+        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
+        var text = File.ReadAllText(path);
+
+        // Turns a read racing the build into a clear message rather than a
+        // confusing assertion failure downstream. See GpsCard notes on the
+        // unreproduced post-rebuild flake.
+        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
+        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
+        return text;
     }
 
     /// <summary>
@@ -133,8 +141,18 @@ public sealed class ModuleFaultVisibilityTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
             dir = dir.Parent;
-        return File.ReadAllText(Path.Combine(
-            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+        Assert.NotNull(dir);
+
+        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
+        var text = File.ReadAllText(path);
+
+        // A test in this file failed once right after a clean rebuild and has not been
+        // reproduced in three attempts since. The leading hypothesis is a read racing the
+        // build. This does not fix that, but it turns a partial read into a clear message
+        // instead of a confusing assertion failure somewhere downstream.
+        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
+        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
+        return text;
     }
 
     /// <summary>
@@ -219,8 +237,18 @@ public sealed class EnabledButUnpublishedTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
             dir = dir.Parent;
-        return File.ReadAllText(Path.Combine(
-            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+        Assert.NotNull(dir);
+
+        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
+        var text = File.ReadAllText(path);
+
+        // A test in this file failed once right after a clean rebuild and has not been
+        // reproduced in three attempts since. The leading hypothesis is a read racing the
+        // build. This does not fix that, but it turns a partial read into a clear message
+        // instead of a confusing assertion failure somewhere downstream.
+        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
+        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
+        return text;
     }
 
     [Fact]
@@ -262,8 +290,18 @@ public sealed class PublishPathCoverageTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
             dir = dir.Parent;
-        return File.ReadAllText(Path.Combine(
-            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+        Assert.NotNull(dir);
+
+        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
+        var text = File.ReadAllText(path);
+
+        // A test in this file failed once right after a clean rebuild and has not been
+        // reproduced in three attempts since. The leading hypothesis is a read racing the
+        // build. This does not fix that, but it turns a partial read into a clear message
+        // instead of a confusing assertion failure somewhere downstream.
+        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
+        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
+        return text;
     }
 
     private static string PublishBody(string src)
@@ -396,8 +434,18 @@ public sealed class PublishGuardFreezeTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
             dir = dir.Parent;
-        return File.ReadAllText(Path.Combine(
-            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+        Assert.NotNull(dir);
+
+        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
+        var text = File.ReadAllText(path);
+
+        // A test in this file failed once right after a clean rebuild and has not been
+        // reproduced in three attempts since. The leading hypothesis is a read racing the
+        // build. This does not fix that, but it turns a partial read into a clear message
+        // instead of a confusing assertion failure somewhere downstream.
+        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
+        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
+        return text;
     }
 
     [Fact]

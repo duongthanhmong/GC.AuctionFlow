@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1255** passed / 0 failed / 0 skipped |
+| Test count | **1256** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -355,10 +355,30 @@ worse than none.
 
 ### Open
 
-- One test failed once immediately after a clean rebuild and passed on four subsequent
-  runs. Suspected source-file read racing the build. Recorded, not reproduced.
-- `COMPLETED PERIODS: 17` against `TPO PERIOD INDEX: 36`, indicator added mid-session.
-  May be correct under LIVE_ONLY or may be a historical-initialisation gap.
+- One test failed once immediately after a clean rebuild. **Not reproduced** in three
+  further full clean rebuilds. Leading hypothesis is a source read racing the build. No
+  fix attempted, because the cause is unobserved; the source readers now assert the file
+  is non-empty and contains the indicator class, so a recurrence reports the real problem
+  instead of failing confusingly downstream.
+
+### Closed: `COMPLETED PERIODS: 17` vs `TPO PERIOD INDEX: 36` — correct, not a defect
+
+Auction `PI-2026-07-26` is anchored 08:20 ET on a **Sunday**, and COMEX gold does not
+reopen until 18:00 ET.
+
+| | |
+|---|---|
+| 08:20 -> 18:00 | 19.33 periods, market closed |
+| 18:00 -> 02:45 | 17.5 periods with data |
+| total elapsed | 36.83 -> index 36 |
+
+`36 - 19 = 17`. The engine correctly excludes periods with no trading. Reporting 36 would
+have been the defect, because it would mean fabricating structure for hours when the
+market was shut.
+
+This took a round trip and manual arithmetic only because the card never showed
+`HistoricalInitializationState`. That row now exists, so the same question is answerable
+from a screenshot.
 
 ## Phase 2E code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
 

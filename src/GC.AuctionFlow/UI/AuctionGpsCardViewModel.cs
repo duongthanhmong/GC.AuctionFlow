@@ -272,6 +272,9 @@ public static class AuctionGpsCardMapper
                 snapshot.DirectionalContext is null
                     ? "LOCATION: NOT AVAILABLE"
                     : "LOCATION: " + snapshot.DirectionalContext.PriceLocation.CurrentPrimaryTpo,
+                snapshot.Profiles is null
+                    ? "HISTORY INIT: NOT AVAILABLE"
+                    : "HISTORY INIT: " + snapshot.Profiles.HistoricalInitializationState.ToString().ToUpperInvariant(),
                 snapshot.AuctionEpisodes is null
                     ? "EPISODE: NOT AVAILABLE"
                     : WithCount("EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant(),
