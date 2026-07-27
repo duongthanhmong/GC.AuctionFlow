@@ -98,6 +98,46 @@ public sealed class RecorderSummaryOnCardTests
             + "stream; the manifest is built from whichever one runs first");
     }
 
+    /// <summary>
+    /// Every depth callback must both count and record.
+    ///
+    /// `MarketDepthsChanged` — the batch callback, which is where book updates actually
+    /// arrive — did neither. The spool therefore held zero `Depth` frames while the card
+    /// reported DOM as present, because the count came entirely from
+    /// `OnBestBidAskChanged`. Top-of-book looked like a book.
+    ///
+    /// A callback that observes depth and does not record it loses data that v1.2 §46.5
+    /// says cannot be recovered from history, and it does so silently.
+    /// </summary>
+    [Fact]
+    public void A05_Every_depth_callback_counts_and_records()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var text = File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+
+        foreach (var callback in new[]
+                 {
+                     "MarketDepthChanged(MarketDataArg",
+                     "MarketDepthsChanged(IEnumerable",
+                     "OnBestBidAskChanged(MarketDataArg",
+                 })
+        {
+            var start = text.IndexOf("protected override void " + callback, StringComparison.Ordinal);
+            Assert.True(start >= 0, callback + " not found — has it been renamed?");
+
+            var end = text.IndexOf("\n    protected override", start + 1, StringComparison.Ordinal);
+            var body = end < 0 ? text[start..] : text[start..end];
+
+            Assert.Contains("NoteDepthCallback()", body, StringComparison.Ordinal);
+            Assert.Contains("TryRecordDepth(", body, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public void A03_A_recorder_that_is_off_still_reads_clearly() =>
         Assert.DoesNotContain(

@@ -899,6 +899,17 @@ public sealed class GcAuctionFlowIndicator : Indicator
             foreach (var depth in depths)
             {
                 if (depth is null) continue;
+
+                // Counted and recorded before the probe gates, and inside the single pass
+                // the batch allows. This callback was doing neither: book updates arrive
+                // here rather than through MarketDepthChanged, so every one of them was
+                // dropped and the spool held zero Depth frames while the card still
+                // reported DOM as present — the count came from OnBestBidAskChanged alone.
+                // Recording must not depend on the probe's own gate, for the same reason
+                // the trade path does not.
+                NoteDepthCallback();
+                TryRecordDepth(depth, RecorderCallbackSource.MarketDepthsBatch, bestBidAsk: false);
+
                 if (!probe.IsAccepting) { probe.Counters.IncRejectedAfterDispose(); continue; }
                 var gate = probe.EvaluateGates(
                     EnableDomSemanticsProbe, DeclaredDataSourceMode, DataSourceModeProvenance,
