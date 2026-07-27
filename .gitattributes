@@ -1,0 +1,32 @@
+# Line endings are pinned so git never rewrites a file on disk after it was built.
+#
+# With core.autocrlf=true and no rules here, git converted LF to CRLF in the working tree
+# at commit time. That mutated the source *after* the DLL had been compiled from it, so a
+# SHA-256 comparison of source against the deployed binary could disagree for a reason that
+# had nothing to do with the build. It cost a wrong diagnosis once — the cause was first
+# blamed on incremental build state — and the workaround was to fix the order of operations
+# to commit, clean, build, test, deploy, hash.
+#
+# That order is still correct, but it should not be load-bearing. Pinning eol removes the
+# rewrite entirely, and with it the "LF will be replaced by CRLF" warnings that would
+# otherwise bury a genuine warning in noise.
+
+* text=auto eol=lf
+
+*.cs      text eol=lf diff=csharp
+*.csproj  text eol=lf
+*.sln     text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.log     text eol=lf
+*.gitkeep text eol=lf
+
+# Windows shells break on LF continuation, so these keep CRLF deliberately.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.dll binary
+*.pdb binary
+*.png binary
+*.docx binary
