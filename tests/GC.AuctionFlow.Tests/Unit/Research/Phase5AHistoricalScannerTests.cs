@@ -1,4 +1,6 @@
 using System.Reflection;
+using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Episode;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Research;
@@ -506,6 +508,32 @@ public sealed class Phase5AHistoricalScannerTests
         var host = new HistoricalScannerHost(new HistoricalScannerPolicyConfig(enabled: false));
         host.Rebuild(null, Utc());
         Assert.Equal("SCANNER: DISABLED", AuctionGpsCardMapper.ScannerLine(host.Current));
+    }
+
+    /// <summary>
+    /// Active and closed episodes are reported as separate numbers.
+    ///
+    /// The scanner only folds closed episodes, so a scanner sitting at zero rows is
+    /// ambiguous with one number on the card: nothing closed, or something closed and was
+    /// not folded. Those need different responses — wait, or debug — and the earlier
+    /// HISTORY INIT round trip is what a missing row of this kind costs.
+    /// </summary>
+    [Fact]
+    public void F05_Card_separates_active_episodes_from_closed_ones()
+    {
+        var line = AuctionGpsCardMapper
+            .FromSnapshot(
+                new GcaeRuntimeEngine().Publish(
+                    null, "GCQ6", DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
+                    DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
+                    true, Utc(), false, false, false, false, false, false,
+                    auctionEpisodes: Closed(Episode("EP-1"), Episode("EP-2"))),
+                true)
+            .AllLines(includeDiagnostics: true)
+            .Single(l => l.StartsWith("EPISODE:", StringComparison.Ordinal));
+
+        // Closed(...) puts both episodes in RecentlyClosedEpisodes and none active.
+        Assert.Contains("0 ACTIVE / 2 CLOSED", line, StringComparison.Ordinal);
     }
 
     /// <summary>

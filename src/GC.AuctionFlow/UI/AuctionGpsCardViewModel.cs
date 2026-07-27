@@ -279,8 +279,14 @@ public static class AuctionGpsCardMapper
                     : "HISTORY INIT: " + snapshot.Profiles.HistoricalInitializationState.ToString().ToUpperInvariant(),
                 snapshot.AuctionEpisodes is null
                     ? "EPISODE: NOT AVAILABLE"
-                    : WithCount("EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant(),
-                        snapshot.AuctionEpisodes.ActiveEpisodes.Count),
+                    // Active and closed are shown separately because the scanner only
+                    // folds closed episodes. With one number, a scanner stuck at zero rows
+                    // is ambiguous — nothing closed, or something closed and was not
+                    // folded — and telling those apart is the difference between waiting
+                    // and debugging.
+                    : "EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant()
+                      + " (" + snapshot.AuctionEpisodes.ActiveEpisodes.Count + " ACTIVE / "
+                      + snapshot.AuctionEpisodes.RecentlyClosedEpisodes.Count + " CLOSED)",
                 snapshot.AcceptanceReentryEvidence is null
                     ? "ACCEPTANCE/REENTRY EVIDENCE: NOT AVAILABLE"
                     : WithCount("ACCEPTANCE/REENTRY EVIDENCE: " + snapshot.AcceptanceReentryEvidence.ModuleState.ToString().ToUpperInvariant(),
