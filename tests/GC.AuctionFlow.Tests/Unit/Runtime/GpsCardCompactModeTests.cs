@@ -1,0 +1,107 @@
+using GC.AuctionFlow.Core;
+using GC.AuctionFlow.Probe;
+using GC.AuctionFlow.Runtime;
+using GC.AuctionFlow.UI;
+using Xunit;
+
+namespace GC.AuctionFlow.Tests.Unit.Runtime;
+
+/// <summary>
+/// GPS card compact mode.
+///
+/// With every module enabled the detail block runs to hundreds of lines and overflows
+/// any screen, putting the per-module status rows out of reach — and those rows are the
+/// part that answers "is each module alive". Compact mode drops the detail block and
+/// keeps the status rows.
+/// </summary>
+public sealed class GpsCardCompactModeTests
+{
+    private static DateTime Utc() => new(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+    private static AuctionGpsCardViewModel Card(bool showDiagnostics)
+    {
+        var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
+        var snap = engine.Publish(
+            new ObservedInstrumentSnapshot("GCU6", "GCU6-ID", "GCU6", "COMEX",
+                new DateTime(2026, 8, 27), 0.1m, "GC", "GCU6", "COMEX", 0.1m, null),
+            "GCU6",
+            DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
+            DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
+            tradeObserved: true, lastTradeCallbackUtc: Utc(),
+            rawRecorderMasterEnabled: false, tradeRecordingEnabled: true,
+            recorderAccepting: false, recorderFaulted: false, recorderSessionPresent: false,
+            indicatorDisposed: false, timestampUtc: Utc());
+        return AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics);
+    }
+
+    [Fact]
+    public void A01_Compact_is_never_longer_than_full()
+    {
+        var vm = Card(showDiagnostics: true);
+        Assert.True(vm.AllLines(true, compact: true).Count
+                    <= vm.AllLines(true, compact: false).Count);
+    }
+
+    /// <summary>
+    /// The whole point: the status rows must survive compaction. Dropping them would
+    /// defeat the purpose of the mode.
+    /// </summary>
+    [Fact]
+    public void A02_Compact_keeps_every_status_row()
+    {
+        var vm = Card(showDiagnostics: true);
+        var compact = vm.AllLines(true, compact: true);
+        foreach (var row in vm.DiagnosticRows)
+            Assert.Contains(row, compact);
+    }
+
+    [Fact]
+    public void A03_Compact_keeps_the_header()
+    {
+        var vm = Card(showDiagnostics: true);
+        var compact = vm.AllLines(true, compact: true);
+        Assert.Contains(vm.Title, compact);
+        Assert.Contains(vm.DataLine, compact);
+        Assert.Contains(vm.ModeLine, compact);
+        Assert.Contains(vm.ContractLine, compact);
+    }
+
+    [Fact]
+    public void A04_Compact_drops_the_detail_block()
+    {
+        var vm = Card(showDiagnostics: true);
+        var compact = vm.AllLines(true, compact: true);
+        foreach (var detail in vm.ProfileDetailLines)
+            Assert.DoesNotContain(detail, compact);
+    }
+
+    [Fact]
+    public void A05_Compact_without_diagnostics_still_omits_status_rows()
+    {
+        // compact controls the detail block; showDiagnostics controls the status rows.
+        // The two flags stay independent.
+        var vm = Card(showDiagnostics: true);
+        var compactNoDiag = vm.AllLines(includeDiagnostics: false, compact: true);
+        Assert.All(vm.DiagnosticRows, r => Assert.DoesNotContain(r, compactNoDiag));
+    }
+
+    /// <summary>Existing callers must be unaffected.</summary>
+    [Fact]
+    public void A06_Default_is_not_compact()
+    {
+        var vm = Card(showDiagnostics: true);
+        Assert.Equal(vm.AllLines(true, compact: false).Count, vm.AllLines(true).Count);
+    }
+
+    /// <summary>
+    /// The reason the mode exists: a real screen fits roughly 60 rows at the card's
+    /// line height. Compact must land well inside that.
+    /// </summary>
+    [Fact]
+    public void A07_Compact_fits_a_screen()
+    {
+        var compact = Card(showDiagnostics: true).AllLines(true, compact: true);
+        Assert.True(compact.Count <= 60,
+            "compact card is " + compact.Count + " lines; it must fit one screen");
+    }
+}

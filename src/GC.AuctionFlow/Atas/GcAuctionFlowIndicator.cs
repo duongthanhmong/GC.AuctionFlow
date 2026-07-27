@@ -107,6 +107,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableTradeRecording = true;
         EnableAuctionGpsCard = true;
         ShowAuctionGpsDiagnostics = false;
+        GpsCardCompactMode = false;
         EnablePrimaryProfile = true;
         EnablePrimaryProfileOverlay = true;
         ShowPreviousProfileLevels = true;
@@ -234,6 +235,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Show Auction GPS Diagnostics")]
     [Description("When true, shows reserved NOT AVAILABLE rows (Tactical/Location/Episode/Thesis).")]
     public bool ShowAuctionGpsDiagnostics { get; set; }
+
+    [Category("Auction GPS Card")]
+    [DisplayName("GPS Card Compact Mode")]
+    [Description("Show only the per-module status rows and drop the detail block. With every module enabled the full card runs to hundreds of lines and overflows the screen; compact mode fits the whole engine state in one view.")]
+    public bool GpsCardCompactMode { get; set; }
 
     [Category("Auction GPS Card")]
     [DisplayName("GPS Card Margin X")]
@@ -2433,7 +2439,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             if (EnableAuctionGpsCard && renderer is not null)
             {
                 var vm = AuctionGpsCardMapper.FromSnapshot(snapshot, ShowAuctionGpsDiagnostics);
-                renderer.Update(vm, ShowAuctionGpsDiagnostics);
+                renderer.Update(vm, ShowAuctionGpsDiagnostics, GpsCardCompactMode);
                 renderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
             }
             else

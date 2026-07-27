@@ -90,7 +90,16 @@ public sealed class AuctionGpsCardViewModel
     public DataState DataState { get; }
     public long SnapshotPublicationSequence { get; }
 
-    public IReadOnlyList<string> AllLines(bool includeDiagnostics)
+    /// <summary>
+    /// Card lines.
+    ///
+    /// With every module enabled the detail block runs to a few hundred lines, which
+    /// overflows any screen and puts the module status rows — the part that actually
+    /// answers "is each module alive" — out of reach. <paramref name="compact"/> drops
+    /// the detail block and keeps the header plus the status rows, so the whole engine
+    /// state fits in one view.
+    /// </summary>
+    public IReadOnlyList<string> AllLines(bool includeDiagnostics, bool compact = false)
     {
         var lines = new List<string>
         {
@@ -107,7 +116,8 @@ public sealed class AuctionGpsCardViewModel
             BidAskLine,
             ProfileLine
         };
-        lines.AddRange(ProfileDetailLines);
+        if (!compact)
+            lines.AddRange(ProfileDetailLines);
         lines.Add(RollLine);
         lines.Add(RecorderLine);
         lines.Add(MboLine);

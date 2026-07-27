@@ -17,14 +17,16 @@ public sealed class AuctionGpsCardRenderer : IDisposable
     private readonly RenderFont _bodyFont = new("Consolas", 10f, FontStyle.Regular);
     private AuctionGpsCardViewModel? _viewModel;
     private bool _showDiagnostics;
+    private bool _compact;
     private bool _disposed;
     private int _marginX = 12;
     private int _marginY = 12;
 
-    public void Update(AuctionGpsCardViewModel? viewModel, bool showDiagnostics)
+    public void Update(AuctionGpsCardViewModel? viewModel, bool showDiagnostics, bool compact = false)
     {
         Volatile.Write(ref _viewModel, viewModel);
         Volatile.Write(ref _showDiagnostics, showDiagnostics);
+        Volatile.Write(ref _compact, compact);
     }
 
     public void SetMargins(int marginX, int marginY)
@@ -47,7 +49,8 @@ public sealed class AuctionGpsCardRenderer : IDisposable
         try
         {
             var showDiag = Volatile.Read(ref _showDiagnostics);
-            var lines = vm.AllLines(showDiag);
+            var compact = Volatile.Read(ref _compact);
+            var lines = vm.AllLines(showDiag, compact);
             if (lines.Count == 0)
                 return;
 
