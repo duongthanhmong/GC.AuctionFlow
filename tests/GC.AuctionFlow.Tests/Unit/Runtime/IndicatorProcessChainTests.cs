@@ -1,6 +1,21 @@
 using System.Text.RegularExpressions;
 using Xunit;
 
+// These tests inspect indicator source text rather than running the indicator, because
+// GcAuctionFlowIndicator derives from an ATAS type that cannot load in the test host.
+// That limitation is exactly why three integration defects reached a live session, so
+// each assertion here was verified by mutation rather than trusted:
+//
+//   remove ProcessTradeFacilitation from the per-bar chain
+//     -> IndicatorProcessChainTests A01, A02, A03 all fail
+//   remove ProcessPlar from the publish path
+//     -> PublishPathCoverageTests A02, A03 both fail
+//
+// Re-run those mutations if these tests are ever refactored. A source-shape test that
+// stops failing is indistinguishable from one that passes, and the earlier version of
+// PublishPathCoverageTests.A03 was exactly that: it accepted any host as driven because
+// the publish body always contains the substring "Ensure".
+
 namespace GC.AuctionFlow.Tests.Unit.Runtime;
 
 /// <summary>
@@ -292,25 +307,72 @@ public sealed class PublishPathCoverageTests
     }
 
     /// <summary>
-    /// Generalises it: anything read into the Publish argument list must be populated
-    /// beforehand in the same method.
+    /// Generalises it: every host read into the Publish arguments must be assigned by a
+    /// method that the publish path actually calls.
+    ///
+    /// The first version of this test was vacuous. It accepted any host as "driven" if
+    /// the publish body contained the substring "Ensure" anywhere, which it always does,
+    /// so it passed for hosts that were never populated at all. A test that catches
+    /// nothing is worse than no test: it manufactures the confidence that let three
+    /// integration defects reach a live session.
+    ///
+    /// This version resolves each host to the method that assigns it and requires that
+    /// method to be reachable from the publish path, directly or through a guard.
     /// </summary>
     [Fact]
-    public void A03_No_published_host_is_read_without_being_driven()
+    public void A03_Every_published_host_is_assigned_by_something_publish_calls()
     {
         var src = IndicatorSource();
         var body = PublishBody(src);
 
-        foreach (System.Text.RegularExpressions.Match read in
-                 System.Text.RegularExpressions.Regex.Matches(body, @"_(\w+)Host\?\.Current"))
+        // method name -> its full source, so assignments can be attributed
+        var methods = System.Text.RegularExpressions.Regex
+            .Matches(src, @"private void (\w+)\([^)]*\)\s*\{")
+            .Select(m => (Name: m.Groups[1].Value, Start: m.Index))
+            .OrderBy(m => m.Start)
+            .ToArray();
+
+        string OwnerOf(int position) =>
+            methods.LastOrDefault(m => m.Start < position).Name ?? "";
+
+        // everything the publish path invokes, including one level of indirection
+        var invoked = System.Text.RegularExpressions.Regex
+            .Matches(body, @"(\w+)\(\);")
+            .Select(m => m.Groups[1].Value)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var name in invoked.ToArray())
         {
-            var host = read.Groups[1].Value;
-            var name = char.ToUpperInvariant(host[0]) + host.Substring(1);
-            var driven = body.Contains("Process", StringComparison.Ordinal)
-                         && (body.Contains("Process" + name + "();", StringComparison.Ordinal)
-                             || body.Contains("Ensure" + name + "InitializedForPublish();", StringComparison.Ordinal)
-                             || body.Contains("Ensure", StringComparison.Ordinal));
-            Assert.True(driven, "_" + host + "Host is read but never driven on the publish path");
+            var guard = System.Text.RegularExpressions.Regex.Match(src,
+                @"private void " + name + @"\(\)\s*\{(.*?)
+    \}",
+                System.Text.RegularExpressions.RegexOptions.Singleline);
+            if (!guard.Success) continue;
+            foreach (System.Text.RegularExpressions.Match call in
+                     System.Text.RegularExpressions.Regex.Matches(guard.Groups[1].Value, @"(\w+)\(\);"))
+                invoked.Add(call.Groups[1].Value);
         }
+
+        var unread = new List<string>();
+        foreach (System.Text.RegularExpressions.Match read in
+                 System.Text.RegularExpressions.Regex.Matches(body, @"_(\w+Host)\?\.Current"))
+        {
+            var field = "_" + read.Groups[1].Value;
+
+            var assigners = System.Text.RegularExpressions.Regex
+                .Matches(src, System.Text.RegularExpressions.Regex.Escape(field) + @"\s*(\?\?=|=)\s*new ")
+                .Select(a => OwnerOf(a.Index))
+                .Where(n => n.Length > 0)
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (assigners.Count == 0) continue;
+            if (!assigners.Any(invoked.Contains))
+                unread.Add(field + " (assigned by " + string.Join("/", assigners) + ")");
+        }
+
+        Assert.True(unread.Count == 0,
+            "these hosts are read into the Publish arguments but nothing on the publish "
+            + "path assigns them, so they are null on every publish that does not come "
+            + "from OnCalculate: " + string.Join(", ", unread));
     }
 }
