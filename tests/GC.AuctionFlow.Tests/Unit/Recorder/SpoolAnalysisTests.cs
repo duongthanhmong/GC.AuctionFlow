@@ -38,9 +38,15 @@ public sealed class SpoolAnalysisTests
             return;
         }
 
+        // The newest session that actually holds something, not simply the newest. A
+        // restart creates an empty directory immediately, so "newest" reported nothing
+        // decoded and hid the session that had the data.
         var session = new DirectoryInfo(root).GetDirectories()
             .OrderByDescending(d => d.CreationTimeUtc)
-            .FirstOrDefault();
+            .FirstOrDefault(d => Directory.GetFiles(d.FullName, "*.seg", SearchOption.AllDirectories).Length > 0)
+            ?? new DirectoryInfo(root).GetDirectories()
+                .OrderByDescending(d => d.CreationTimeUtc)
+                .FirstOrDefault();
         if (session is null) { _out.WriteLine("no sessions"); return; }
 
         // Re-read with samples raised so ordering can be examined rather than sniffed.

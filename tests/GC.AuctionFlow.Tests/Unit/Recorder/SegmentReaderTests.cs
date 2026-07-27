@@ -178,6 +178,17 @@ public sealed class SegmentReaderTests
             if (results.Count == 0)
                 continue;
 
+            // A session ATAS is still writing has no sealed segment yet, and its live one
+            // may legitimately hold no complete frame. That is the recorder mid-flight, not
+            // a writer that produced nothing — asserting on it fails whenever this suite
+            // runs beside a running platform. The invariant kept here is narrower and true:
+            // a *sealed* segment must decode.
+            if (!results.Any(r => r.Path.EndsWith(".seg", StringComparison.Ordinal)))
+            {
+                _out.WriteLine(session.Name[..8] + "  in flight, no sealed segment — skipped");
+                continue;
+            }
+
             var frames = results.Sum(r => r.TotalFrames);
             var kinds = results
                 .SelectMany(r => r.RawEventsByPayloadKind)
