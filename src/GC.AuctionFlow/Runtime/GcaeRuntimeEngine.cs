@@ -116,7 +116,8 @@ public sealed class GcaeRuntimeEngine
         bool depthRecordingEnabled = false,
         long preStartReplayTrades = 0,
         long mboFramesRecorded = 0,
-        string? marketClockSummary = null)
+        string? marketClockSummary = null,
+        string? fixedProfileParitySummary = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -327,7 +328,8 @@ public sealed class GcaeRuntimeEngine
             risk,
             moduleFaults,
             historicalScanner,
-            marketClockSummary);
+            marketClockSummary,
+            fixedProfileParitySummary);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

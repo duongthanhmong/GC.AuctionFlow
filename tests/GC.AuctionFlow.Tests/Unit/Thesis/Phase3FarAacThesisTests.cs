@@ -689,7 +689,7 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(24, vm.DiagnosticRows.Count);
+        Assert.Equal(25, vm.DiagnosticRows.Count);
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("FAR:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("AAC:", StringComparison.Ordinal));
     }
@@ -710,7 +710,7 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(vm.AllLines(false).Count + 24, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 25, vm.AllLines(true).Count);
     }
 
     // ========== P: Schema version bumped to 0.16.0 ==========

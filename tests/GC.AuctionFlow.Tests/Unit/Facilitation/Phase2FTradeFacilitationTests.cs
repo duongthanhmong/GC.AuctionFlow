@@ -472,7 +472,7 @@ public sealed class Phase2FTradeFacilitationTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(24, vm.DiagnosticRows.Count);
+        Assert.Equal(25, vm.DiagnosticRows.Count);
     }
 
     [Fact]
@@ -575,7 +575,7 @@ public sealed class Phase2FTradeFacilitationTests
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
         var withDiag = vm.AllLines(true).Count;
         var withoutDiag = vm.AllLines(false).Count;
-        Assert.Equal(24, withDiag - withoutDiag);
+        Assert.Equal(25, withDiag - withoutDiag);
     }
 
     // ---------- K: Enums ----------

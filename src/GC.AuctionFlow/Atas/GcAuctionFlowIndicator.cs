@@ -131,6 +131,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                         null, "AcceptanceReentryEvidence"),
                     new ModuleDriveStep("HistoricalScanner", ProcessHistoricalScanner,
                         null, "AuctionEpisodes", "StructuralReferences"),
+                    // Declared as a step rather than called from the publish path: the
+                    // schedule is the single call list, and a second one is how two
+                    // hand-maintained lists drifted apart before.
+                    new ModuleDriveStep("FixedProfileParity", ProcessFixedProfileParity,
+                        null, "StructuralReferences"),
                     new ModuleDriveStep("ExecutedOrderflow", ProcessExecutedOrderflow,
                         EnsureExecutedOrderflowInitializedForPublish),
                     new ModuleDriveStep("ClusterRawFeatures", ProcessClusterRawFeatures,
@@ -193,6 +198,21 @@ public sealed class GcAuctionFlowIndicator : Indicator
     /// makes it measurable, so it is measured rather than assumed.
     /// </summary>
     private readonly MarketClockProbe _marketClock = new();
+
+    /// <summary>
+    /// The platform's own answer for the previous session's profile, once it arrives.
+    ///
+    /// The profile module has reported READY since Phase 1 and nothing outside this project
+    /// has ever checked its arithmetic. This is the only independent check available without
+    /// leaving the platform.
+    /// </summary>
+    private volatile FixedProfileParitySnapshot _fixedProfileParity =
+        FixedProfileParitySnapshot.NotRequested;
+
+    private decimal? _theirVpoc;
+    private decimal? _theirValueAreaHigh;
+    private decimal? _theirValueAreaLow;
+    private int _fixedProfileRequested;
 
     private HistoricalScannerHost? _historicalScannerHost;
     private HistoricalBarReplayHost? _barReplayHost;
@@ -2139,6 +2159,98 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    /// <summary>
+    /// Asks the platform for its own previous-session profile, once, and compares.
+    ///
+    /// The request is fired and forgotten — awaiting it here would put the platform's own
+    /// latency on an ATAS callback, which is how this project stalled a chart twice in one
+    /// day. Nothing downstream waits for it: until it lands the card reads PENDING.
+    ///
+    /// The answer is never adopted. A disagreement is a finding about our arithmetic, and
+    /// overwriting our number with theirs would delete the evidence it existed.
+    /// </summary>
+    private void ProcessFixedProfileParity()
+    {
+        if (!EnableStructuralReferences || Volatile.Read(ref _disposed) != 0)
+            return;
+
+        if (Interlocked.CompareExchange(ref _fixedProfileRequested, 1, 0) == 0)
+        {
+            _fixedProfileParity = FixedProfileParitySnapshot.Pending(
+                FixedProfilePeriods.LastDay.ToString());
+
+            try
+            {
+                _ = RequestFixedProfileAsync(new FixedProfileRequest(FixedProfilePeriods.LastDay))
+                    .ContinueWith(
+                    (Task<FixedProfileResponse?> task) =>
+                    {
+                        try
+                        {
+                            if (!task.IsCompletedSuccessfully)
+                                return;
+
+                            // Original scale, not Scaled: the comparison is against prices
+                            // this engine derived from the raw feed, and a scaled profile
+                            // would be a different question.
+                            var candle = task.Result?.Original;
+                            if (candle is null)
+                                return;
+
+                            _theirVpoc = candle.MaxVolumePriceInfo?.Price;
+                            _theirValueAreaHigh = candle.ValueArea?.ValueAreaHigh;
+                            _theirValueAreaLow = candle.ValueArea?.ValueAreaLow;
+                        }
+                        catch (Exception ex)
+                        {
+                            RecordFault("FixedProfileParity", ex);
+                        }
+                    },
+                    TaskContinuationOptions.ExecuteSynchronously);
+            }
+            catch (Exception ex)
+            {
+                RecordFault("FixedProfileParity", ex);
+            }
+        }
+
+        if (_theirVpoc is null && _theirValueAreaHigh is null && _theirValueAreaLow is null)
+            return;
+
+        var confirmed = _referenceHost?.Current?.ConfirmedReferences;
+        if (confirmed is null)
+            return;
+
+        _fixedProfileParity = FixedProfileParity.Compare(
+            OurLevel(confirmed, ReferenceType.PreviousPrimaryVpoc),
+            OurLevel(confirmed, ReferenceType.PreviousPrimaryVolumeVah),
+            OurLevel(confirmed, ReferenceType.PreviousPrimaryVolumeVal),
+            _theirVpoc,
+            _theirValueAreaHigh,
+            _theirValueAreaLow,
+            ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize,
+            FixedProfilePeriods.LastDay.ToString());
+    }
+
+    /// <summary>
+    /// The price this engine holds for one reference.
+    ///
+    /// References are zones. A derived level such as a POC or a value-area edge is a
+    /// single price, so its zone is degenerate and either bound is the price; the low is
+    /// taken because it is the anchor the reference was built from.
+    /// </summary>
+    private static decimal? OurLevel(
+        IReadOnlyList<StructuralReferenceSnapshot> confirmed, ReferenceType type)
+    {
+        foreach (var reference in confirmed)
+        {
+            if (reference.ReferenceType == type)
+                return reference.ZoneLow;
+        }
+
+        return null;
+    }
+
     private void ProcessPlar()
     {
         if (!EnablePlar || Volatile.Read(ref _disposed) != 0)
@@ -2711,6 +2823,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             // Both readings taken here, back to back, because the measurement is the
             // difference between them and anything in between is sampling error.
             _marketClock.Observe(MarketTime, DateTime.UtcNow);
+
             var imbalance = EnableImbalance ? _imbalanceHost?.Current : null;
             var dayStructure = EnableExecutionReadiness ? _dayStructureHost?.Current : null;
             var entryPolicy = EnableExecutionReadiness ? _entryPolicyHost?.Current : null;
@@ -2789,6 +2902,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 moduleFaults: _moduleFaults.Values.OrderBy(v => v).ToArray(),
                 historicalScanner: historicalScanner,
                 marketClockSummary: _marketClock.Describe(),
+                fixedProfileParitySummary: _fixedProfileParity.Describe(),
                 tradesObserved: Interlocked.Read(ref _tradesObserved),
                 tradesWithAggressorSide: Interlocked.Read(ref _tradesWithAggressorSide),
                 depthCallbacksObserved: Interlocked.Read(ref _depthCallbacksObserved),

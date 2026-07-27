@@ -465,7 +465,7 @@ public sealed class Phase2EEffortResultClassifierTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(24, vm.DiagnosticRows.Count);
+        Assert.Equal(25, vm.DiagnosticRows.Count);
     }
 
     // ---------- K: Limitations & NOT CALIBRATED policy ----------

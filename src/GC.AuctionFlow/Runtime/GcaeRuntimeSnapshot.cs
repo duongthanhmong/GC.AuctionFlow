@@ -84,9 +84,11 @@ public sealed class GcaeRuntimeSnapshot
         RiskSnapshot? risk = null,
         IReadOnlyList<string>? moduleFaults = null,
         HistoricalScannerSnapshot? historicalScanner = null,
-        string? marketClockSummary = null)
+        string? marketClockSummary = null,
+        string? fixedProfileParitySummary = null)
     {
         MarketClockSummary = marketClockSummary ?? "";
+        FixedProfileParitySummary = fixedProfileParitySummary ?? "";
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
         Capability = capability ?? throw new ArgumentNullException(nameof(capability));
@@ -203,6 +205,14 @@ public sealed class GcaeRuntimeSnapshot
     /// measured the project read those timestamps as UTC on the strength of a note.
     /// </summary>
     public string MarketClockSummary { get; }
+
+    /// <summary>
+    /// How this engine's profile levels compared against the platform's own.
+    ///
+    /// The profile module has reported READY since Phase 1 with nothing outside this
+    /// project ever checking its arithmetic.
+    /// </summary>
+    public string FixedProfileParitySummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
     public string Version => SnapshotVersion;

@@ -81,3 +81,59 @@ public sealed class MarketClockOnCardTests
         Assert.Contains("UNSTABLE", row);
     }
 }
+
+/// <summary>
+/// The parity check must reach the card too.
+///
+/// It is the first independent check on profile arithmetic this project has ever had, and
+/// a check whose result stops at the runtime layer is not a check.
+/// </summary>
+public sealed class FixedProfileParityOnCardTests
+{
+    private static string Row(string? summary) =>
+        AuctionGpsCardMapper.FromSnapshot(
+                new GcaeRuntimeEngine().Publish(
+                    null, "GCQ6", DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
+                    DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
+                    tradeObserved: true, lastTradeCallbackUtc: null,
+                    rawRecorderMasterEnabled: false, tradeRecordingEnabled: false,
+                    recorderAccepting: false, recorderFaulted: false,
+                    recorderSessionPresent: false, indicatorDisposed: false,
+                    fixedProfileParitySummary: summary),
+                true)
+            .AllLines(includeDiagnostics: true)
+            .Single(l => l.StartsWith("PROFILE PARITY:", StringComparison.Ordinal));
+
+    [Fact]
+    public void A01_Nothing_requested_says_so()
+        => Assert.Equal("PROFILE PARITY: NOT REQUESTED", Row(null));
+
+    /// <summary>
+    /// The disagreement is the whole product. Flattening it to a bare state would send the
+    /// operator hunting for a number the engine already knows.
+    /// </summary>
+    [Fact]
+    public void A02_A_disagreement_carries_the_level_and_the_gap_to_the_card()
+    {
+        var parity = GC.AuctionFlow.Profile.FixedProfileParity.Compare(
+            4094.4m, 4101.0m, 4086.1m,
+            4094.1m, 4101.0m, 4086.1m,
+            0.1m, "LastDay");
+
+        var row = Row(parity.Describe());
+        Assert.Contains("DISAGREED", row);
+        Assert.Contains("VPOC", row);
+        Assert.Contains("+3t", row);
+    }
+
+    [Fact]
+    public void A03_Agreement_is_reported_as_agreement()
+    {
+        var parity = GC.AuctionFlow.Profile.FixedProfileParity.Compare(
+            4094.1m, 4101.0m, 4086.1m,
+            4094.1m, 4101.0m, 4086.1m,
+            0.1m, "LastDay");
+
+        Assert.Contains("AGREED", Row(parity.Describe()));
+    }
+}

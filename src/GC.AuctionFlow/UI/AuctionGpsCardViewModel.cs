@@ -282,6 +282,11 @@ public static class AuctionGpsCardMapper
                 "MARKET CLOCK: " + (string.IsNullOrWhiteSpace(snapshot.MarketClockSummary)
                     ? "NOT SAMPLED"
                     : snapshot.MarketClockSummary),
+                // Read from the snapshot for the same reason as the row above: this card
+                // has dropped a correctly computed value five times.
+                "PROFILE PARITY: " + (string.IsNullOrWhiteSpace(snapshot.FixedProfileParitySummary)
+                    ? "NOT REQUESTED"
+                    : snapshot.FixedProfileParitySummary),
                 snapshot.AuctionEpisodes is null
                     ? "EPISODE: NOT AVAILABLE"
                     // Active and closed are shown separately because the scanner only
