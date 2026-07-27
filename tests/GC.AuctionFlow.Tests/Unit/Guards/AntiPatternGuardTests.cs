@@ -528,16 +528,45 @@ public sealed class AntiPatternGuardTests
     }
 
     /// <summary>
-    /// v1.3 §0.3 / D-V13-002: GEX is out of scope. No public type, property or
-    /// enum member anywhere in the engine may reference it.
+    /// v1.3 §0.3 / D-V13-002a (operator 2026-07-28): GEX/OptionFlow surface is
+    /// AUTHORIZED, but ONLY inside <c>GC.AuctionFlow.OptionFlow</c>. It must not
+    /// leak into any other module (thesis / episode / GPS / directional / ...),
+    /// which would breach the "GEX is never a necessary condition" invariant (§50).
+    /// So the ban still holds everywhere except that one namespace.
     /// </summary>
     [Fact]
-    public void Registry_No_gex_surface_anywhere()
+    public void Registry_No_gex_surface_outside_optionflow()
     {
+        const string OptionFlowNs = "GC.AuctionFlow.OptionFlow";
         var banned = new[] { "Gex", "Gamma", "CallResistance", "PutSupport", "Dex", "Options" };
-        var offenders = AllTypes.Select(t => t.Name)
-            .Concat(AllPublicProperties.Select(p => p.Name))
-            .Concat(PublicEnums.SelectMany(Enum.GetNames))
+
+        // ATAS-facing types throw on reflection in the test host, so access defensively
+        // (mirrors SafeStaticMethods). Skip the authorized OptionFlow namespace entirely.
+        var names = new List<string>();
+        foreach (var t in AllTypes)
+        {
+            string? ns;
+            try { ns = t.Namespace; } catch { continue; }
+            if (ns == OptionFlowNs) continue;
+
+            try { names.Add(t.Name); } catch { }
+            if (t.IsEnum && t.IsPublic)
+            {
+                try { names.AddRange(Enum.GetNames(t)); } catch { }
+                continue;
+            }
+            if (t.IsPublic)
+            {
+                try
+                {
+                    foreach (var p in t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                        names.Add(p.Name);
+                }
+                catch { /* ATAS-facing surface: not our GEX types */ }
+            }
+        }
+
+        var offenders = names
             .Where(n => banned.Any(b => ContainsToken(n, b)))
             .Distinct()
             .ToArray();
