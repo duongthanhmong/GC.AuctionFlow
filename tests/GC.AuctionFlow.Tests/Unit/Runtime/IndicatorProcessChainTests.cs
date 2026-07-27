@@ -376,3 +376,51 @@ public sealed class PublishPathCoverageTests
             + "from OnCalculate: " + string.Join(", ", unread));
     }
 }
+
+/// <summary>
+/// No publish guard may skip a rebuild merely because a snapshot already exists.
+///
+/// Three did. Trade Facilitation froze at AwaitingEfficiency while efficiency reported
+/// four scopes, and Signal Maturity froze at AwaitingThesis while FAR and AAC each
+/// reported three — the second one looked plausible enough that it went unnoticed
+/// through several rounds of debugging.
+///
+/// The guards were also pointless: every host already gates its own rebuild on an input
+/// fingerprint, so a redundant call costs nothing. Trade Facilitation's guard even
+/// computed a fingerprint and then ignored it.
+/// </summary>
+public sealed class PublishGuardFreezeTests
+{
+    private static string IndicatorSource()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+    }
+
+    [Fact]
+    public void A01_No_guard_short_circuits_on_snapshot_existence_alone()
+    {
+        var src = IndicatorSource();
+        var frozen = new List<string>();
+
+        foreach (Match g in Regex.Matches(src,
+                     @"private void Ensure(\w+?)InitializedForPublish\(\)\s*\{(.*?)\n    \}",
+                     RegexOptions.Singleline))
+        {
+            var body = g.Groups[2].Value;
+            var skipsOnExistence = body.Contains("Current is not null", StringComparison.Ordinal);
+            var comparesInput = body.Contains("Fingerprint", StringComparison.Ordinal)
+                                && body.Contains("Equals(fp", StringComparison.Ordinal);
+
+            if (skipsOnExistence && !comparesInput)
+                frozen.Add(g.Groups[1].Value);
+        }
+
+        Assert.True(frozen.Count == 0,
+            "these guards skip the rebuild once a snapshot exists, so the module "
+            + "freezes at its first state: " + string.Join(", ", frozen));
+    }
+}

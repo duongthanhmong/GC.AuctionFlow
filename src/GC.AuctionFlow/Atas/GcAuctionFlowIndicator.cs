@@ -560,6 +560,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessTradeFacilitation();
             ProcessFarThesis();
             ProcessAacThesis();
+            // Every module here is driven directly rather than through an
+            // Ensure*InitializedForPublish guard. Those guards skipped the rebuild once a
+            // snapshot existed, which froze the module at its first state; Trade
+            // Facilitation even computed a fingerprint and then ignored it. The hosts
+            // already gate rebuilds internally on their own input fingerprint, so a
+            // redundant call is cheap and the outer guard bought nothing.
             ProcessPlar();
             ProcessPriceMemory();
             ProcessImbalance();
@@ -1787,28 +1793,6 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
-    private void EnsureTradeFacilitationInitializedForPublish()
-    {
-        if (!EnableTradeFacilitation || Volatile.Read(ref _disposed) != 0)
-        {
-            _tradeFacilitationHost = null;
-            return;
-        }
-
-        var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
-        var fpKey = TradeFacilitationPolicyConfig.PolicyVersion
-            + "|" + (efficiency?.InputFingerprint?.ToString() ?? "")
-            + "|" + (efficiency?.ModuleState.ToString() ?? "");
-
-        // This is a first-publish safety net only. Per-bar updates come from
-        // ProcessTradeFacilitation in the OnCalculate chain; without that this early
-        // return froze the module at whatever it published on the very first snapshot.
-        if (_tradeFacilitationHost?.Current is not null
-            && string.Equals(_tradeFacilitationHost.Current.PolicyVersion, TradeFacilitationPolicyConfig.PolicyVersion, StringComparison.Ordinal))
-            return;
-
-        ProcessTradeFacilitation();
-    }
 
     private void ProcessSignalMaturity()
     {
@@ -1846,20 +1830,6 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
-    private void EnsureSignalMaturityInitializedForPublish()
-    {
-        if (!EnableSignalMaturity || Volatile.Read(ref _disposed) != 0)
-        {
-            _signalMaturityHost = null;
-            return;
-        }
-
-        if (_signalMaturityHost?.Current is not null
-            && string.Equals(_signalMaturityHost.Current.PolicyVersion, SignalMaturityPolicyConfig.PolicyVersion, StringComparison.Ordinal))
-            return;
-
-        ProcessSignalMaturity();
-    }
 
     private void ProcessExecutionReadiness()
     {
@@ -2015,20 +1985,6 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
-    private void EnsureThesisContractInitializedForPublish()
-    {
-        if (!EnableThesisContract || Volatile.Read(ref _disposed) != 0)
-        {
-            _thesisContractHost = null;
-            return;
-        }
-
-        if (_thesisContractHost?.Current is not null
-            && string.Equals(_thesisContractHost.Current.PolicyVersion, ThesisContractPolicyConfig.PolicyVersion, StringComparison.Ordinal))
-            return;
-
-        ProcessThesisContract();
-    }
 
     private void EnsureEffortResultInitializedForPublish()
     {
@@ -2053,27 +2009,6 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessEffortResult();
     }
 
-    private void EnsureAcceptanceReentryResolutionInitializedForPublish()
-    {
-        if (!EnableAcceptanceReentryResolution || Volatile.Read(ref _disposed) != 0)
-        {
-            _resolutionHost = null;
-            _lastAppliedResolutionFingerprint = null;
-            return;
-        }
-
-        var evRegistryRev = _evidenceHost?.Current?.RegistryRevision ?? -1L;
-        var evFp = _evidenceHost?.Current?.InputFingerprint ?? "";
-        var current = new ResolutionInputFingerprint(
-            true, evRegistryRev, evFp, AuctionResolutionPolicyConfig.PolicyVersion);
-
-        if (_lastAppliedResolutionFingerprint.HasValue
-            && _lastAppliedResolutionFingerprint.Value.Equals(current)
-            && _resolutionHost?.Current is not null)
-            return;
-
-        ProcessAcceptanceReentryResolution();
-    }
 
     private void EnsureAuctionEfficiencyInitializedForPublish()
     {
@@ -2404,13 +2339,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureExecutedOrderflowInitializedForPublish();
             EnsureClusterRawInitializedForPublish();
             EnsureAuctionEfficiencyInitializedForPublish();
-            EnsureAcceptanceReentryResolutionInitializedForPublish();
+            ProcessAcceptanceReentryResolution();
             EnsureEffortResultInitializedForPublish();
             EnsureFarThesisInitializedForPublish();
             EnsureAacThesisInitializedForPublish();
-            EnsureTradeFacilitationInitializedForPublish();
-            EnsureSignalMaturityInitializedForPublish();
-            EnsureThesisContractInitializedForPublish();
+            ProcessTradeFacilitation();
+            ProcessSignalMaturity();
+            ProcessThesisContract();
 
             // PublishRuntimeSnapshot is called from six places and only one of them is
             // the OnCalculate chain; trade callbacks publish far more often than bars
