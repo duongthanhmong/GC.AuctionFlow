@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1366** passed / 0 failed / 0 skipped |
+| Test count | **1370** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -393,6 +393,40 @@ no code changed, and 1356 tests pass on both.
 | Deployed SHA-256 | `BB9F2214079A44821E661E63AA87C9E14F35C03F7FAE3F145441B91A8997C4AE` |
 | Build identity | `B0543F6E` |
 | Source == deployed | yes |
+
+### Phase 5A — LIVE ACCEPTANCE PASS (2026-07-27, 19:20 VN / 08:20 ET rollover)
+
+Observed on build `CDA0F51E` at the primary auction anchor:
+
+```
+EPISODE:  PARTIAL (3 ACTIVE / 6 CLOSED)
+SCANNER:  6 EP / 2947 BAR | CAL STEP 2/6 STRATIFIEDDISTRIBUTION
+```
+
+Three things confirmed, the third for the first time in the project:
+
+1. **Episodes close only at rollover.** `ExpireAllActive` closed six at the anchor. This
+   settles the earlier `0 EP` reading as correct behaviour rather than a defect — the
+   analysis of the three `CloseEpisode` call sites is now confirmed empirically.
+2. **6 closed, 6 folded.** Exact match, no rows dropped between the registry and the
+   dataset.
+3. **The calibration protocol advanced on its own: step 1 -> step 2.** `CollectRawFeatures`
+   is satisfied; the block moved to `StratifiedDistribution`, which is precisely where it
+   was predicted to stop, because ParticipationRegime and VolatilityRegime have no
+   registered boundaries.
+
+The new auction rolled correctly alongside it: `TACTICAL CONTEXT` flipped
+`UPDISCOVERY -> DOWNDISCOVERY`, and references re-prefixed `CUR -> PREV`.
+
+Recorder ran throughout with `FAULTS: none`, writing both streams —
+`enabledStreams: ["Trade","Dom"]`, depth climbing past 10,000 frames.
+
+**This closes Phase 5A.** CODE PASS, TEST PASS and LIVE ACCEPTANCE all hold, so it is a
+FINAL PASS — the first in the project. `[C]` states remain locked and the gate is
+unchanged; what moved is the protocol's position, not its verdict.
+
+**Next block is a research decision, not code:** registering volatility and participation
+boundaries in the DECISION_LOG. The DLL cannot take that step and should not.
 
 ### Measured: what the Rithmic feed actually carries
 
