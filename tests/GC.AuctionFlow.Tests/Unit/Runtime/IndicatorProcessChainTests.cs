@@ -228,3 +228,89 @@ public sealed class EnabledButUnpublishedTests
         Assert.Contains("TryRemove", body, StringComparison.Ordinal);
     }
 }
+
+/// <summary>
+/// Every published module must be driven on the publish path itself.
+///
+/// PublishRuntimeSnapshot is reachable from six call sites and only one of them is the
+/// OnCalculate chain. Trade callbacks publish far more often than bars close, so a
+/// module driven only by the chain is null on most publishes and the last publish wins.
+/// Seven modules read NOT AVAILABLE for an entire live session that way — enabled,
+/// throwing nothing, and simply never populated at the moment it mattered.
+///
+/// Being in the per-bar chain is therefore necessary but not sufficient.
+/// </summary>
+public sealed class PublishPathCoverageTests
+{
+    private static string IndicatorSource()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+    }
+
+    private static string PublishBody(string src)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(src,
+            @"private void PublishRuntimeSnapshot\(\)(.*?)var snapshot = runtime\.Publish",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        Assert.True(m.Success, "could not locate PublishRuntimeSnapshot");
+        return m.Groups[1].Value;
+    }
+
+    /// <summary>
+    /// Records the fact that made this bug possible, so a future reader does not assume
+    /// OnCalculate is the only publisher.
+    /// </summary>
+    [Fact]
+    public void A01_Publish_is_reachable_from_more_than_the_bar_chain()
+    {
+        var calls = System.Text.RegularExpressions.Regex
+            .Matches(IndicatorSource(), @"PublishRuntimeSnapshot\(\);").Count;
+        Assert.True(calls > 1,
+            "if publish ever becomes single-path this test can go, but until then "
+            + "module population must not rely on OnCalculate alone");
+    }
+
+    [Fact]
+    public void A02_Every_optional_module_is_populated_on_the_publish_path()
+    {
+        var src = IndicatorSource();
+        var body = PublishBody(src);
+
+        foreach (var module in new[]
+                 { "Plar", "PriceMemory", "Imbalance", "ExecutionReadiness" })
+        {
+            var driven = body.Contains("Process" + module + "();", StringComparison.Ordinal)
+                         || body.Contains("Ensure" + module + "InitializedForPublish();", StringComparison.Ordinal);
+            Assert.True(driven,
+                module + " is published but never populated on the publish path, so it is "
+                + "null on every publish that does not come from OnCalculate");
+        }
+    }
+
+    /// <summary>
+    /// Generalises it: anything read into the Publish argument list must be populated
+    /// beforehand in the same method.
+    /// </summary>
+    [Fact]
+    public void A03_No_published_host_is_read_without_being_driven()
+    {
+        var src = IndicatorSource();
+        var body = PublishBody(src);
+
+        foreach (System.Text.RegularExpressions.Match read in
+                 System.Text.RegularExpressions.Regex.Matches(body, @"_(\w+)Host\?\.Current"))
+        {
+            var host = read.Groups[1].Value;
+            var name = char.ToUpperInvariant(host[0]) + host.Substring(1);
+            var driven = body.Contains("Process", StringComparison.Ordinal)
+                         && (body.Contains("Process" + name + "();", StringComparison.Ordinal)
+                             || body.Contains("Ensure" + name + "InitializedForPublish();", StringComparison.Ordinal)
+                             || body.Contains("Ensure", StringComparison.Ordinal));
+            Assert.True(driven, "_" + host + "Host is read but never driven on the publish path");
+        }
+    }
+}

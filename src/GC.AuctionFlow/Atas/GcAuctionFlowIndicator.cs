@@ -2398,6 +2398,20 @@ public sealed class GcAuctionFlowIndicator : Indicator
             EnsureSignalMaturityInitializedForPublish();
             EnsureThesisContractInitializedForPublish();
 
+            // PublishRuntimeSnapshot is called from six places and only one of them is
+            // the OnCalculate chain; trade callbacks publish far more often than bars
+            // close. Anything not driven here is null on those paths, and the last
+            // publish wins — which is why these seven modules read NOT AVAILABLE for a
+            // whole session despite being enabled and throwing nothing.
+            //
+            // These are called directly rather than behind an Ensure guard: the guard
+            // skips work once a snapshot exists, which is exactly how Trade Facilitation
+            // froze at its first state.
+            ProcessPlar();
+            ProcessPriceMemory();
+            ProcessImbalance();
+            ProcessExecutionReadiness();
+
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;
             var references = EnableStructuralReferences ? _referenceHost?.Current : null;
