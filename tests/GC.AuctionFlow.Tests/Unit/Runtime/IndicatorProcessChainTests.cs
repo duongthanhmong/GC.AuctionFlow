@@ -321,6 +321,32 @@ public sealed class ModuleFaultVisibilityTests
         }
     }
 
+    /// <summary>
+    /// Nothing may ask the platform for work during the historical load.
+    ///
+    /// Three chart corruptions in this project share one window: the recorder flushing to
+    /// disk inside `OnCalculate`, the episode store opening a file per row on the ThreadPool,
+    /// and `RequestFixedProfileAsync` asking ATAS to build a previous session's profile on
+    /// the first publish. Each put tens of thousands of trades behind the data pump and drew
+    /// an abnormal bar. The gate is cheap; forgetting it has cost a live round trip every
+    /// time.
+    /// </summary>
+    [Fact]
+    public void A02c_The_fixed_profile_request_waits_for_the_historical_load_to_finish()
+    {
+        var src = IndicatorSource();
+
+        var request = src.IndexOf("RequestFixedProfileAsync(", StringComparison.Ordinal);
+        Assert.True(request > 0, "the request should exist");
+
+        var method = src.LastIndexOf("private void ProcessFixedProfileParity(", request,
+            StringComparison.Ordinal);
+        Assert.True(method > 0, "the request should live in its own process method");
+
+        var preamble = src[method..request];
+        Assert.Contains("HistoricalInitializationState.Complete", preamble, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void A03_Faults_reach_the_published_snapshot()
     {

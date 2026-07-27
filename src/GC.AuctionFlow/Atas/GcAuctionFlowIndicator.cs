@@ -2174,6 +2174,18 @@ public sealed class GcAuctionFlowIndicator : Indicator
         if (!EnableStructuralReferences || Volatile.Read(ref _disposed) != 0)
             return;
 
+        // Never during the historical load.
+        //
+        // The first version of this asked on the very first publish, which is the middle of
+        // ATAS building the chart's history. Asking the platform to compute a whole previous
+        // session's profile in that window put 55,249 trades behind the data pump and drew
+        // the abnormal bar again — the third time this project has broken a chart by doing
+        // work in exactly this window. The answer is not needed until the operator can read
+        // it, so it waits until the platform says it is done.
+        if (_profileHost?.Current?.HistoricalInitializationState
+            != HistoricalInitializationState.Complete)
+            return;
+
         if (Interlocked.CompareExchange(ref _fixedProfileRequested, 1, 0) == 0)
         {
             _fixedProfileParity = FixedProfileParitySnapshot.Pending(
@@ -2205,8 +2217,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                         {
                             RecordFault("FixedProfileParity", ex);
                         }
-                    },
-                    TaskContinuationOptions.ExecuteSynchronously);
+                    });
             }
             catch (Exception ex)
             {
