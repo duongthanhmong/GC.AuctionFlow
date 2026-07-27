@@ -14,6 +14,15 @@ public sealed class RecorderCounters
     public long PayloadItemsEnumerated;
     public long NullItemObservations;
     public long NormalizedObservations;
+
+    /// <summary>
+    /// Depth and quote frames the session accepted.
+    ///
+    /// Counted separately from trades so that "depth recording is on" can be told
+    /// apart from "depth recording is on and writing". Session byte size cannot
+    /// distinguish them — trades dominate it either way.
+    /// </summary>
+    public long DepthFramesAccepted;
     public long NormalizationFailures;
     public long AcceptedToQueue;
     public long QueueFullDrops;

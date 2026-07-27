@@ -111,7 +111,8 @@ public sealed class GcaeRuntimeEngine
         long tradesObserved = 0,
         long tradesWithAggressorSide = 0,
         long depthCallbacksObserved = 0,
-        bool mboRecordingUnlocked = false)
+        bool mboRecordingUnlocked = false,
+        long depthFramesRecorded = 0)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -188,7 +189,11 @@ public sealed class GcaeRuntimeEngine
 
         var gate = DataGateEngine.Evaluate(contract, capability, _config, indicatorDisposed, now);
         var seq = Interlocked.Increment(ref _publicationSequence);
-        var recorderSummary = capability.RecorderState.ToString().ToUpperInvariant();
+        // Depth frames are reported alongside the recorder state because session byte
+        // size cannot separate "depth recording is on" from "depth recording is on and
+        // writing" — trades dominate the file either way.
+        var recorderSummary = capability.RecorderState.ToString().ToUpperInvariant()
+            + (depthFramesRecorded > 0 ? " (+" + depthFramesRecorded + " DEPTH)" : "");
 
         var limitations = new List<string>();
         limitations.AddRange(contract.KnownLimitations);

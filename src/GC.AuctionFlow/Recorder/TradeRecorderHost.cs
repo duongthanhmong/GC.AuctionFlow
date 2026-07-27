@@ -35,6 +35,7 @@ public sealed class TradeRecorderHost : IDisposable
         public required TradeStreamAtasMapper TradeMapper { get; init; }
         public string? UserProfileOverride { get; init; }
         public required bool EnableTradeRecording { get; init; }
+        public required bool EnableDepthRecording { get; init; }
     }
 
     public RecorderCounters Counters { get; } = new();
@@ -61,7 +62,8 @@ public sealed class TradeRecorderHost : IDisposable
         FeedProviderProvenance providerProvenance,
         Guid sessionId,
         TradeStreamAtasMapper tradeMapper,
-        string? userProfileOverride = null)
+        string? userProfileOverride = null,
+        bool enableDepthRecording = false)
     {
         if (_disposed)
             return FanOut.RecorderSinkOutcome.StoppedAccepting;
@@ -120,7 +122,8 @@ public sealed class TradeRecorderHost : IDisposable
                 SessionId = sessionId,
                 TradeMapper = tradeMapper,
                 UserProfileOverride = userProfileOverride,
-                EnableTradeRecording = enableTradeRecording
+                EnableTradeRecording = enableTradeRecording,
+                EnableDepthRecording = enableDepthRecording
             };
         }
 
@@ -146,9 +149,13 @@ public sealed class TradeRecorderHost : IDisposable
         {
             var cfg = new RecorderConfig();
             _ = ObservedInstrumentIdentityMapper.FromSnapshot(pending.Observed);
-            var enabledStreams = pending.EnableTradeRecording
-                ? new[] { "Trade" }
-                : Array.Empty<string>();
+            // The manifest must name every stream the session may contain. Declaring
+            // only Trade while Dom frames were being written made the recording
+            // unreadable by anything that trusts its own manifest.
+            var streams = new List<string>(2);
+            if (pending.EnableTradeRecording) streams.Add("Trade");
+            if (pending.EnableDepthRecording) streams.Add("Dom");
+            var enabledStreams = streams.ToArray();
             var adapter = new TradeToRawEventAdapter(pending.TradeMapper);
             var session = new RawEventRecorderSession(
                 pending.SessionId,
@@ -323,7 +330,10 @@ public sealed class TradeRecorderHost : IDisposable
         try
         {
             Interlocked.Increment(ref Counters.NormalizedObservations);
-            return _session.TryAcceptDraft(draft) == FanOut.RecorderSinkOutcome.Accepted;
+            var accepted = _session.TryAcceptDraft(draft) == FanOut.RecorderSinkOutcome.Accepted;
+            if (accepted)
+                Interlocked.Increment(ref Counters.DepthFramesAccepted);
+            return accepted;
         }
         catch
         {

@@ -2667,7 +2667,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 tradesObserved: Interlocked.Read(ref _tradesObserved),
                 tradesWithAggressorSide: Interlocked.Read(ref _tradesWithAggressorSide),
                 depthCallbacksObserved: Interlocked.Read(ref _depthCallbacksObserved),
-                mboRecordingUnlocked: MboOperationalLock.MboRecordingEnabled);
+                mboRecordingUnlocked: MboOperationalLock.MboRecordingEnabled,
+                depthFramesRecorded: recorder is null
+                    ? 0L
+                    : Interlocked.Read(ref recorder.Counters.DepthFramesAccepted));
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
@@ -2758,7 +2761,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
             DeclaredFeedProvider,
             FeedProviderProvenance,
             _sessionId,
-            mapper);
+            mapper,
+            userProfileOverride: null,
+            enableDepthRecording: EnableDepthAndQuoteRecording);
 
         if (outcome == Recorder.FanOut.RecorderSinkOutcome.NotConfigured
             || outcome == Recorder.FanOut.RecorderSinkOutcome.StreamDisabled
