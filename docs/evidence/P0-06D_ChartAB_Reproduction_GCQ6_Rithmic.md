@@ -168,3 +168,43 @@ one above, and not instrumented. It refines the original finding rather than rep
 from the lock, **no MBO recording path exists** — `OnMarketByOrdersChanged` feeds the
 lifecycle probe and nothing writes MBO frames, so unlocking alone would record nothing.
 Enabling MBO capture is a build, not a flag.
+
+---
+
+## RESOLVED — 2026-07-27: the artifact was our fsync on the ATAS thread
+
+The abnormal bar was **ours**, and the mechanism is now established by bisection and a
+matching count rather than by inference.
+
+**Cause.** `TryCompleteRecorderStartup` ran `TryCompleteStartupFromLifecycle` inside
+`OnCalculate`. That creates three directories and writes the manifest with
+`Flush(flushToDisk: true)` twice — forced fsyncs that block until the disk acknowledges. A
+blocked `OnCalculate` stalls the platform's data pump; when the pump resumes it delivers
+everything it queued, and the chart aggregates the backlog into one bar.
+
+**Evidence.**
+
+| | |
+|---|---|
+| Bisection | disabling either renderer changed nothing; disabling the recorder removed the artifact |
+| Backlog with recorder on | 42,511 pre-start trades rejected |
+| Backlog with recorder off | 68 |
+| The bar's own footprint | 42,616 trades, height 47.7 — the same population |
+| After the fix | 11 |
+
+**Why it only appeared on first add or after an ATAS restart:** the fsync only matters while
+the platform is streaming historical bars through `OnCalculate`. Once running steadily,
+`OnCalculate` is called rarely and there is no queue to dump — which is why enabling the
+recorder mid-session never reproduced it.
+
+**Why other charts kept showing it after the fix:** the corrupted bar had already been
+written into ATAS's data. Reloading an affected chart — changing timeframe and back —
+clears it. Confirmed by the operator.
+
+**Fix.** Startup is dispatched off the ATAS thread. Guarded by `A06`.
+
+**Consequence for the MBO lock.** This artifact is visually identical to the one P0-06D
+attributed to MBO subscription, and this one was proved to be our own disk I/O. That does
+not overturn the controlled A/B run — the recorder's state during it is not recorded here —
+but it does mean the lock may rest on a misattribution, and that should be re-tested rather
+than assumed before MBO is judged.
