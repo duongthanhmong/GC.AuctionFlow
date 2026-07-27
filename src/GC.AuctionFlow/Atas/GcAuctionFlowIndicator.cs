@@ -2498,7 +2498,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
             return;
 
         Interlocked.Increment(ref _tradesObserved);
-        if (trade.IsAsk || trade.IsBid)
+
+        // Direction as well as the flags. Counting only IsAsk/IsBid measured a field this
+        // feed never populates, so the card reported UNAVAILABLE (FEED CARRIES NO SIDE)
+        // about a feed that states the side on every trade.
+        if (TradeAggressorSide.IsClassified(
+                TradeAggressorSide.Resolve(trade.Direction.ToString(), trade.IsAsk, trade.IsBid)))
             Interlocked.Increment(ref _tradesWithAggressorSide);
     }
 

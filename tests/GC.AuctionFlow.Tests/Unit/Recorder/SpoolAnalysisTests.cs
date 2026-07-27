@@ -120,6 +120,44 @@ public sealed class SpoolAnalysisTests
             _out.WriteLine("   " + d.Key.PadRight(14) + d.Value.ToString().PadLeft(8));
         _out.WriteLine("trades where isAsk||isBid is true: " + sided);
 
+        // Which side does a "Buy" actually trade at? The mapping Direction -> IsAsk/IsBid
+        // sets the sign of every delta in the engine, so it is measured against the
+        // recorded quotes rather than assumed from convention.
+        decimal bestBid = 0m, bestAsk = 0m;
+        int buyAtAsk = 0, buyAtBid = 0, sellAtAsk = 0, sellAtBid = 0, noQuote = 0;
+
+        foreach (var e in ordered)
+        {
+            if (e.Kind == "BestBidAsk")
+            {
+                var bp = ReadNestedDecimal(e.Json, "payload", "bidPrice");
+                var ap = ReadNestedDecimal(e.Json, "payload", "askPrice");
+                if (bp > 0m) bestBid = bp;
+                if (ap > 0m) bestAsk = ap;
+                continue;
+            }
+
+            if (e.Kind is not ("NewTrade" or "CumulativeTradeNew")) continue;
+            if (bestBid <= 0m || bestAsk <= 0m) { noQuote++; continue; }
+
+            var px = ReadNestedDecimal(e.Json, "payload", "price");
+            var dir = ReadNested(e.Json, "payload", "directionName");
+            if (px <= 0m || dir is null) { noQuote++; continue; }
+
+            var atAsk = px >= bestAsk;
+            var atBid = px <= bestBid;
+            if (!atAsk && !atBid) continue;
+
+            if (dir == "Buy") { if (atAsk) buyAtAsk++; else buyAtBid++; }
+            else if (dir == "Sell") { if (atAsk) sellAtAsk++; else sellAtBid++; }
+        }
+
+        _out.WriteLine("");
+        _out.WriteLine("direction vs prevailing quote (trades priced at a touch):");
+        _out.WriteLine("   Buy  at ask " + buyAtAsk.ToString().PadLeft(7) + "   at bid " + buyAtBid.ToString().PadLeft(7));
+        _out.WriteLine("   Sell at ask " + sellAtAsk.ToString().PadLeft(7) + "   at bid " + sellAtBid.ToString().PadLeft(7));
+        _out.WriteLine("   (no quote in force: " + noQuote + ")");
+
         _out.WriteLine("");
         foreach (var kind in new[] { "NewTrade", "BestBidAsk" })
         {
@@ -192,6 +230,19 @@ public sealed class SpoolAnalysisTests
                    && v.ValueKind == JsonValueKind.True;
         }
         catch (JsonException) { return false; }
+    }
+
+    private static decimal ReadNestedDecimal(string json, string parent, string name)
+    {
+        try
+        {
+            using var d = JsonDocument.Parse(json);
+            return d.RootElement.TryGetProperty(parent, out var p)
+                   && p.TryGetProperty(name, out var v)
+                   && v.ValueKind == JsonValueKind.Number
+                   && v.TryGetDecimal(out var dec) ? dec : 0m;
+        }
+        catch (JsonException) { return 0m; }
     }
 
     private static long ReadLong(string json, string name)

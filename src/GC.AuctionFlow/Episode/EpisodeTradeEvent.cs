@@ -68,7 +68,13 @@ public sealed class EpisodeTradeEvent
         if (tick is null)
             return null;
 
-        var classified = obs.IsAsk || obs.IsBid;
+        // Resolved from Direction as well as the flags. Reading IsAsk/IsBid alone left
+        // this false on every trade from a feed that populates neither, which is why
+        // aggressor evidence was Unavailable engine-wide while the answer sat unread in
+        // the same observation.
+        var side = TradeAggressorSide.Resolve(obs.Direction, obs.IsAsk, obs.IsBid);
+        var classified = TradeAggressorSide.IsClassified(side);
+
         var id = EpisodeIdentity.BuildEventIdentity(obs.LocalMonotonicSequence, obs.CoreDiagnosticFingerprint);
         return new EpisodeTradeEvent(
             id,
@@ -78,8 +84,8 @@ public sealed class EpisodeTradeEvent
             tick.Value,
             obs.Price,
             obs.Volume,
-            obs.IsAsk,
-            obs.IsBid,
+            TradeAggressorSide.IsAskSide(side),
+            TradeAggressorSide.IsBidSide(side),
             classified,
             obs.ObservedInstrumentIdentityKey,
             dataEpoch,
