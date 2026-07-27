@@ -199,15 +199,21 @@ public static class AuctionGpsCardMapper
             _ => "UNKNOWN"
         };
 
-        var recorder = cap.RecorderState switch
-        {
-            RuntimeCapabilityState.Off => "OFF",
-            RuntimeCapabilityState.Ready => "READY",
-            RuntimeCapabilityState.Recording => "RECORDING",
-            RuntimeCapabilityState.Faulted => "FAULTED",
-            RuntimeCapabilityState.NotConfigured => "NOT CONFIGURED",
-            _ => cap.RecorderState.ToString().ToUpperInvariant()
-        };
+        // Prefer the summary the runtime built. Re-deriving it from the raw enum here
+        // silently discarded everything the runtime had attached to it — the depth frame
+        // count among them — so the card kept reporting a bare RECORDING while the
+        // information it was meant to show existed one layer down.
+        var recorder = string.IsNullOrWhiteSpace(snapshot.RecorderDiagnosticSummary)
+            ? cap.RecorderState switch
+            {
+                RuntimeCapabilityState.Off => "OFF",
+                RuntimeCapabilityState.Ready => "READY",
+                RuntimeCapabilityState.Recording => "RECORDING",
+                RuntimeCapabilityState.Faulted => "FAULTED",
+                RuntimeCapabilityState.NotConfigured => "NOT CONFIGURED",
+                _ => cap.RecorderState.ToString().ToUpperInvariant()
+            }
+            : snapshot.RecorderDiagnosticSummary;
 
         var enableTpoParityDiagnostics = snapshot.EnableTpoParityDiagnostics;
         var (profileLine, profileDetails) = BuildProfileLines(
