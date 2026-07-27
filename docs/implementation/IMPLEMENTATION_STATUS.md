@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1356** passed / 0 failed / 0 skipped |
+| Test count | **1366** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -393,6 +393,38 @@ no code changed, and 1356 tests pass on both.
 | Deployed SHA-256 | `BB9F2214079A44821E661E63AA87C9E14F35C03F7FAE3F145441B91A8997C4AE` |
 | Build identity | `B0543F6E` |
 | Source == deployed | yes |
+
+### Measured: what the Rithmic feed actually carries
+
+Three capability values were hard-coded, so the card reported policy as observation. They
+are now measured, and the first live run answered a question that had been open for the
+life of the project.
+
+| | Before | Measured | Meaning |
+|---|---|---|---|
+| Bid/ask | `Unknown` (pinned) | **`Unavailable`** | trades arrive in volume and **none** carry an aggressor side |
+| DOM | `Unavailable` (pinned) | **`Partial`** | depth callbacks **do** arrive |
+| MBO | `Blocked` (pinned) | `Blocked` (real) | operational lock, not an absence |
+
+The classification is threshold-free — none / some / all — so no number was chosen. The
+limitation strings follow the measurement, so `BIDASK_NOT_VALIDATED` clears itself if a
+feed ever proves otherwise.
+
+**Consequences, now settled rather than suspected:**
+
+- `AggressorEvidenceMissing` on scanner rows is **not a defect**. It is this feed.
+- `CanonicalOutsideDelta` on episodes is permanently null here.
+- Auction Efficiency's ask/bid-dependent components stay unavailable for the same reason.
+- Depth recording has real data to capture, which is why 5A-b's adapter was worth building.
+
+**Deriving aggressor side from the quote was considered and rejected.** Comparing a trade
+price to the prevailing best bid/ask is a standard technique, but it needs the trade and
+the quote to be orderable against each other, and depth callbacks here carry no native
+sequence — `DepthToRawEventAdapter` flags `NativeSequenceAbsent` on every frame. Aligning
+them would be guesswork, and a derived side stored beside an observed one is exactly the
+confident-but-wrong evidence the engine exists to avoid. The raw depth is recorded instead,
+so the alignment question can be studied offline from data rather than assumed at runtime —
+which is step 1 of `G-CAL-002`, not a shortcut past it.
 
 ### Phase 5A-d — participation regime axis, and step 2 is now unblockable
 
