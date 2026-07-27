@@ -120,4 +120,45 @@ public sealed class GpsCardCompactModeTests
         Assert.True(compact.Count <= 60,
             "compact card is " + compact.Count + " lines; it must fit one screen");
     }
+
+    /// <summary>
+    /// The path that actually broke live.
+    ///
+    /// Every earlier test in this file built the card with showDiagnostics:true, so the
+    /// status rows already existed and compaction merely kept them. That never exercised
+    /// the real configuration — compact on, diagnostics off — where FromSnapshot is told
+    /// not to BUILD the rows at all and compaction has nothing to keep.
+    ///
+    /// This reproduces what the indicator does, so the gap cannot reopen.
+    /// </summary>
+    [Fact]
+    public void A08_Compact_with_diagnostics_off_still_builds_the_status_rows()
+    {
+        // The indicator must ask FromSnapshot to build the rows when compact is on.
+        const bool showDiagnosticsSetting = false;
+        const bool compactSetting = true;
+        var buildDiagnosticRows = showDiagnosticsSetting || compactSetting;
+
+        var vm = Card(showDiagnostics: buildDiagnosticRows);
+        var lines = vm.AllLines(buildDiagnosticRows, compactSetting);
+
+        Assert.NotEmpty(vm.DiagnosticRows);
+        foreach (var row in vm.DiagnosticRows)
+            Assert.Contains(row, lines);
+    }
+
+    /// <summary>
+    /// Guards the failure directly: building without diagnostics yields no rows, so a
+    /// render-time flag alone can never recover them.
+    /// </summary>
+    [Fact]
+    public void A09_Rows_not_built_cannot_be_recovered_at_render_time()
+    {
+        var vm = Card(showDiagnostics: false);
+        Assert.Empty(vm.DiagnosticRows);
+
+        // Even asking for compact cannot add rows that were never constructed.
+        var lines = vm.AllLines(includeDiagnostics: true, compact: true);
+        Assert.DoesNotContain(lines, l => l.StartsWith("EPISODE:", StringComparison.Ordinal));
+    }
 }

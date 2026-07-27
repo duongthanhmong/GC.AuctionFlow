@@ -2438,8 +2438,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
-                var vm = AuctionGpsCardMapper.FromSnapshot(snapshot, ShowAuctionGpsDiagnostics);
-                renderer.Update(vm, ShowAuctionGpsDiagnostics, GpsCardCompactMode);
+                                // Compact mode exists to show the status rows, but those rows are BUILT
+                // in FromSnapshot and are absent unless it is told to build them. Passing
+                // only ShowAuctionGpsDiagnostics here leaves compact with nothing to show.
+                var buildDiagnosticRows = ShowAuctionGpsDiagnostics || GpsCardCompactMode;
+                var vm = AuctionGpsCardMapper.FromSnapshot(snapshot, buildDiagnosticRows);
+                renderer.Update(vm, buildDiagnosticRows, GpsCardCompactMode);
                 renderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
             }
             else
