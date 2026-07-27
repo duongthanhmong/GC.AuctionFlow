@@ -1966,9 +1966,23 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var policy = new PlarPolicyConfig(enabled: true);
             var references = EnableStructuralReferences ? _referenceHost?.Current : null;
 
+            // The reference view only carries a price when its own extraction produced
+            // one, and live it often does not. Without a price PLAR cannot tell what is
+            // "ahead" and reports AwaitingReferences even with a full reference set, so
+            // the profile's last observed price is used as the fallback — the same
+            // source CFD mapping reads.
+            var priceTick = references?.Nearest?.CurrentPriceTick;
+            if (priceTick is null)
+            {
+                var lastPrice = _profileHost?.Current?.CurrentAuction?.LastObservedPrice;
+                var tick = ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize;
+                if (lastPrice.HasValue && tick > 0m)
+                    priceTick = (long)Math.Round(lastPrice.Value / tick, MidpointRounding.AwayFromZero);
+            }
+
             _plarHost ??= new PlarHost(policy);
             _plarHost.Configure(policy);
-            _plarHost.Rebuild(references?.ActiveReferences, references?.Nearest?.CurrentPriceTick);
+            _plarHost.Rebuild(references?.ActiveReferences, priceTick);
             ClearFault("Plar");
         }
         catch (Exception ex)

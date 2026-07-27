@@ -527,3 +527,44 @@ public sealed class Phase3EPlarTests
         Assert.DoesNotContain("HIGHFRICTION", text, StringComparison.OrdinalIgnoreCase);
     }
 }
+
+/// <summary>
+/// PLAR needs a price, and the reference view often has none live.
+///
+/// The first successful live run showed PATH: AWAITINGREFERENCES while REFERENCES was
+/// READY with 16 confirmed levels. The reference set was fine; the price was missing,
+/// and without one there is no notion of "ahead". The indicator now falls back to the
+/// profile's last observed price.
+/// </summary>
+public sealed class Phase3EPlarPriceSourceTests
+{
+    private static string IndicatorSource()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+    }
+
+    [Fact]
+    public void A01_Plar_falls_back_to_the_profile_price()
+    {
+        var body = System.Text.RegularExpressions.Regex.Match(IndicatorSource(),
+            @"private void ProcessPlar\(\)(.*?)\n    \}",
+            System.Text.RegularExpressions.RegexOptions.Singleline).Value;
+        Assert.Contains("LastObservedPrice", body, StringComparison.Ordinal);
+    }
+
+    /// <summary>A reference set without a price still yields no path — the fix is a
+    /// fallback, not a licence to invent a price.</summary>
+    [Fact]
+    public void A02_No_price_anywhere_still_yields_no_path()
+    {
+        var host = new PlarHost(new PlarPolicyConfig(enabled: true));
+        var set = host.Rebuild(Array.Empty<StructuralReferenceSnapshot>(), null,
+            new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc));
+        Assert.Equal(PlarModuleState.AwaitingReferences, set.ModuleState);
+        Assert.Equal(TargetSpaceAvailability.Unavailable, set.UpPath!.TargetSpaceAvailability);
+    }
+}
