@@ -127,3 +127,44 @@ Future MBO testing requires an isolated test environment — preferably a **sepa
 | P0-06D controlled Chart A/B reproduction | **PASS** |
 | P0-06 overall | **PASS WITH PLATFORM-SIDE OPERATIONAL LIMITATION** |
 | P0-07 | **NOT STARTED** |
+
+---
+
+## Operator addendum — 2026-07-27
+
+Reported by the operator during live work, in response to the lock above. Recorded here
+because P0-06D explicitly left the mechanism **Unknown** and asked for further evidence.
+
+**Observed:**
+
+- The abnormal bar appears on the **first add** of the indicator only. Removing and
+  re-adding the DLL to the chart does **not** reproduce it.
+- **Other, third-party MBO indicators produce the same artifact** when the operator
+  enables them.
+
+**Provenance:** operator observation during ordinary use. Not a controlled A/B run like the
+one above, and not instrumented. It refines the original finding rather than replacing it.
+
+**What it changes:**
+
+- The second point is the significant one. If unrelated MBO indicators produce the same
+  artifact, the cause is **not GCAE**. That matches what P0-06D already suspected —
+  *"a shared ATAS/Rithmic instrument/provider/chart-data interaction is strongly
+  supported"* — and supplies the part the controlled run could not: the behaviour is not
+  ours to fix and not ours to avoid by writing different code.
+- The first point bounds the exposure: transient, tied to initial subscription, not
+  ongoing.
+
+**What it does not change:**
+
+- The artifact still lands on charts the operator trades from, including charts without
+  the indicator attached. Being platform-caused makes it not our defect; it does not make
+  it harmless.
+- `LiveMboCapabilityClaim`, `MboLifecycleCompletenessClaim` and
+  `StableMboBookReconstruction` remain **false**. Event presence was always PASS; what is
+  unproven is completeness, and this addendum says nothing about that.
+
+**Standing state:** `MboOperationalLock.MboRecordingEnabled` remains `false`. Separately
+from the lock, **no MBO recording path exists** — `OnMarketByOrdersChanged` feeds the
+lifecycle probe and nothing writes MBO frames, so unlocking alone would record nothing.
+Enabling MBO capture is a build, not a flag.
