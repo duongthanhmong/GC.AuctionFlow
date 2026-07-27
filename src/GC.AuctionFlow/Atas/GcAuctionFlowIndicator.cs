@@ -94,6 +94,76 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     private void ClearFault(string module) => _moduleFaults.TryRemove(module, out _);
 
+    private ModuleDriveSchedule? _schedule;
+    private int _scheduleBuilt;
+
+    /// <summary>
+    /// The module chain, declared once. Both the bar handler and the publisher run this
+    /// list; neither keeps a call order of its own.
+    ///
+    /// The publish delegate differs from the bar delegate only where a module would
+    /// otherwise do real work on every trade callback. Those cheaper variants initialise
+    /// or reconfigure but never skip a rebuild just because a snapshot exists — that is
+    /// what froze Trade Facilitation at its first state for an entire session.
+    /// </summary>
+    private ModuleDriveSchedule? Schedule()
+    {
+        if (Interlocked.CompareExchange(ref _scheduleBuilt, 1, 0) != 0)
+            return _schedule;
+
+        try
+        {
+            _schedule = new ModuleDriveSchedule(
+                new[]
+                {
+                    new ModuleDriveStep("Composite", ProcessComposite,
+                        EnsureCompositeSnapshotInitializedForPublish),
+                    new ModuleDriveStep("StructuralReferences", ProcessStructuralReferences,
+                        EnsureStructuralReferencesInitializedForPublish, "Composite"),
+                    new ModuleDriveStep("DirectionalContext", ProcessDirectionalContext,
+                        EnsureDirectionalContextInitializedForPublish, "StructuralReferences"),
+                    new ModuleDriveStep("AuctionEpisodes", ProcessAuctionEpisodes,
+                        EnsureAuctionEpisodesInitializedForPublish, "StructuralReferences"),
+                    new ModuleDriveStep("AcceptanceReentryEvidence", ProcessAcceptanceReentryEvidence,
+                        EnsureAcceptanceReentryEvidenceInitializedForPublish, "AuctionEpisodes"),
+                    new ModuleDriveStep("AcceptanceReentryResolution", ProcessAcceptanceReentryResolution,
+                        null, "AcceptanceReentryEvidence"),
+                    new ModuleDriveStep("ExecutedOrderflow", ProcessExecutedOrderflow,
+                        EnsureExecutedOrderflowInitializedForPublish),
+                    new ModuleDriveStep("ClusterRawFeatures", ProcessClusterRawFeatures,
+                        EnsureClusterRawInitializedForPublish),
+                    new ModuleDriveStep("AuctionEfficiencyEvidence", ProcessAuctionEfficiencyEvidence,
+                        EnsureAuctionEfficiencyInitializedForPublish, "AcceptanceReentryEvidence"),
+                    new ModuleDriveStep("EffortResult", ProcessEffortResult,
+                        EnsureEffortResultInitializedForPublish, "AuctionEfficiencyEvidence"),
+                    new ModuleDriveStep("TradeFacilitation", ProcessTradeFacilitation,
+                        null, "AuctionEfficiencyEvidence"),
+                    new ModuleDriveStep("FarThesis", ProcessFarThesis,
+                        EnsureFarThesisInitializedForPublish),
+                    new ModuleDriveStep("AacThesis", ProcessAacThesis,
+                        EnsureAacThesisInitializedForPublish),
+                    new ModuleDriveStep("Plar", ProcessPlar, null, "StructuralReferences"),
+                    new ModuleDriveStep("PriceMemory", ProcessPriceMemory),
+                    new ModuleDriveStep("Imbalance", ProcessImbalance),
+                    new ModuleDriveStep("SignalMaturity", ProcessSignalMaturity,
+                        null, "FarThesis", "AacThesis"),
+                    new ModuleDriveStep("ThesisContract", ProcessThesisContract,
+                        null, "SignalMaturity"),
+                    new ModuleDriveStep("ExecutionReadiness", ProcessExecutionReadiness),
+                },
+                RecordFault);
+        }
+        catch (Exception ex)
+        {
+            // A chain that does not validate is a programming error, not a market
+            // condition. Nothing is driven, and the card says so on its third line —
+            // far better than a session of quietly stale modules.
+            RecordFault("ModuleSchedule", ex);
+        }
+
+        return _schedule;
+    }
+
     /// <summary>
     /// A module that is switched on but has produced no snapshot renders as NOT
     /// AVAILABLE, identical to one that is switched off. That ambiguity cost a full
@@ -547,31 +617,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessProfileBar(bar);
         if (bar >= CurrentBar)
         {
-            ProcessComposite();
-            ProcessStructuralReferences();
-            ProcessDirectionalContext();
-            ProcessAuctionEpisodes();
-            ProcessAcceptanceReentryEvidence();
-            ProcessAcceptanceReentryResolution();
-            ProcessExecutedOrderflow();
-            ProcessClusterRawFeatures();
-            ProcessAuctionEfficiencyEvidence();
-            ProcessEffortResult();
-            ProcessTradeFacilitation();
-            ProcessFarThesis();
-            ProcessAacThesis();
-            // Every module here is driven directly rather than through an
-            // Ensure*InitializedForPublish guard. Those guards skipped the rebuild once a
-            // snapshot existed, which froze the module at its first state; Trade
-            // Facilitation even computed a fingerprint and then ignored it. The hosts
-            // already gate rebuilds internally on their own input fingerprint, so a
-            // redundant call is cheap and the outer guard bought nothing.
-            ProcessPlar();
-            ProcessPriceMemory();
-            ProcessImbalance();
-            ProcessSignalMaturity();
-            ProcessThesisContract();
-            ProcessExecutionReadiness();
+            Schedule()?.RunBar();
             PublishRuntimeSnapshot();
         }
     }
@@ -2330,36 +2376,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 ? 0L
                 : Interlocked.Read(ref recorder.Counters.RecorderStartupFailures);
 
-            // Trade-style publishes: init or rebuild only when host/Current missing or operator config changed.
-            EnsureCompositeSnapshotInitializedForPublish();
-            EnsureStructuralReferencesInitializedForPublish();
-            EnsureDirectionalContextInitializedForPublish();
-            EnsureAuctionEpisodesInitializedForPublish();
-            EnsureAcceptanceReentryEvidenceInitializedForPublish();
-            EnsureExecutedOrderflowInitializedForPublish();
-            EnsureClusterRawInitializedForPublish();
-            EnsureAuctionEfficiencyInitializedForPublish();
-            ProcessAcceptanceReentryResolution();
-            EnsureEffortResultInitializedForPublish();
-            EnsureFarThesisInitializedForPublish();
-            EnsureAacThesisInitializedForPublish();
-            ProcessTradeFacilitation();
-            ProcessSignalMaturity();
-            ProcessThesisContract();
-
-            // PublishRuntimeSnapshot is called from six places and only one of them is
-            // the OnCalculate chain; trade callbacks publish far more often than bars
-            // close. Anything not driven here is null on those paths, and the last
-            // publish wins — which is why these seven modules read NOT AVAILABLE for a
-            // whole session despite being enabled and throwing nothing.
-            //
-            // These are called directly rather than behind an Ensure guard: the guard
-            // skips work once a snapshot exists, which is exactly how Trade Facilitation
-            // froze at its first state.
-            ProcessPlar();
-            ProcessPriceMemory();
-            ProcessImbalance();
-            ProcessExecutionReadiness();
+            // Publish outnumbers bar close by orders of magnitude, and only one of the
+            // six publish call sites is the bar chain. Anything not driven here is null
+            // on the other five, and the last publish wins — which is how seven enabled,
+            // non-throwing modules read NOT AVAILABLE for a whole session.
+            Schedule()?.RunPublish();
 
             var profiles = EnablePrimaryProfile ? _profileHost?.Current : null;
             var composite = EnableCompositeProfile ? _compositeHost?.Current : null;

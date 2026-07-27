@@ -6,10 +6,20 @@ using Xunit;
 // That limitation is exactly why three integration defects reached a live session, so
 // each assertion here was verified by mutation rather than trusted:
 //
-//   remove ProcessTradeFacilitation from the per-bar chain
-//     -> IndicatorProcessChainTests A01, A02, A03 all fail
-//   remove ProcessPlar from the publish path
-//     -> PublishPathCoverageTests A02, A03 both fail
+//   delete the TradeFacilitation step from the schedule
+//     -> ChainTests A02, A03 and PublishPathCoverage A03 fail
+//   delete the Plar step from the schedule
+//     -> ChainTests A03 and PublishPathCoverage A02, A03 fail
+//   give TradeFacilitation a publish guard as its publish drive (the original defect)
+//     -> ChainTests A01, A02 fail
+//   declare SignalMaturity before the theses it reads
+//     -> ChainTests A05 fails
+//   add one direct ProcessPlar() call back into the publisher
+//     -> ChainTests A04 fails
+//
+// The chain itself now lives in ModuleDriveSchedule, which is a plain type with real
+// behavioural tests in ModuleDriveScheduleTests. What is left here is the part that
+// still cannot be instantiated: the indicator's own declaration of that chain.
 //
 // Re-run those mutations if these tests are ever refactored. A source-shape test that
 // stops failing is indistinguishable from one that passes, and the earlier version of
@@ -17,6 +27,59 @@ using Xunit;
 // the publish body always contains the substring "Ensure".
 
 namespace GC.AuctionFlow.Tests.Unit.Runtime;
+
+/// <summary>
+/// The chain the indicator declares, read out of its source.
+///
+/// The chain used to live in two hand-maintained call lists, one per code path, and they
+/// had already drifted apart. It is now declared once as ModuleDriveStep entries, so this
+/// parses that single declaration rather than cross-checking two lists that agree by
+/// discipline alone.
+/// </summary>
+internal static class IndicatorSchedule
+{
+    internal sealed record Step(
+        string Module, string OnBar, string? OnPublish, IReadOnlyList<string> DependsOn);
+
+    internal static string Source()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
+        var text = File.ReadAllText(path);
+
+        // Turns a read racing the build into a clear message rather than a confusing
+        // assertion failure downstream. See the notes on the unreproduced post-rebuild
+        // flake in IMPLEMENTATION_STATUS.
+        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
+        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
+        return text;
+    }
+
+    internal static IReadOnlyList<Step> Declared()
+    {
+        var steps = new List<Step>();
+        foreach (Match m in Regex.Matches(Source(), @"new ModuleDriveStep\(([^)]*)\)"))
+        {
+            var args = m.Groups[1].Value.Split(',').Select(a => a.Trim()).ToArray();
+            Assert.True(args.Length >= 2, "malformed schedule step: " + m.Value);
+
+            var publish = args.Length > 2 && args[2] != "null" ? args[2] : null;
+            steps.Add(new Step(
+                args[0].Trim('"'),
+                args[1],
+                publish,
+                args.Skip(3).Select(a => a.Trim('"')).ToArray()));
+        }
+
+        Assert.NotEmpty(steps);
+        return steps;
+    }
+}
+
 
 /// <summary>
 /// Every module needs a per-bar update path.
@@ -30,97 +93,132 @@ namespace GC.AuctionFlow.Tests.Unit.Runtime;
 /// </summary>
 public sealed class IndicatorProcessChainTests
 {
-    private static string IndicatorSource()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
-            dir = dir.Parent;
-        Assert.NotNull(dir);
-
-        var path = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs");
-        var text = File.ReadAllText(path);
-
-        // Turns a read racing the build into a clear message rather than a
-        // confusing assertion failure downstream. See GpsCard notes on the
-        // unreproduced post-rebuild flake.
-        Assert.False(string.IsNullOrWhiteSpace(text), "indicator source read as empty: " + path);
-        Assert.Contains("class GcAuctionFlowIndicator", text, StringComparison.Ordinal);
-        return text;
-    }
-
     /// <summary>
-    /// An Ensure*InitializedForPublish guard is a first-publish safety net. Any module
-    /// that has one must ALSO be driven per bar, or the guard becomes a freeze.
-    ///
-    /// The guard names its own process method, so that is what gets checked rather than
-    /// a name-similarity guess — several modules legitimately differ (EnsureClusterRaw
-    /// drives ProcessClusterRawFeatures).
+    /// An Ensure*InitializedForPublish method is a cheaper publish-path drive for a
+    /// module that would otherwise do real work on every trade callback. It is only ever
+    /// legitimate as a step's publish delegate — used as a module's sole drive it
+    /// becomes a freeze, which is exactly what happened to Trade Facilitation.
     /// </summary>
     [Fact]
-    public void A01_Every_ensured_module_is_also_processed_per_bar()
+    public void A01_Every_publish_guard_belongs_to_a_step_that_also_has_a_bar_drive()
     {
-        var src = IndicatorSource();
+        var src = IndicatorSchedule.Source();
+        var steps = IndicatorSchedule.Declared();
 
-        var chain = Regex.Match(src, @"if \(bar >= CurrentBar\)\s*\{(.*?)PublishRuntimeSnapshot\(\);",
-            RegexOptions.Singleline);
-        Assert.True(chain.Success, "could not locate the per-bar process chain");
-        var body = chain.Groups[1].Value;
+        var publishDrives = steps
+            .Where(s => s.OnPublish is not null)
+            .ToDictionary(s => s.OnPublish!, s => s, StringComparer.Ordinal);
 
-        var guards = Regex.Matches(src,
-            @"private void Ensure(\w+?)InitializedForPublish\(\)\s*\{(.*?)
-    \}",
-            RegexOptions.Singleline);
+        var guards = Regex.Matches(src, @"private void (Ensure(\w+?)InitializedForPublish)\(\)")
+            .Select(m => m.Groups[1].Value)
+            .ToArray();
         Assert.NotEmpty(guards);
 
-        var missing = new List<string>();
-        foreach (Match g in guards)
-        {
-            var name = g.Groups[1].Value;
-            var call = Regex.Match(g.Groups[2].Value, @"(Process\w+\(\));");
-            Assert.True(call.Success, "Ensure" + name + " does not call any Process method");
+        var orphaned = guards.Where(g => !publishDrives.ContainsKey(g)).ToArray();
+        Assert.True(orphaned.Length == 0,
+            "these publish guards exist but no schedule step uses them, so they are dead "
+            + "code and their module falls back to the full bar drive on every trade "
+            + "callback: " + string.Join(", ", orphaned));
 
-            if (!body.Contains(call.Groups[1].Value + ";", StringComparison.Ordinal))
-                missing.Add(name + " -> " + call.Groups[1].Value);
+        // Every guard-backed step still needs its own bar drive, or the guard is the
+        // module's only path and the freeze is back.
+        foreach (var guard in guards)
+            Assert.StartsWith("Process", publishDrives[guard].OnBar, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Regression for the specific module that shipped broken. Its guard was removed
+    /// rather than demoted, so it must be driven identically on both passes.
+    /// </summary>
+    [Fact]
+    public void A02_Trade_facilitation_is_driven_the_same_way_on_both_passes()
+    {
+        var step = Assert.Single(
+            IndicatorSchedule.Declared(), s => s.Module == "TradeFacilitation");
+
+        Assert.Equal("ProcessTradeFacilitation", step.OnBar);
+        Assert.Null(step.OnPublish);
+        Assert.Contains("AuctionEfficiencyEvidence", step.DependsOn);
+    }
+
+    /// <summary>
+    /// Every module has a step. A Process method outside the schedule is a module
+    /// nothing drives, which renders as a permanently null or stale row.
+    /// </summary>
+    [Fact]
+    public void A03_Every_process_method_is_some_steps_bar_drive()
+    {
+        var src = IndicatorSchedule.Source();
+        var barDrives = IndicatorSchedule.Declared().Select(s => s.OnBar).ToArray();
+
+        foreach (var method in Regex.Matches(src, @"private void (Process\w+)\(\)")
+                     .Select(m => m.Groups[1].Value)
+                     // ProfileBar takes a bar index and is driven separately.
+                     .Where(n => n != "ProcessProfileBar"))
+        {
+            Assert.True(barDrives.Contains(method, StringComparer.Ordinal),
+                method + " exists but no schedule step drives it");
         }
 
-        Assert.True(missing.Count == 0,
-            "these modules have an Ensure guard but no per-bar Process call, so they freeze "
-            + "after the first snapshot: " + string.Join(", ", missing));
+        Assert.Equal(barDrives.Length, barDrives.Distinct(StringComparer.Ordinal).Count());
     }
 
     /// <summary>
-    /// Regression for the specific module that shipped broken.
+    /// The schedule must be the only chain.
+    ///
+    /// A second call list is how the two paths drifted apart in the first place, and the
+    /// drift was invisible: both lists looked complete on their own. Keeping the handlers
+    /// free of direct module calls is what makes that class of bug unwritable rather
+    /// than merely caught.
     /// </summary>
     [Fact]
-    public void A02_Trade_facilitation_is_processed_per_bar()
+    public void A04_Neither_handler_keeps_a_call_list_of_its_own()
     {
-        var chain = Regex.Match(IndicatorSource(),
-            @"if \(bar >= CurrentBar\)\s*\{(.*?)PublishRuntimeSnapshot\(\);",
-            RegexOptions.Singleline);
-        Assert.True(chain.Success);
-        Assert.Contains("ProcessTradeFacilitation();", chain.Groups[1].Value, StringComparison.Ordinal);
-    }
+        var src = IndicatorSchedule.Source();
 
-    /// <summary>
-    /// A module that is published must be processed. Publishing a host that nothing
-    /// drives yields a permanently null or stale row on the card.
-    /// </summary>
-    [Fact]
-    public void A03_Every_published_host_is_processed_per_bar()
-    {
-        var src = IndicatorSource();
-        var chain = Regex.Match(src, @"if \(bar >= CurrentBar\)\s*\{(.*?)PublishRuntimeSnapshot\(\);",
-            RegexOptions.Singleline);
-        Assert.True(chain.Success);
-        var body = chain.Groups[1].Value;
-
-        foreach (var process in Regex.Matches(src, @"private void Process(\w+)\(\)")
-                     .Select(m => m.Groups[1].Value)
-                     // ProfileBar takes a bar index and is called separately.
-                     .Where(n => n != "ProfileBar"))
+        foreach (var (handler, pattern) in new[]
+                 {
+                     ("OnCalculate", @"protected override void OnCalculate\([^)]*\)\s*\{(.*?)\n    \}"),
+                     ("PublishRuntimeSnapshot",
+                      @"private void PublishRuntimeSnapshot\(\)\s*\{(.*?)var snapshot = runtime\.Publish"),
+                 })
         {
-            Assert.True(body.Contains("Process" + process + "();", StringComparison.Ordinal),
-                "Process" + process + " exists but is never called per bar");
+            var m = Regex.Match(src, pattern, RegexOptions.Singleline);
+            Assert.True(m.Success, "could not locate " + handler);
+
+            var stray = Regex.Matches(m.Groups[1].Value, @"\b(?:Process|Ensure)\w+\(\);")
+                .Select(c => c.Value)
+                // ProfileBar is not a schedule module; the runtime, probe and profile-host
+                // starters are lifecycle rather than analysis.
+                .Where(c => !c.StartsWith("ProcessProfileBar", StringComparison.Ordinal)
+                            && !c.StartsWith("EnsureRuntimeStarted", StringComparison.Ordinal)
+                            && !c.StartsWith("EnsureProbesStarted", StringComparison.Ordinal)
+                            && !c.StartsWith("EnsureProfileHost", StringComparison.Ordinal))
+                .ToArray();
+
+            Assert.True(stray.Length == 0,
+                handler + " drives modules directly instead of through the schedule, which "
+                + "reintroduces a second call order that can drift: " + string.Join(", ", stray));
+        }
+
+        Assert.Contains("Schedule()?.RunBar();", src, StringComparison.Ordinal);
+        Assert.Contains("Schedule()?.RunPublish();", src, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The declared dependencies must be ordered before their dependents, or the
+    /// ordering guarantee is decorative.
+    /// </summary>
+    [Fact]
+    public void A05_Declared_dependencies_are_ordered_before_their_dependents()
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var step in IndicatorSchedule.Declared())
+        {
+            foreach (var dependency in step.DependsOn)
+                Assert.True(seen.Contains(dependency),
+                    step.Module + " reads " + dependency + " but is declared before it");
+            seen.Add(step.Module);
         }
     }
 }
@@ -209,6 +307,12 @@ public sealed class ModuleFaultVisibilityTests
         foreach (System.Text.RegularExpressions.Match call in
                  System.Text.RegularExpressions.Regex.Matches(src, @"RecordFault\(""(\w+)"""))
         {
+            // ModuleSchedule is not a module — it is the chain itself failing to
+            // validate, and it is reported from the builder rather than from any
+            // Process method.
+            if (call.Groups[1].Value == "ModuleSchedule")
+                continue;
+
             var owner = methods.LastOrDefault(m => m.Pos < call.Index);
             Assert.Equal(owner.Name, call.Groups[1].Value);
         }
@@ -327,43 +431,42 @@ public sealed class PublishPathCoverageTests
             + "module population must not rely on OnCalculate alone");
     }
 
+    /// <summary>
+    /// Every module the card reads is driven on the publish path.
+    ///
+    /// This is now structural: a step cannot exist without a publish delegate, and the
+    /// publisher runs the whole schedule. What is left worth asserting is that these four
+    /// specific modules — the ones that read NOT AVAILABLE for a whole live session — are
+    /// in the schedule at all.
+    /// </summary>
     [Fact]
-    public void A02_Every_optional_module_is_populated_on_the_publish_path()
+    public void A02_Every_optional_module_is_in_the_schedule()
     {
-        var src = IndicatorSource();
-        var body = PublishBody(src);
+        var modules = IndicatorSchedule.Declared().Select(s => s.Module).ToArray();
 
-        foreach (var module in new[]
-                 { "Plar", "PriceMemory", "Imbalance", "ExecutionReadiness" })
-        {
-            var driven = body.Contains("Process" + module + "();", StringComparison.Ordinal)
-                         || body.Contains("Ensure" + module + "InitializedForPublish();", StringComparison.Ordinal);
-            Assert.True(driven,
-                module + " is published but never populated on the publish path, so it is "
-                + "null on every publish that does not come from OnCalculate");
-        }
+        foreach (var module in new[] { "Plar", "PriceMemory", "Imbalance", "ExecutionReadiness" })
+            Assert.True(modules.Contains(module, StringComparer.Ordinal),
+                module + " is published but has no schedule step, so it is null on every "
+                + "publish that does not come from OnCalculate");
     }
 
     /// <summary>
     /// Generalises it: every host read into the Publish arguments must be assigned by a
-    /// method that the publish path actually calls.
+    /// method the schedule actually drives.
     ///
     /// The first version of this test was vacuous. It accepted any host as "driven" if
     /// the publish body contained the substring "Ensure" anywhere, which it always does,
     /// so it passed for hosts that were never populated at all. A test that catches
     /// nothing is worse than no test: it manufactures the confidence that let three
     /// integration defects reach a live session.
-    ///
-    /// This version resolves each host to the method that assigns it and requires that
-    /// method to be reachable from the publish path, directly or through a guard.
     /// </summary>
     [Fact]
-    public void A03_Every_published_host_is_assigned_by_something_publish_calls()
+    public void A03_Every_published_host_is_assigned_by_something_the_schedule_drives()
     {
-        var src = IndicatorSource();
+        var src = IndicatorSchedule.Source();
         var body = PublishBody(src);
 
-        // method name -> its full source, so assignments can be attributed
+        // method name -> its start, so assignments can be attributed to an owner
         var methods = System.Text.RegularExpressions.Regex
             .Matches(src, @"private void (\w+)\([^)]*\)\s*\{")
             .Select(m => (Name: m.Groups[1].Value, Start: m.Index))
@@ -373,22 +476,23 @@ public sealed class PublishPathCoverageTests
         string OwnerOf(int position) =>
             methods.LastOrDefault(m => m.Start < position).Name ?? "";
 
-        // everything the publish path invokes, including one level of indirection
-        var invoked = System.Text.RegularExpressions.Regex
-            .Matches(body, @"(\w+)\(\);")
-            .Select(m => m.Groups[1].Value)
+        // everything the schedule drives, plus one level of indirection through the
+        // publish guards, which delegate to their module's Process method
+        var driven = IndicatorSchedule.Declared()
+            .SelectMany(s => new[] { s.OnBar, s.OnPublish })
+            .Where(n => n is not null)
+            .Select(n => n!)
             .ToHashSet(StringComparer.Ordinal);
 
-        foreach (var name in invoked.ToArray())
+        foreach (var name in driven.ToArray())
         {
             var guard = System.Text.RegularExpressions.Regex.Match(src,
-                @"private void " + name + @"\(\)\s*\{(.*?)
-    \}",
+                @"private void " + name + @"\(\)\s*\{(.*?)\n    \}",
                 System.Text.RegularExpressions.RegexOptions.Singleline);
             if (!guard.Success) continue;
             foreach (System.Text.RegularExpressions.Match call in
                      System.Text.RegularExpressions.Regex.Matches(guard.Groups[1].Value, @"(\w+)\(\);"))
-                invoked.Add(call.Groups[1].Value);
+                driven.Add(call.Groups[1].Value);
         }
 
         var unread = new List<string>();
@@ -397,6 +501,12 @@ public sealed class PublishPathCoverageTests
         {
             var field = "_" + read.Groups[1].Value;
 
+            // The primary profile is the one host that genuinely cannot be schedule-driven:
+            // it is built from candles by bar index, so ProcessProfileBar owns it and a
+            // publish between bars has nothing new to give it.
+            if (field == "_profileHost")
+                continue;
+
             var assigners = System.Text.RegularExpressions.Regex
                 .Matches(src, System.Text.RegularExpressions.Regex.Escape(field) + @"\s*(\?\?=|=)\s*new ")
                 .Select(a => OwnerOf(a.Index))
@@ -404,13 +514,13 @@ public sealed class PublishPathCoverageTests
                 .ToHashSet(StringComparer.Ordinal);
 
             if (assigners.Count == 0) continue;
-            if (!assigners.Any(invoked.Contains))
+            if (!assigners.Any(driven.Contains))
                 unread.Add(field + " (assigned by " + string.Join("/", assigners) + ")");
         }
 
         Assert.True(unread.Count == 0,
-            "these hosts are read into the Publish arguments but nothing on the publish "
-            + "path assigns them, so they are null on every publish that does not come "
+            "these hosts are read into the Publish arguments but nothing the schedule "
+            + "drives assigns them, so they are null on every publish that does not come "
             + "from OnCalculate: " + string.Join(", ", unread));
     }
 }

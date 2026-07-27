@@ -364,7 +364,11 @@ public sealed class Phase1BCompositePublishWiringTests
         Assert.Contains("_lastAppliedCompositeConfiguration", src, StringComparison.Ordinal);
         Assert.Contains("CompositeOperatorConfiguration.FromPolicy", src, StringComparison.Ordinal);
 
-        var ensureIdx = src.IndexOf("EnsureCompositeSnapshotInitializedForPublish();", StringComparison.Ordinal);
+        // The guard is no longer called inline; it is the Composite step's publish
+        // delegate, and the publisher runs the whole schedule before reading any host.
+        Assert.Contains(
+            "EnsureCompositeSnapshotInitializedForPublish)", src, StringComparison.Ordinal);
+        var ensureIdx = src.IndexOf("Schedule()?.RunPublish();", StringComparison.Ordinal);
         var readIdx = src.IndexOf(
             "var composite = EnableCompositeProfile ? _compositeHost?.Current : null;",
             ensureIdx >= 0 ? ensureIdx : 0,

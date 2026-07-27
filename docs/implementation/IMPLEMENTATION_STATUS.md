@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1256** passed / 0 failed / 0 skipped |
+| Test count | **1271** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -360,6 +360,40 @@ worse than none.
   fix attempted, because the cause is unobserved; the source readers now assert the file
   is non-empty and contains the indicator class, so a recurrence reports the real problem
   instead of failing confusingly downstream.
+
+### Closed: the module chain is declared once
+
+Every integration defect found during live acceptance was a symptom of one thing: the
+chain order lived in **two hand-maintained call lists**, one in `OnCalculate` and one in
+`PublishRuntimeSnapshot`. They had already diverged — Resolution and Trade Facilitation
+sat at different points in each — and the divergence was invisible, because each list
+looked complete on its own.
+
+`ModuleDriveSchedule` (`src/GC.AuctionFlow/Runtime/ModuleDriveSchedule.cs`) replaces both.
+One declaration of 19 steps, each carrying a bar drive, a publish drive and its
+dependencies. Both handlers now call `RunBar()` / `RunPublish()` and keep no order of
+their own.
+
+What this makes structurally impossible rather than merely caught:
+
+| Defect class from the live run | Why it cannot recur |
+|---|---|
+| Module reachable only via its publish guard | A guard is only ever a step's publish delegate; the bar drive is a separate required argument |
+| Module driven on one path but not the other | A step has no way to opt out of a pass — publish defaults to the bar drive |
+| Two paths in different orders | There is one order |
+| Module reads an input driven after it | Construction throws |
+
+The schedule is a plain type with no ATAS dependency, so `ModuleDriveScheduleTests` runs
+it for real — 15 behavioural tests rather than source-text inspection. What still cannot
+be instantiated is the indicator's *declaration* of the chain, so
+`IndicatorProcessChainTests` parses that single list. All five of its assertions were
+verified by mutation, listed in the file header; each mutation fails exactly the tests it
+should and no others.
+
+Coordinator extraction is **partial by intent**. The orchestration that caused real
+defects is out; the ~2400 lines of ATAS-coupled module bodies are not, because moving
+them requires abstracting `GetCandle`, `CurrentBar`, `InstrumentInfo` and ~40 operator
+properties, and there is no test that could protect that move today.
 
 ### Closed: `COMPLETED PERIODS: 17` vs `TPO PERIOD INDEX: 36` — correct, not a defect
 
