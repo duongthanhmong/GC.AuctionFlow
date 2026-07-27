@@ -532,6 +532,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             ProcessClusterRawFeatures();
             ProcessAuctionEfficiencyEvidence();
             ProcessEffortResult();
+            ProcessTradeFacilitation();
             ProcessFarThesis();
             ProcessAacThesis();
             ProcessPlar();
@@ -1762,6 +1763,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
             + "|" + (efficiency?.InputFingerprint?.ToString() ?? "")
             + "|" + (efficiency?.ModuleState.ToString() ?? "");
 
+        // This is a first-publish safety net only. Per-bar updates come from
+        // ProcessTradeFacilitation in the OnCalculate chain; without that this early
+        // return froze the module at whatever it published on the very first snapshot.
         if (_tradeFacilitationHost?.Current is not null
             && string.Equals(_tradeFacilitationHost.Current.PolicyVersion, TradeFacilitationPolicyConfig.PolicyVersion, StringComparison.Ordinal))
             return;
