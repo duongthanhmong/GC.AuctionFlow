@@ -32,7 +32,7 @@ public sealed class Phase2BClusterRawFeatureTests
         return new NewTradeObservation(
             src, seq, at.Ticks, DateTimeKind.Utc, at, 0,
             Instrument, "fp-" + seq, "ext-" + seq,
-            price, vol, price, "Buy", "Trade",
+            price, vol, price, ask ? "Buy" : bid ? "Sell" : "Between", "Trade",
             ask, bid, null, null, null);
     }
 

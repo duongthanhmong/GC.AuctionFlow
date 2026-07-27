@@ -86,14 +86,12 @@ public sealed class ExecutedTradeEvent
         if (tick is null)
             return null;
 
-        var classified = obs.IsAsk || obs.IsBid;
-        AggressorSide side;
-        if (obs.IsAsk && !obs.IsBid)
-            side = AggressorSide.Ask;
-        else if (obs.IsBid && !obs.IsAsk)
-            side = AggressorSide.Bid;
-        else
-            side = AggressorSide.Unknown; // ambiguous or unclassified — never invent
+        // The same resolution the episode path uses. This block read only IsAsk/IsBid,
+        // which Rithmic never populates, so orderflow — and with it cluster, efficiency,
+        // effort/result, facilitation and imbalance — stayed unclassified while Direction
+        // carried the answer. Ambiguity still resolves to Unknown: nothing is invented.
+        var side = TradeAggressorSide.Resolve(obs.Direction, obs.IsAsk, obs.IsBid);
+        var classified = TradeAggressorSide.IsClassified(side);
 
         var eventId = EpisodeIdentity.BuildEventIdentity(obs.LocalMonotonicSequence, obs.CoreDiagnosticFingerprint);
         var source = obs.CallbackSource == TradeCallbackSource.OnNewTradesBatch

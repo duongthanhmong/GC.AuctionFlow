@@ -33,7 +33,7 @@ public sealed class Phase2CAuctionEfficiencyEvidenceTests
         return new NewTradeObservation(
             TradeCallbackSource.OnNewTrade, seq, at.Ticks, DateTimeKind.Utc, at, 0,
             Instrument, "fp-" + seq, "ext-" + seq,
-            price, vol, price, "Buy", "Trade",
+            price, vol, price, ask ? "Buy" : bid ? "Sell" : "Between", "Trade",
             ask, bid, null, null, null);
     }
 

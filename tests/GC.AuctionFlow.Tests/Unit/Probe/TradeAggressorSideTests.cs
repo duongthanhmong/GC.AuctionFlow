@@ -100,6 +100,50 @@ public sealed class TradeAggressorSideTests
         Assert.Equal(AggressorSide.Bid, TradeAggressorSide.Resolve(null, isAsk: false, isBid: true));
     }
 
+    // ========== E: no path may resolve the side by itself ==========
+
+    /// <summary>
+    /// Two paths had the same defect independently — the episode event and the executed
+    /// orderflow event each read IsAsk/IsBid alone, and fixing one left six modules still
+    /// unclassified. A third copy would fail the same way and just as quietly, so the
+    /// resolution has to stay in one place.
+    /// </summary>
+    [Fact]
+    public void E01_No_source_file_resolves_the_side_on_its_own()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var root = Path.Combine(dir!.FullName, "src", "GC.AuctionFlow");
+        var offenders = new List<string>();
+
+        foreach (var file in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories))
+        {
+            // The resolver itself is where this logic belongs.
+            if (file.EndsWith("TradeAggressorSide.cs", StringComparison.Ordinal)) continue;
+
+            foreach (var line in File.ReadAllLines(file))
+            {
+                var code = line.TrimStart();
+                if (code.StartsWith("//", StringComparison.Ordinal)
+                    || code.StartsWith("///", StringComparison.Ordinal))
+                    continue;
+
+                // The exact shape of the bug: deciding classification from the flags alone.
+                if (code.Contains("IsAsk || obs.IsBid", StringComparison.Ordinal)
+                    || code.Contains("IsAsk || trade.IsBid", StringComparison.Ordinal))
+                    offenders.Add(Path.GetFileName(file) + ": " + code);
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            "these resolve the aggressor side without TradeAggressorSide, so a feed that "
+            + "reports side only in Direction goes unclassified: "
+            + string.Join(" | ", offenders));
+    }
+
     // ========== D: the episode event actually uses it ==========
 
     /// <summary>
