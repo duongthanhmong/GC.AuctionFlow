@@ -576,7 +576,10 @@ public sealed class Phase3BSignalMaturityTests
         var set = EnabledHost().Rebuild(
             FarSet(ThesisModuleState.Ready, Far(FarState.ReentryDeveloping)), null, Loc(), nowUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(PublishWith(set), showDiagnostics: true);
-        Assert.Contains("MATURITY: READY", vm.DiagnosticRows);
+        // The row now carries a scope count, so match the prefix rather than the whole
+        // string — the count is the point of the change and will vary.
+        Assert.Contains(vm.DiagnosticRows,
+            r => r.StartsWith("MATURITY: READY", StringComparison.Ordinal));
     }
 
     [Fact]

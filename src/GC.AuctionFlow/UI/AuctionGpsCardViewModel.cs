@@ -116,6 +116,7 @@ public sealed class AuctionGpsCardViewModel
         typeof(AuctionGpsCardViewModel).Assembly.ManifestModule.ModuleVersionId
             .ToString("N").Substring(0, 8).ToUpperInvariant();
 
+
     public IReadOnlyList<string> AllLines(bool includeDiagnostics, bool compact = false)
     {
         var lines = new List<string>
@@ -151,6 +152,18 @@ public sealed class AuctionGpsCardViewModel
 
 public static class AuctionGpsCardMapper
 {
+    /// <summary>
+    /// Appends a scope count to a status row.
+    ///
+    /// "PARTIAL" alone cannot distinguish a module that is processing scopes from one
+    /// that is running over nothing. That ambiguity is what left
+    /// TRADE FACILITATION: AWAITINGEFFICIENCY unexplainable next to
+    /// AUCTION EFFICIENCY: PARTIAL — both were true and neither said whether any scope
+    /// existed.
+    /// </summary>
+    private static string WithCount(string row, int count) =>
+        row + " (" + count.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")";
+
     public static AuctionGpsCardViewModel FromSnapshot(GcaeRuntimeSnapshot snapshot, bool showDiagnostics)
     {
         if (snapshot is null) throw new ArgumentNullException(nameof(snapshot));
@@ -261,10 +274,12 @@ public static class AuctionGpsCardMapper
                     : "LOCATION: " + snapshot.DirectionalContext.PriceLocation.CurrentPrimaryTpo,
                 snapshot.AuctionEpisodes is null
                     ? "EPISODE: NOT AVAILABLE"
-                    : "EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant(),
+                    : WithCount("EPISODE: " + snapshot.AuctionEpisodes.ModuleState.ToString().ToUpperInvariant(),
+                        snapshot.AuctionEpisodes.ActiveEpisodes.Count),
                 snapshot.AcceptanceReentryEvidence is null
                     ? "ACCEPTANCE/REENTRY EVIDENCE: NOT AVAILABLE"
-                    : "ACCEPTANCE/REENTRY EVIDENCE: " + snapshot.AcceptanceReentryEvidence.ModuleState.ToString().ToUpperInvariant(),
+                    : WithCount("ACCEPTANCE/REENTRY EVIDENCE: " + snapshot.AcceptanceReentryEvidence.ModuleState.ToString().ToUpperInvariant(),
+                        snapshot.AcceptanceReentryEvidence.ActiveEvidence.Count),
                 snapshot.ExecutedOrderflow is null
                     ? "ORDERFLOW: NOT AVAILABLE"
                     : "ORDERFLOW: " + snapshot.ExecutedOrderflow.ModuleState.ToString().ToUpperInvariant(),
@@ -273,7 +288,9 @@ public static class AuctionGpsCardMapper
                     : "CLUSTER RAW: " + snapshot.ClusterRaw.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.AuctionEfficiency is null
                     ? "AUCTION EFFICIENCY: NOT AVAILABLE"
-                    : "AUCTION EFFICIENCY: " + snapshot.AuctionEfficiency.ModuleState.ToString().ToUpperInvariant(),
+                    : WithCount("AUCTION EFFICIENCY: " + snapshot.AuctionEfficiency.ModuleState.ToString().ToUpperInvariant(),
+                        (snapshot.AuctionEfficiency.CurrentAuctionEvidence is null ? 0 : 1)
+                        + snapshot.AuctionEfficiency.ActiveEpisodeEvidence.Count),
                 snapshot.AuctionResolution is null
                     ? "RESOLUTION: NOT AVAILABLE"
                     : "RESOLUTION: " + snapshot.AuctionResolution.ModuleState.ToString().ToUpperInvariant(),
@@ -282,16 +299,19 @@ public static class AuctionGpsCardMapper
                     : "EFFORT RESULT: " + snapshot.EffortResult.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.FarThesis is null
                     ? "FAR: NOT AVAILABLE"
-                    : "FAR: " + snapshot.FarThesis.ModuleState.ToString().ToUpperInvariant(),
+                    : WithCount("FAR: " + snapshot.FarThesis.ModuleState.ToString().ToUpperInvariant(),
+                        snapshot.FarThesis.ActiveTheses.Count),
                 snapshot.AacThesis is null
                     ? "AAC: NOT AVAILABLE"
-                    : "AAC: " + snapshot.AacThesis.ModuleState.ToString().ToUpperInvariant(),
+                    : WithCount("AAC: " + snapshot.AacThesis.ModuleState.ToString().ToUpperInvariant(),
+                        snapshot.AacThesis.ActiveTheses.Count),
                 snapshot.TradeFacilitation is null
                     ? "TRADE FACILITATION: NOT AVAILABLE"
                     : "TRADE FACILITATION: " + snapshot.TradeFacilitation.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.SignalMaturity is null
                     ? "MATURITY: NOT AVAILABLE"
-                    : "MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant(),
+                    : WithCount("MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant(),
+                        snapshot.SignalMaturity.ActiveCandidates.Count),
                 snapshot.ThesisContract is null
                     ? "THESIS CONTRACT: NOT AVAILABLE"
                     : "THESIS CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant(),

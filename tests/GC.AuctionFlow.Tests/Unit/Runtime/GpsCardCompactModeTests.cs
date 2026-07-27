@@ -200,3 +200,65 @@ public sealed class GpsCardBuildIdentityTests
                 l => l.StartsWith("BUILD: ", StringComparison.Ordinal));
     }
 }
+
+/// <summary>
+/// Status rows carry a scope count.
+///
+/// PARTIAL alone cannot separate a module processing scopes from one running over
+/// nothing. That ambiguity is why TRADE FACILITATION: AWAITINGEFFICIENCY sitting next to
+/// AUCTION EFFICIENCY: PARTIAL could not be explained from a screenshot — both were
+/// true, and neither said whether a single scope existed.
+/// </summary>
+public sealed class GpsCardScopeCountTests
+{
+    private static GcaeRuntimeSnapshot Snapshot()
+    {
+        var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
+        return engine.Publish(
+            null, "GCQ6",
+            GC.AuctionFlow.Core.DataSourceMode.Live,
+            GC.AuctionFlow.Core.DataSourceModeProvenance.OperatorDeclared,
+            GC.AuctionFlow.Probe.DeclaredFeedProvider.Rithmic,
+            GC.AuctionFlow.Probe.FeedProviderProvenance.OperatorDeclared,
+            true, null, false, true, false, false, false, false,
+            timestampUtc: new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc));
+    }
+
+    /// <summary>Absent modules must stay NOT AVAILABLE, not gain a misleading "(0)".</summary>
+    [Fact]
+    public void A01_Absent_modules_do_not_gain_a_count()
+    {
+        var vm = AuctionGpsCardMapper.FromSnapshot(Snapshot(), showDiagnostics: true);
+        foreach (var row in vm.DiagnosticRows.Where(r => r.Contains("NOT AVAILABLE", StringComparison.Ordinal)))
+            Assert.DoesNotContain("(", row, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A count of zero is the informative case — it is what distinguishes "running over
+    /// nothing" from "not running" — so it must be rendered, not suppressed.
+    /// </summary>
+    [Fact]
+    public void A02_Zero_is_rendered_rather_than_hidden()
+    {
+        var host = new GC.AuctionFlow.Maturity.SignalMaturityHost(
+            new GC.AuctionFlow.Maturity.SignalMaturityPolicyConfig(enabled: true));
+        var empty = host.Rebuild(null, null, null,
+            nowUtc: new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc));
+
+        var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
+        var snap = engine.Publish(
+            null, "GCQ6",
+            GC.AuctionFlow.Core.DataSourceMode.Live,
+            GC.AuctionFlow.Core.DataSourceModeProvenance.OperatorDeclared,
+            GC.AuctionFlow.Probe.DeclaredFeedProvider.Rithmic,
+            GC.AuctionFlow.Probe.FeedProviderProvenance.OperatorDeclared,
+            true, null, false, true, false, false, false, false,
+            timestampUtc: new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc),
+            signalMaturity: empty);
+
+        var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
+        Assert.Contains(vm.DiagnosticRows,
+            r => r.StartsWith("MATURITY:", StringComparison.Ordinal)
+                 && r.EndsWith("(0)", StringComparison.Ordinal));
+    }
+}
