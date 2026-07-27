@@ -38,7 +38,13 @@ Không dùng một tài liệu để vượt quyền tài liệu khác.
 - Không mở khóa bất kỳ trạng thái `[C]` nào.
 - Không tự đặt threshold.
 - Không đổi tên enum hoặc policy đã build chỉ để khớp văn bản.
-- Không tạo GEX module, field, enum hoặc GPS row.
+- **GEX/OptionFlow — ĐÃ AUTHORIZED (operator 2026-07-28).** Được tạo module/field/
+  enum OptionFlow trong DLL, đọc dữ liệu từ sidecar `artifacts/optionflow/<PRODUCT>/`.
+  Bất biến bắt buộc giữ (v1.3 §50 / KDK Ch51): GEX là **context tùy chọn**, không bao
+  giờ là điều kiện cần; khi vắng GEX (file thiếu/cũ/tắt) mọi logic AMT+OrderFlow vẫn
+  chạy đủ và cho ra kết luận y hệt. GPS row cho GEX chỉ tạo khi phase OptionFlow yêu
+  cầu rõ. **Vẫn cấm** họ chiến lược KDK Ch 76/77/79 (GEX-conditioned strategies) —
+  cần đề xuất mở khóa riêng.
 - Không dùng Implementation Bible đã archive làm nguồn có thẩm quyền.
 - Không sửa phase LOCKED nếu milestone không bắt buộc.
 - Không gọi CODE/TEST PASS là FINAL PASS khi live acceptance còn pending.
@@ -58,6 +64,29 @@ PLAN
 → cập nhật IMPLEMENTATION_STATUS
 → chỉ commit/tag sau khi đúng gate.
 ```
+
+## Phase 5 — OptionFlow / GEX (AUTHORIZED, operator 2026-07-28)
+
+Sidecar `research/optionflow/` (Python, ResearchTools — KHÔNG cài ATAS) kéo option
+chain thẳng từ Rithmic, tính GEX + greeks bậc cao, ghi `artifacts/optionflow/
+<PRODUCT>/levels.json` (schema `gcae-optionflow-v1`, xem `research/optionflow/
+SCHEMA.md`). Đã live: OI verified 202/202, ATM/walls/flip/regime/vanna/charm/
+term-structure/EM/skew/gamma-curve.
+
+Roadmap DLL (đọc-only, diagnostics OFF mặc định):
+- **5-0** Governance ✅ · **5A** freeze schema ✅ (+ ES/NQ live đang xác nhận)
+- **5B** `OptionFlowReader` + `GexContext` nullable + **test regression bất biến**
+- **5C** render lines/panel · **5D** AMT confluence (display-only) · **5E** live accept → LOCK
+
+Bất biến (bắt buộc, §50): `GexContext = null` khi file thiếu/cũ/tắt ⇒ mọi phase 1–4
+chạy **byte-identical** như chưa có GEX; GEX không bao giờ là điều kiện cần. DLL
+**chỉ đọc, không recompute** (giữ one-DLL). Cấm GPS-row/alert/thesis-gating từ GEX
+ở Phase 5; regime tham gia thesis = Phase 6 (đề xuất mở khóa riêng, đụng Ch 76/77/79).
+
+**Order flow trực tiếp từ Rithmic (MBO/DOM/time&sales)** — khả thi trên cùng kết nối
+(async_rithmic có `ORDER_BOOK`/`depth_by_order`), giàu hơn ATAS (giữ order_id/priority)
+nhưng là firehose nặng hơn và cần entitlement riêng. **Chưa authorize** — Phase 6+
+riêng, phải probe entitlement trước.
 
 ## Build & Deploy
 

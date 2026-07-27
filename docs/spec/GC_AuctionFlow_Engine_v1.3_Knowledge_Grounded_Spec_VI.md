@@ -41,11 +41,10 @@ KDK có đủ chiều sâu đó. v1.3 chuyển tri thức KDK thành **hợp đ�
 
 | Nội dung KDK | Trạng thái trong v1.3 |
 |---|---|
-| **PHẦN V — Bản đồ GEX theo ngày** (Ch 44–50) | **OUT OF SCOPE** — theo chỉ định của operator. Không tạo module, không tạo enum, không tạo trường snapshot, không tạo GPS row. |
-| GEX Flip / Call Resistance / Put Support / HVL | **OUT OF SCOPE** |
-| DEX, Options Flow, Gamma | **OUT OF SCOPE** |
-| Ch 76 (ghim giá quanh GEX), Ch 77 (khuếch đại GEX âm), Ch 79 (AMT vs GEX xung đột) | **OUT OF SCOPE** — không triển khai họ chiến lược này |
-| Mọi field `GexContext` trong thesis contract | **RESERVED = null**, không tính vào bất kỳ kết luận nào |
+| **PHẦN V — Bản đồ GEX theo ngày** (Ch 44–50) **như một họ chiến lược** | **OUT OF SCOPE** (Ch 44–50 vẫn không thành strategy family). |
+| GEX Flip / Call Resistance / Put Support / HVL / DEX / Gamma **như context đọc** | **AUTHORIZED** (`D-V13-002a`, operator 2026-07-28) — qua Phase 5 OptionFlow, sidecar-sourced, diagnostics-gated. |
+| Ch 76 (ghim giá quanh GEX), Ch 77 (khuếch đại GEX âm), Ch 79 (AMT vs GEX xung đột) | **OUT OF SCOPE** — không triển khai họ chiến lược này (cần mở khóa riêng). |
+| `GexContext` trong thesis contract | **Tùy chọn, đọc-only**; `null` khi vắng; **không bao giờ là điều kiện cần** cho bất kỳ kết luận nào (bất biến §50 giữ nguyên). |
 
 > Khi một chương KDK nói "vai trò của GEX", v1.3 diễn giải là: **trường bối cảnh tùy chọn, hiện đang không khả dụng**. Mọi logic phải hoạt động đầy đủ khi GEX vắng mặt. KDK Ch 51 đã quy định rõ: khi thiếu GEX, AMT + Order Flow vẫn đủ để ra kết luận; GEX không bao giờ là điều kiện cần.
 
@@ -1017,9 +1016,9 @@ Hoạt động xây ngoài biên + POC/vùng giá trị dịch + duy trì ngoài
 
 | Nội dung | Lý do |
 |---|---|
-| **Toàn bộ PHẦN V KDK (GEX, Ch 44–50)** | Operator chỉ định loại trừ ở giai đoạn này |
-| Ch 76, 77, 79 (họ chiến lược dựa GEX) | Phụ thuộc GEX |
-| DEX / Options Flow / Gamma | Phụ thuộc GEX |
+| PHẦN V KDK (GEX Ch 44–50) **như họ chiến lược "GEX day map"** | Vẫn loại trừ; chỉ context đọc được authorized (`D-V13-002a`) |
+| Ch 76, 77, 79 (họ chiến lược dựa GEX) | Vẫn loại trừ — cần mở khóa riêng |
+| ~~DEX / Options Flow / Gamma~~ | **Authorized as read-context** (`D-V13-002a`, Phase 5 OptionFlow) |
 | Bất kỳ ngưỡng số cụ thể nào | Vi phạm `G-CAL-001` |
 | Tự động đặt lệnh | v1.2 §2.8 — baseline không tự động thực thi |
 | Score / xác suất | v1.2 §2.5 — score không được giả danh xác suất |
@@ -1033,7 +1032,8 @@ Hoạt động xây ngoài biên + POC/vùng giá trị dịch + duy trì ngoài
 | ID | Quyết định |
 |---|---|
 | `D-V13-001` | v1.3 là **companion spec**, không thay thế v1.2. Ưu tiên theo §0.2. |
-| `D-V13-002` | GEX **OUT OF SCOPE**. Mọi trường GEX = `null`, mọi logic phải hoạt động đầy đủ khi vắng GEX. |
+| `D-V13-002` | ~~GEX OUT OF SCOPE~~ — **SUPERSEDED bởi `D-V13-002a`**. |
+| `D-V13-002a` | **GEX/OptionFlow AUTHORIZED (operator 2026-07-28).** `GexContext` là **context tùy chọn, chỉ đọc, diagnostics-gated**, nguồn từ sidecar `artifacts/optionflow/<PRODUCT>/levels.json` (schema `gcae-optionflow-v1`). Bằng chứng: sidecar đã live, OI decode verified 202/202. **Bất biến §0.3/§50 giữ nguyên**: GEX = `null` khi file thiếu/cũ/tắt, và không bao giờ là điều kiện cần — AMT+OrderFlow một mình vẫn ra mọi kết luận. **Vẫn OUT OF SCOPE**: KDK Ch 44–50 (GEX day map) như một họ chiến lược, và Ch 76/77/79. Triển khai qua Phase 5 (OptionFlow), diagnostics OFF mặc định. |
 | `D-V13-003` | Ma trận 4 góc phần tư Effort/Result (§4.3) là **chuẩn tắc mới**, bổ sung cho danh sách 8 state phẳng của v1.2 §23.3. |
 | `D-V13-004` | Vô hiệu có **năm** chiều, không phải bốn. Chiều "theo bằng chứng" là bổ sung v1.3. |
 | `D-V13-005` | `ExpectedBehaviorContract` là **bắt buộc** cho mọi ThesisCandidate. |
