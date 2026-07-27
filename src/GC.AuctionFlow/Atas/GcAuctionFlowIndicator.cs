@@ -2742,7 +2742,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
             DeclaredFeedProvider,
             FeedProviderProvenance,
             _sessionId,
-            mapper);
+            mapper,
+            // This call site runs first and is the one that actually creates the pending
+            // start, so the manifest's stream list comes from here. Omitting the flag left
+            // it defaulting to false, and the session declared ["Trade"] while Dom frames
+            // were being written into it.
+            userProfileOverride: null,
+            enableDepthRecording: EnableDepthAndQuoteRecording);
         host.TryCompleteStartupFromLifecycle();
     }
 

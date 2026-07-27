@@ -66,6 +66,38 @@ public sealed class RecorderSummaryOnCardTests
             snapshot.RecorderDiagnosticSummary, RecorderLine(snapshot), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Every EnsureStarted call must declare the depth stream.
+    ///
+    /// There are two call sites and only one was patched at first. The unpatched one runs
+    /// earlier and is the one that actually creates the pending start, so the manifest
+    /// declared ["Trade"] while Dom frames were being written into the same session — a
+    /// recording that misdescribes itself, in the one file whose job is to describe it.
+    ///
+    /// A third call site would reintroduce that silently, so this counts them.
+    /// </summary>
+    [Fact]
+    public void A04_Every_recorder_start_declares_the_depth_stream()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var text = File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+
+        var starts = System.Text.RegularExpressions.Regex
+            .Matches(text, @"\.EnsureStarted\(").Count;
+        var declared = System.Text.RegularExpressions.Regex
+            .Matches(text, @"enableDepthRecording: EnableDepthAndQuoteRecording").Count;
+
+        Assert.True(starts > 0, "no EnsureStarted call found — has it been renamed?");
+        Assert.True(declared == starts,
+            starts + " EnsureStarted call(s) but only " + declared + " declare the depth "
+            + "stream; the manifest is built from whichever one runs first");
+    }
+
     [Fact]
     public void A03_A_recorder_that_is_off_still_reads_clearly() =>
         Assert.DoesNotContain(
