@@ -215,6 +215,27 @@ public sealed class SpoolAnalysisTests
                                + "   span " + (m.Hi - m.Lo) + "   trades " + m.N);
         }
 
+        // What is actually inside an MBO frame?
+        var mbos = ordered.Where(e => e.Kind == "Mbo").ToArray();
+        if (mbos.Length > 0)
+        {
+            _out.WriteLine("");
+            _out.WriteLine("MBO CONTENT (" + mbos.Length + " frames):");
+
+            foreach (var g in mbos.GroupBy(m => ReadNested(m.Json, "payload", "rawTypeName") ?? "?")
+                         .OrderByDescending(g => g.Count()))
+                _out.WriteLine("   type " + g.Key.PadRight(14) + g.Count());
+
+            foreach (var g in mbos.GroupBy(m => ReadNested(m.Json, "payload", "derivedSide") ?? "?")
+                         .OrderByDescending(g => g.Count()))
+                _out.WriteLine("   side " + g.Key.PadRight(14) + g.Count());
+
+            var ids = mbos.Select(m => ReadNestedLong(m.Json, "payload", "exchangeOrderId")).ToArray();
+            _out.WriteLine("   distinct orderIds " + ids.Distinct().Count() + " of " + ids.Length
+                           + "   zero-id " + ids.Count(i => i == 0));
+            _out.WriteLine("   sample: " + mbos[0].Json[..Math.Min(mbos[0].Json.Length, 700)]);
+        }
+
         _out.WriteLine("");
         foreach (var kind in new[] { "NewTrade", "BestBidAsk" })
         {
@@ -300,6 +321,17 @@ public sealed class SpoolAnalysisTests
                    && v.TryGetDecimal(out var dec) ? dec : 0m;
         }
         catch (JsonException) { return 0m; }
+    }
+
+    private static long ReadNestedLong(string json, string parent, string name)
+    {
+        try
+        {
+            using var d = JsonDocument.Parse(json);
+            return d.RootElement.TryGetProperty(parent, out var p)
+                   && p.TryGetProperty(name, out var v) && v.TryGetInt64(out var l) ? l : 0;
+        }
+        catch (JsonException) { return 0; }
     }
 
     private static long ReadLong(string json, string name)

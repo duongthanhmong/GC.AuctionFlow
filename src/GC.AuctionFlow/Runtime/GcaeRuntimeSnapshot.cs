@@ -83,8 +83,10 @@ public sealed class GcaeRuntimeSnapshot
         CfdMappingSnapshot? cfdMapping = null,
         RiskSnapshot? risk = null,
         IReadOnlyList<string>? moduleFaults = null,
-        HistoricalScannerSnapshot? historicalScanner = null)
+        HistoricalScannerSnapshot? historicalScanner = null,
+        string? marketClockSummary = null)
     {
+        MarketClockSummary = marketClockSummary ?? "";
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
         Capability = capability ?? throw new ArgumentNullException(nameof(capability));
@@ -192,6 +194,15 @@ public sealed class GcaeRuntimeSnapshot
     /// </summary>
     public IReadOnlyList<string> ModuleFaults { get; }
     public string RecorderDiagnosticSummary { get; }
+
+    /// <summary>
+    /// What the platform's market clock measured against UTC.
+    ///
+    /// Carried to the card because the answer is only worth having if the operator sees it:
+    /// every recorded frame is stamped `SourceTimeKindUnspecified`, and until this was
+    /// measured the project read those timestamps as UTC on the strength of a note.
+    /// </summary>
+    public string MarketClockSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
     public string Version => SnapshotVersion;

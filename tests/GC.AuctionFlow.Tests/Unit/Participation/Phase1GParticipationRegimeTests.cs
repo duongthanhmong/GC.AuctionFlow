@@ -424,7 +424,7 @@ public sealed class Phase1GParticipationRegimeTests
     {
         var snap = MakeSnapshot(17, 30);
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, true);
-        Assert.Equal(23, vm.DiagnosticRows.Count);
+        Assert.Equal(24, vm.DiagnosticRows.Count);
     }
 
     [Fact]
@@ -432,7 +432,7 @@ public sealed class Phase1GParticipationRegimeTests
     {
         var snap = MakeSnapshot(17, 30);
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, true);
-        Assert.Equal(vm.AllLines(false).Count + 23, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 24, vm.AllLines(true).Count);
     }
 
     // ========== H: Schema version ==========

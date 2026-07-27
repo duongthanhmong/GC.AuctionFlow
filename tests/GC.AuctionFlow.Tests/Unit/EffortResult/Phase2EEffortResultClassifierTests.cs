@@ -455,7 +455,7 @@ public sealed class Phase2EEffortResultClassifierTests
     }
 
     [Fact]
-    public void J07_GPS_has_10_DiagnosticRows_by_default()
+    public void J07_GPS_diagnostic_row_count_is_current()
     {
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
@@ -465,7 +465,7 @@ public sealed class Phase2EEffortResultClassifierTests
             true, Utc(), false, true, false, false, false, false,
             timestampUtc: Utc());
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(23, vm.DiagnosticRows.Count);
+        Assert.Equal(24, vm.DiagnosticRows.Count);
     }
 
     // ---------- K: Limitations & NOT CALIBRATED policy ----------

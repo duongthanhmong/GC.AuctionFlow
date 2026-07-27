@@ -276,6 +276,12 @@ public static class AuctionGpsCardMapper
                 snapshot.Profiles is null
                     ? "HISTORY INIT: NOT AVAILABLE"
                     : "HISTORY INIT: " + snapshot.Profiles.HistoricalInitializationState.ToString().ToUpperInvariant(),
+                // Read from the snapshot, never composed here. The recurring defect in this
+                // card is a value the engine computed correctly and the display replaced
+                // with something of its own.
+                "MARKET CLOCK: " + (string.IsNullOrWhiteSpace(snapshot.MarketClockSummary)
+                    ? "NOT SAMPLED"
+                    : snapshot.MarketClockSummary),
                 snapshot.AuctionEpisodes is null
                     ? "EPISODE: NOT AVAILABLE"
                     // Active and closed are shown separately because the scanner only

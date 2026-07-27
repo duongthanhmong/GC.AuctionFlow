@@ -541,10 +541,10 @@ public sealed class Phase3CThesisContractTests
     // ========== L: GPS card ==========
 
     [Fact]
-    public void L01_GpsCard_has_23_diagnostic_rows()
+    public void L01_GpsCard_diagnostic_row_count_is_current()
     {
         var vm = AuctionGpsCardMapper.FromSnapshot(PublishWith(null), showDiagnostics: true);
-        Assert.Equal(23, vm.DiagnosticRows.Count);
+        Assert.Equal(24, vm.DiagnosticRows.Count);
         Assert.Contains("THESIS CONTRACT: NOT AVAILABLE", vm.DiagnosticRows);
     }
 

@@ -185,6 +185,15 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private EntryPolicyHost? _entryPolicyHost;
     private CfdMappingHost? _cfdMappingHost;
     private RiskHost? _riskHost;
+    /// <summary>
+    /// Measures the platform's clock against UTC.
+    ///
+    /// Every recorded frame is stamped `SourceTimeKindUnspecified` and read as UTC on the
+    /// strength of `ATAS_CANDLE_TIME_UTC_V1`, a note written from inspection. `MarketTime`
+    /// makes it measurable, so it is measured rather than assumed.
+    /// </summary>
+    private readonly MarketClockProbe _marketClock = new();
+
     private HistoricalScannerHost? _historicalScannerHost;
     private HistoricalBarReplayHost? _barReplayHost;
     private VolatilityRegimeHost? _volatilityRegimeHost;
@@ -2698,6 +2707,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var plarSetForPublish = EnablePlar ? _plarHost?.Current : null;
             var priceMemory = EnablePriceMemory ? _priceMemoryHost?.Current : null;
             var historicalScanner = EnableHistoricalScanner ? _historicalScannerHost?.Current : null;
+
+            // Both readings taken here, back to back, because the measurement is the
+            // difference between them and anything in between is sampling error.
+            _marketClock.Observe(MarketTime, DateTime.UtcNow);
             var imbalance = EnableImbalance ? _imbalanceHost?.Current : null;
             var dayStructure = EnableExecutionReadiness ? _dayStructureHost?.Current : null;
             var entryPolicy = EnableExecutionReadiness ? _entryPolicyHost?.Current : null;
@@ -2775,6 +2788,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 risk: risk,
                 moduleFaults: _moduleFaults.Values.OrderBy(v => v).ToArray(),
                 historicalScanner: historicalScanner,
+                marketClockSummary: _marketClock.Describe(),
                 tradesObserved: Interlocked.Read(ref _tradesObserved),
                 tradesWithAggressorSide: Interlocked.Read(ref _tradesWithAggressorSide),
                 depthCallbacksObserved: Interlocked.Read(ref _depthCallbacksObserved),
