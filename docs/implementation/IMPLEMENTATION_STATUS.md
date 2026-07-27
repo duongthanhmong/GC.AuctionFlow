@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1370** passed / 0 failed / 0 skipped |
+| Test count | **1375** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -393,6 +393,41 @@ no code changed, and 1356 tests pass on both.
 | Deployed SHA-256 | `BB9F2214079A44821E661E63AA87C9E14F35C03F7FAE3F145441B91A8997C4AE` |
 | Build identity | `B0543F6E` |
 | Source == deployed | yes |
+
+### The recording was read back for the first time
+
+`SegmentReader` opens a real `.seg` and decodes it. The frame codec already had tests, but
+every one of them decoded a buffer it had just encoded in memory — nothing had opened a
+session file, so what the recorder wrote to disk was an assumption held up by SHA-256. A
+hash proves a file is undamaged; it says nothing about whether the contents mean anything,
+and a recorder writing garbage steadily would have passed every check the project had.
+
+First read of the live spool, three most recent sessions:
+
+| Session | Segments | Frames |
+|---|---|---|
+| `1b544b32` | 13 | 192,175 |
+| `bb623d6c` | 4 | 131,346 |
+| `896e846d` | 2 | 8,905 |
+
+Every sealed segment ended **exactly on a frame boundary** — zero trailing bytes, zero CRC
+failures. Payloads are genuine events carrying session id, segment ordinal, a monotonic
+`recorderGlobalLocalSequence`, `writerDequeuedUtc`, stream kind and callback source. The
+recorder is doing what it claimed.
+
+**Two findings that only reading could produce:**
+
+1. **`Depth` frames: zero. `BestBidAsk`: 67,867.** `MarketDepthChanged` never yielded a
+   recordable frame on this feed — every depth-side event came from `OnBestBidAskChanged`.
+   So `DOM: PARTIAL` means *top-of-book quotes only*, not book depth. The distinction
+   matters: pulling, stacking and queue position need the book, and none of that is being
+   captured because none of it is arriving.
+2. **`CallbackInvocationResult`: 62,142 — about a third of all frames.** That is recorder
+   bookkeeping rather than market data, and it is a third of the disk cost.
+
+Session `bb623d6c` also confirms the manifest defect independently: it declares
+`enabledStreams: ["Trade"]` and contains 9,228 `BestBidAsk` frames — exactly the two-call-
+site bug, visible in the data rather than inferred.
 
 ### Phase 5A — LIVE ACCEPTANCE PASS (2026-07-27, 19:20 VN / 08:20 ET rollover)
 
