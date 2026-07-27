@@ -190,13 +190,6 @@ public static class AuctionGpsCardMapper
             ? "OBSERVED"
             : "NOT OBSERVED";
 
-        var bidAsk = cap.BidAskClassificationState switch
-        {
-            RuntimeCapabilityState.Available or RuntimeCapabilityState.Ready => "AVAILABLE",
-            RuntimeCapabilityState.Partial => "PARTIAL",
-            _ => "UNKNOWN"
-        };
-
         var roll = c.RollState switch
         {
             RollState.NormalContract => "NORMAL",
@@ -366,7 +359,7 @@ public static class AuctionGpsCardMapper
             modeLine: "MODE: " + cap.DataSourceMode.ToString().ToUpperInvariant(),
             providerLine: "PROVIDER: " + cap.FeedProvider.ToString().ToUpperInvariant(),
             tradesLine: "TRADES: " + trades,
-            bidAskLine: "BID/ASK: " + bidAsk,
+            bidAskLine: BidAskLine(cap),
             profileLine: profileLine,
             profileDetailLines: details,
             rollLine: "ROLL: " + roll,
@@ -1582,6 +1575,35 @@ public static class AuctionGpsCardMapper
 
     private static string Fmt(decimal? v) =>
         v is null ? "—" : v.Value.ToString("0.0", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// The bid/ask and DOM row.
+    ///
+    /// Public because the Unavailable-versus-Unknown distinction is worth asserting on its
+    /// own, and building the whole card to read one line would test the rest of it by
+    /// accident. The card calls this, so there is one implementation rather than a test
+    /// that can pass while the card shows something else.
+    ///
+    /// Unavailable must not collapse into Unknown: "we looked and the feed does not carry
+    /// it" and "we have not looked" call for opposite responses. DOM shares the row rather
+    /// than taking its own, because the card's row count is asserted in seven test files
+    /// and both answer the same question — what does this feed actually carry.
+    /// </summary>
+    public static string BidAskLine(RuntimeCapabilitySnapshot capability)
+    {
+        ArgumentNullException.ThrowIfNull(capability);
+
+        var bidAsk = capability.BidAskClassificationState switch
+        {
+            RuntimeCapabilityState.Available or RuntimeCapabilityState.Ready => "AVAILABLE",
+            RuntimeCapabilityState.Partial => "PARTIAL",
+            RuntimeCapabilityState.Unavailable => "UNAVAILABLE (FEED CARRIES NO SIDE)",
+            _ => "UNKNOWN"
+        };
+
+        return "BID/ASK: " + bidAsk + " | DOM: "
+               + capability.DomState.ToString().ToUpperInvariant();
+    }
 
     /// <summary>
     /// Where the calibration protocol is stuck.
