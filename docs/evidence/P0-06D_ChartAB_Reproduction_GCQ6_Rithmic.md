@@ -208,3 +208,28 @@ attributed to MBO subscription, and this one was proved to be our own disk I/O. 
 not overturn the controlled A/B run — the recorder's state during it is not recorded here —
 but it does mean the lock may rest on a misattribution, and that should be re-tested rather
 than assumed before MBO is judged.
+
+---
+
+## MBO RE-TEST — 2026-07-27, on the fixed build
+
+With `5B5975B9` (recorder startup off the ATAS thread), the operator enabled
+**`Enable MBO Lifecycle Probe`**, left the recorder enabled, and restarted ATAS — the exact
+configuration the original lock was written to forbid.
+
+**Result: no abnormal bar.** `FAULTS: none`, 13 pre-start trades rejected, recorder writing
+depth normally.
+
+This is the test the original A/B run could not be: until today the fsync stall was present
+in every session, so any MBO test was measuring our own defect. With that removed, MBO
+subscription reproduces nothing.
+
+**Conclusion: P0-06D attributed the artifact to MBO in error.** The cause was
+`Flush(flushToDisk: true)` inside `OnCalculate`. The A/B observation was real; the
+attribution was not, and it stood for as long as it did because the confounder was
+invisible from inside the engine.
+
+**Lock status.** `MboIsolationRequirement.IsolatedEnvironmentOnly` no longer rests on
+evidence. `LiveMboCapabilityClaim`, `MboLifecycleCompletenessClaim` and
+`StableMboBookReconstruction` remain **false** — those are about MBO *completeness*, which
+nothing here tested, and they are unaffected by this result.
