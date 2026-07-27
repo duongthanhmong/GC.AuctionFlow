@@ -394,6 +394,38 @@ no code changed, and 1356 tests pass on both.
 | Build identity | `B0543F6E` |
 | Source == deployed | yes |
 
+### Aggressor fix: thirteen modules moved, three cannot
+
+Live on `34AFDABF`, after resolving the side from `Direction` in both the episode and the
+orderflow paths:
+
+| Moved to READY | Still PARTIAL |
+|---|---|
+| Episode, Evidence, Resolution, FAR, AAC, Maturity, Thesis Contract, Memory, Orderflow, Cluster Raw, Imbalance | Auction Efficiency, Effort Result, Trade Facilitation |
+
+The three that did not move are **not** blocked by aggressor data. They are pinned by
+construction:
+
+- `AuctionEfficiencyHost` builds an auction-level snapshot with
+  `ResolveStatus(..., hasEpisode: false)`, and that path returns `Partial`
+  **unconditionally** (line 528, *"auction-only is Partial until Episode when required"*).
+- The module state then folds it in with
+  `partial > 0 || auctionSnap.MeasurementStatus == Partial`.
+
+So `AUCTION EFFICIENCY` can never reach `Ready`, in any market condition, with any data.
+`EffortResult` and `TradeFacilitation` each gate on `efficiency.ModuleState == Partial`, so
+neither can reach `Ready` either.
+
+**Why that is a defect and not a conservative default:** a module state that cannot vary
+carries no information. `PARTIAL` there does not mean "something is degraded" — it means
+nothing at all, and it looks identical to the genuine degradation it is supposed to report.
+Three of the card's rows are therefore unreadable as signals.
+
+The per-snapshot reasoning is sound — an auction-level measurement without an episode *is*
+incomplete. The defect is rolling a permanently-Partial input into a module state with
+`||`. Fixing it is Phase 2C semantics and needs a deliberate decision about what the module
+state is meant to answer, so it is recorded rather than changed.
+
 ### CORRECTION: the feed does carry aggressor side — the engine reads the wrong field
 
 Recorded earlier in this document, and **wrong**: *"trades arrive in volume and none carry
