@@ -458,7 +458,23 @@ public sealed class Phase1DDirectionalContextTests
         Assert.DoesNotContain("SHORT", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BUY", text, StringComparison.Ordinal);
         Assert.DoesNotContain("SELL", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("THESIS", text.Replace("THESIS: NOT AVAILABLE", "", StringComparison.Ordinal), StringComparison.OrdinalIgnoreCase);
+        // The real invariant this test protects is the four assertions above: the card
+        // must never emit trade-signal wording. A blanket DoesNotContain("THESIS") was a
+        // proxy for that from when no thesis module existed, and it already needed a
+        // string-replace exemption to survive. Thesis modules now legitimately appear as
+        // status rows, so the proxy is replaced by the precise claim: any thesis row is a
+        // module state only, never a direction and never a calibrated verdict.
+        foreach (var row in vm.DiagnosticRows.Where(r =>
+                     r.StartsWith("FAR:", StringComparison.Ordinal)
+                     || r.StartsWith("AAC:", StringComparison.Ordinal)
+                     || r.StartsWith("THESIS CONTRACT:", StringComparison.Ordinal)
+                     || r.StartsWith("MATURITY:", StringComparison.Ordinal)))
+        {
+            Assert.DoesNotContain("LONG", row, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("SHORT", row, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("ARMED", row, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("EXECUTABLE", row, StringComparison.OrdinalIgnoreCase);
+        }
         Assert.Contains("EPISODE: NOT AVAILABLE", text, StringComparison.Ordinal);
         Assert.Contains("ACCEPTANCE/REENTRY EVIDENCE: NOT AVAILABLE", text, StringComparison.Ordinal);
         Assert.Contains("ORDERFLOW: NOT AVAILABLE", text, StringComparison.Ordinal);

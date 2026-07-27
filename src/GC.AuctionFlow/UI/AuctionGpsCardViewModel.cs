@@ -271,8 +271,8 @@ public static class AuctionGpsCardMapper
                     ? "MATURITY: NOT AVAILABLE"
                     : "MATURITY: " + snapshot.SignalMaturity.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.ThesisContract is null
-                    ? "CONTRACT: NOT AVAILABLE"
-                    : "CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant(),
+                    ? "THESIS CONTRACT: NOT AVAILABLE"
+                    : "THESIS CONTRACT: " + snapshot.ThesisContract.ModuleState.ToString().ToUpperInvariant(),
                 snapshot.Plar is null
                     ? "PATH: NOT AVAILABLE"
                     : "PATH: " + snapshot.Plar.ModuleState.ToString().ToUpperInvariant(),
