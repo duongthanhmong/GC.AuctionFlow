@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1271** passed / 0 failed / 0 skipped |
+| Test count | **1301** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -360,6 +360,54 @@ worse than none.
   fix attempted, because the cause is unobserved; the source readers now assert the file
   is non-empty and contains the indicator class, so a recurrence reports the real problem
   instead of failing confusingly downstream.
+
+### Phase 5A — Historical Scanner (step 1 of 6 only)
+
+`src/GC.AuctionFlow/Research/`. Folds closed episodes into a raw-feature dataset so that
+rule versions can be re-run later without re-collecting data (v1.2 §46.3). It performs
+step one of the `G-CAL-002` unlock protocol and nothing else.
+
+**Finding: the protocol is blocked at step two, not step three.**
+
+`G-CAL-002` step 2 requires a distribution stratified by
+`ReferenceType x ParticipationRegime x VolatilityRegime`. Only one of those three axes is
+usable:
+
+| Axis | Status | Why |
+|---|---|---|
+| ReferenceType | Available | emitted on every episode |
+| ParticipationRegime | ImplementedButNotCalibrated | `ThinParticipationLabel` is itself `THIN_PARTICIPATION_NOT_CALIBRATED`; keying on it would calibrate one gate with another |
+| VolatilityRegime | NotImplemented | no classifier exists in this build |
+
+Pooling across the two missing axes would produce a distribution that looks complete and
+is not, and a threshold derived from it would be exactly the coder-chosen number
+`G-CAL-001` bans. So the gate reports `CAL STEP 2/6 STRATIFIEDDISTRIBUTION` rather than
+advancing to the sample-criteria wall.
+
+**Consequence for the roadmap:** unlocking `[C]` needs a volatility regime classifier and
+a calibrated participation regime *first*. Those were not previously on the critical path
+for 5A. The scanner is useful now — it accumulates rows either way — but the unlock is two
+modules further away than the v1.3 roadmap implies.
+
+Of the nine §46.7 first-workload studies, seven are `AwaitingPrerequisite` and each names
+its own blocker; two (Day Structure distribution, pre-settlement episode outcome) reach
+`AwaitingSampleCriteria`, which is the honest terminus — `G-FAST-001` forbids choosing
+sample criteria after seeing rows, and that decision belongs outside this build.
+
+What the module deliberately cannot do, each verified by mutation:
+
+- compute any statistic (`A03` — adding a `double MedianRowsPerReferenceType` fails it)
+- introduce a calibration-gated state (`F04`/`C02` — adding `Calibrated = 100` fails both)
+- report `UnlockPermitted` as true under any input (`B01`)
+- progress a study past `AwaitingSampleCriteria` (`C03`)
+- label a dataset row with a verdict (`D06`)
+
+Retention is bounded at 2048 rows, and `RowsCollected` is tracked independently of what is
+retained — same reasoning as the price memory ledger's `TotalTests`. A dataset that saw
+3000 episodes and reports 2048 is lying about sample size, and sample size is exactly what
+a calibration decision would rest on.
+
+Schema `0.25.0` -> `0.26.0`. GPS rows 22 -> 23.
 
 ### Closed: the module chain is declared once
 

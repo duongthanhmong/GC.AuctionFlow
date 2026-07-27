@@ -21,6 +21,7 @@ using GC.AuctionFlow.Plar;
 using GC.AuctionFlow.Probe;
 using GC.AuctionFlow.Profile;
 using GC.AuctionFlow.Recorder;
+using GC.AuctionFlow.Research;
 using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.EffortResult;
 using GC.AuctionFlow.Resolution;
@@ -128,6 +129,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                         EnsureAcceptanceReentryEvidenceInitializedForPublish, "AuctionEpisodes"),
                     new ModuleDriveStep("AcceptanceReentryResolution", ProcessAcceptanceReentryResolution,
                         null, "AcceptanceReentryEvidence"),
+                    new ModuleDriveStep("HistoricalScanner", ProcessHistoricalScanner,
+                        null, "AuctionEpisodes"),
                     new ModuleDriveStep("ExecutedOrderflow", ProcessExecutedOrderflow,
                         EnsureExecutedOrderflowInitializedForPublish),
                     new ModuleDriveStep("ClusterRawFeatures", ProcessClusterRawFeatures,
@@ -182,6 +185,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private EntryPolicyHost? _entryPolicyHost;
     private CfdMappingHost? _cfdMappingHost;
     private RiskHost? _riskHost;
+    private HistoricalScannerHost? _historicalScannerHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -247,6 +251,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableThesisContract = false;
         EnablePlar = false;
         ShowPlarDiagnostics = false;
+        EnableHistoricalScanner = false;
         EnablePriceMemory = false;
         ShowPriceMemoryDiagnostics = false;
         EnableImbalance = false;
@@ -580,6 +585,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Show PLAR Diagnostics")]
     [Description("Show the barrier corridor and final target per direction on the GPS card.")]
     public bool ShowPlarDiagnostics { get; set; }
+
+    [Category("Research")]
+    [DisplayName("Enable Historical Scanner")]
+    [Description("Phase 5A raw-feature collection. Records closed episodes as unlabelled measurements so rule versions can be re-run later. Derives no threshold and unlocks nothing.")]
+    public bool EnableHistoricalScanner { get; set; }
 
     [Category("Price Memory")]
     [DisplayName("Enable Price Memory")]
@@ -1969,6 +1979,33 @@ public sealed class GcAuctionFlowIndicator : Indicator
         }
     }
 
+    private void ProcessHistoricalScanner()
+    {
+        if (!EnableHistoricalScanner || Volatile.Read(ref _disposed) != 0)
+        {
+            // The host is not discarded on disable. It is a dataset, and dropping it
+            // because a toggle flipped would silently reset the sample size that any
+            // later calibration decision would rest on.
+            _historicalScannerHost?.Configure(new HistoricalScannerPolicyConfig(enabled: false));
+            return;
+        }
+
+        try
+        {
+            var policy = new HistoricalScannerPolicyConfig(enabled: true);
+            var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
+
+            _historicalScannerHost ??= new HistoricalScannerHost(policy);
+            _historicalScannerHost.Configure(policy);
+            _historicalScannerHost.Rebuild(episodes);
+            ClearFault("HistoricalScanner");
+        }
+        catch (Exception ex)
+        {
+            RecordFault("HistoricalScanner", ex);
+        }
+    }
+
     private void ProcessPlar()
     {
         if (!EnablePlar || Volatile.Read(ref _disposed) != 0)
@@ -2400,6 +2437,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var thesisContract = EnableThesisContract ? _thesisContractHost?.Current : null;
             var plarSetForPublish = EnablePlar ? _plarHost?.Current : null;
             var priceMemory = EnablePriceMemory ? _priceMemoryHost?.Current : null;
+            var historicalScanner = EnableHistoricalScanner ? _historicalScannerHost?.Current : null;
             var imbalance = EnableImbalance ? _imbalanceHost?.Current : null;
             var dayStructure = EnableExecutionReadiness ? _dayStructureHost?.Current : null;
             var entryPolicy = EnableExecutionReadiness ? _entryPolicyHost?.Current : null;
@@ -2408,6 +2446,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             NoteIfEnabledButUnpublished("Plar", EnablePlar, plarSetForPublish);
             NoteIfEnabledButUnpublished("PriceMemory", EnablePriceMemory, priceMemory);
+            NoteIfEnabledButUnpublished("HistoricalScanner", EnableHistoricalScanner, historicalScanner);
             NoteIfEnabledButUnpublished("Imbalance", EnableImbalance, imbalance);
             NoteIfEnabledButUnpublished("DayStructure", EnableExecutionReadiness, dayStructure);
             NoteIfEnabledButUnpublished("EntryPolicy", EnableExecutionReadiness, entryPolicy);
@@ -2474,7 +2513,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 entryPolicy: entryPolicy,
                 cfdMapping: cfdMapping,
                 risk: risk,
-                moduleFaults: _moduleFaults.Values.OrderBy(v => v).ToArray());
+                moduleFaults: _moduleFaults.Values.OrderBy(v => v).ToArray(),
+                historicalScanner: historicalScanner);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

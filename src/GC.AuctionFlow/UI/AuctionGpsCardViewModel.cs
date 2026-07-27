@@ -23,6 +23,8 @@ using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Runtime;
 using GC.AuctionFlow.Thesis;
 
+using GC.AuctionFlow.Research;
+
 namespace GC.AuctionFlow.UI;
 
 /// <summary>Presentation model for Auction GPS Card. Unit-testable without ATAS rendering.</summary>
@@ -338,7 +340,8 @@ public static class AuctionGpsCardMapper
                     : "CFD MAP: " + snapshot.CfdMapping.State.ToString().ToUpperInvariant(),
                 snapshot.Risk is null
                     ? "RISK: NOT AVAILABLE"
-                    : "RISK: " + snapshot.Risk.RiskState.ToString().ToUpperInvariant()
+                    : "RISK: " + snapshot.Risk.RiskState.ToString().ToUpperInvariant(),
+                ScannerLine(snapshot.HistoricalScanner)
             }
             : new List<string>();
 
@@ -1573,6 +1576,26 @@ public static class AuctionGpsCardMapper
 
     private static string Fmt(decimal? v) =>
         v is null ? "—" : v.Value.ToString("0.0", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Where the calibration protocol is stuck.
+    ///
+    /// Row count alone would read as progress towards an unlock, which it is not. The
+    /// blocking step is the useful number: it is what someone would have to change to
+    /// move the project's single remaining gate.
+    /// </summary>
+    public static string ScannerLine(HistoricalScannerSnapshot? scanner)
+    {
+        if (scanner is null)
+            return "SCANNER: NOT AVAILABLE";
+
+        if (scanner.State == HistoricalScannerState.Disabled)
+            return "SCANNER: DISABLED";
+
+        return "SCANNER: " + scanner.RowsCollected + " ROWS | CAL STEP "
+               + (int)scanner.Protocol.BlockedAt + "/" + CalibrationProtocol.TotalSteps
+               + " " + scanner.Protocol.BlockedAt.ToString().ToUpperInvariant();
+    }
 
     private static string HumanizeReason(string code) => code switch
     {

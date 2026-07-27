@@ -22,6 +22,8 @@ using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Thesis;
 
+using GC.AuctionFlow.Research;
+
 namespace GC.AuctionFlow.Runtime;
 
 /// <summary>
@@ -104,7 +106,8 @@ public sealed class GcaeRuntimeEngine
         EntryPolicySnapshot? entryPolicy = null,
         CfdMappingSnapshot? cfdMapping = null,
         RiskSnapshot? risk = null,
-        IReadOnlyList<string>? moduleFaults = null)
+        IReadOnlyList<string>? moduleFaults = null,
+        HistoricalScannerSnapshot? historicalScanner = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -289,7 +292,8 @@ public sealed class GcaeRuntimeEngine
             entryPolicy,
             cfdMapping,
             risk,
-            moduleFaults);
+            moduleFaults,
+            historicalScanner);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

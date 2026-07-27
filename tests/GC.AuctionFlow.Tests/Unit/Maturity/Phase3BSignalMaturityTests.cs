@@ -527,8 +527,8 @@ public sealed class Phase3BSignalMaturityTests
     }
 
     [Fact]
-    public void J01_SnapshotVersion_is_0_25_0() =>
-        Assert.Equal("0.25.0", GcaeRuntimeSnapshot.SnapshotVersion);
+    public void J01_SnapshotVersion_is_0_26_0() =>
+        Assert.Equal("0.26.0", GcaeRuntimeSnapshot.SnapshotVersion);
 
     [Fact]
     public void J02_Maturity_defaults_to_null_on_snapshot() =>
@@ -557,10 +557,10 @@ public sealed class Phase3BSignalMaturityTests
     // ========== K: GPS card ==========
 
     [Fact]
-    public void K01_GpsCard_has_22_diagnostic_rows()
+    public void K01_GpsCard_has_23_diagnostic_rows()
     {
         var vm = AuctionGpsCardMapper.FromSnapshot(PublishWith(null), showDiagnostics: true);
-        Assert.Equal(22, vm.DiagnosticRows.Count);
+        Assert.Equal(23, vm.DiagnosticRows.Count);
     }
 
     [Fact]

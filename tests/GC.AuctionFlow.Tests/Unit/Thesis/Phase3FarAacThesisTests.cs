@@ -689,13 +689,13 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(22, vm.DiagnosticRows.Count);
+        Assert.Equal(23, vm.DiagnosticRows.Count);
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("FAR:", StringComparison.Ordinal));
         Assert.Contains(vm.DiagnosticRows, r => r.StartsWith("AAC:", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void O02_GpsCard_diagnostics_AllLines_count_delta_is_22()
+    public void O02_GpsCard_diagnostics_AllLines_count_delta_is_23()
     {
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
@@ -710,15 +710,15 @@ public sealed class Phase3FarAacThesisTests
             indicatorDisposed: false, timestampUtc: Utc());
 
         var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
-        Assert.Equal(vm.AllLines(false).Count + 22, vm.AllLines(true).Count);
+        Assert.Equal(vm.AllLines(false).Count + 23, vm.AllLines(true).Count);
     }
 
     // ========== P: Schema version bumped to 0.16.0 ==========
 
     [Fact]
-    public void P01_SnapshotVersion_is_0_25_0()
+    public void P01_SnapshotVersion_is_0_26_0()
     {
-        Assert.Equal("0.25.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.26.0", GcaeRuntimeSnapshot.SnapshotVersion);
         var engine = new GcaeRuntimeEngine(new RuntimeGateConfig(0.1m, 14));
         var snap = engine.Publish(
             null, "GCQ6",
@@ -726,7 +726,7 @@ public sealed class Phase3FarAacThesisTests
             DeclaredFeedProvider.Unknown, FeedProviderProvenance.Unknown,
             false, null, false, false, false, false, false, false,
             timestampUtc: Utc());
-        Assert.Equal("0.25.0", snap.Version);
+        Assert.Equal("0.26.0", snap.Version);
     }
 
     // ========== Q: FAR/AAC both wired into runtime publish ==========

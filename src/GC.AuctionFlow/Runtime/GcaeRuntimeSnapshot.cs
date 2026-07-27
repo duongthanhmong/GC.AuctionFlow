@@ -20,12 +20,14 @@ using GC.AuctionFlow.Reference;
 using GC.AuctionFlow.Resolution;
 using GC.AuctionFlow.Thesis;
 
+using GC.AuctionFlow.Research;
+
 namespace GC.AuctionFlow.Runtime;
 
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.25.0";
+    public const string SnapshotVersion = "0.26.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -80,7 +82,8 @@ public sealed class GcaeRuntimeSnapshot
         EntryPolicySnapshot? entryPolicy = null,
         CfdMappingSnapshot? cfdMapping = null,
         RiskSnapshot? risk = null,
-        IReadOnlyList<string>? moduleFaults = null)
+        IReadOnlyList<string>? moduleFaults = null,
+        HistoricalScannerSnapshot? historicalScanner = null)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -135,6 +138,7 @@ public sealed class GcaeRuntimeSnapshot
         CfdMapping = cfdMapping;
         Risk = risk;
         ModuleFaults = moduleFaults ?? Array.Empty<string>();
+        HistoricalScanner = historicalScanner;
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -172,6 +176,12 @@ public sealed class GcaeRuntimeSnapshot
     public EntryPolicySnapshot? EntryPolicy { get; }
     public CfdMappingSnapshot? CfdMapping { get; }
     public RiskSnapshot? Risk { get; }
+
+    /// <summary>
+    /// Phase 5A raw-feature collection. Carries no threshold and unlocks nothing — it
+    /// reports how far the six-step calibration protocol has got and what is blocking it.
+    /// </summary>
+    public HistoricalScannerSnapshot? HistoricalScanner { get; }
 
     /// <summary>
     /// Modules that threw during their last update, with the reason.
