@@ -162,3 +162,41 @@ public sealed class GpsCardCompactModeTests
         Assert.DoesNotContain(lines, l => l.StartsWith("EPISODE:", StringComparison.Ordinal));
     }
 }
+
+public sealed class GpsCardBuildIdentityTests
+{
+    /// <summary>
+    /// A screenshot must be able to prove which binary produced it.
+    ///
+    /// Without this, a stale DLL in ATAS and a fix that did not work are the same
+    /// picture — "nothing changed" — and every debugging round trip is ambiguous.
+    /// </summary>
+    [Fact]
+    public void A01_Build_id_is_stable_and_short()
+    {
+        var id = AuctionGpsCardViewModel.BuildId;
+        Assert.Equal(8, id.Length);
+        Assert.Equal(id, AuctionGpsCardViewModel.BuildId);
+        Assert.Matches("^[0-9A-F]{8}$", id);
+    }
+
+    [Fact]
+    public void A02_Build_row_appears_even_in_compact()
+    {
+        var engine = new GC.AuctionFlow.Runtime.GcaeRuntimeEngine(
+            new GC.AuctionFlow.Runtime.RuntimeGateConfig(0.1m, 14));
+        var snap = engine.Publish(
+            null, "GCQ6",
+            GC.AuctionFlow.Core.DataSourceMode.Live,
+            GC.AuctionFlow.Core.DataSourceModeProvenance.OperatorDeclared,
+            GC.AuctionFlow.Probe.DeclaredFeedProvider.Rithmic,
+            GC.AuctionFlow.Probe.FeedProviderProvenance.OperatorDeclared,
+            true, null, false, true, false, false, false, false,
+            timestampUtc: new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc));
+
+        var vm = AuctionGpsCardMapper.FromSnapshot(snap, showDiagnostics: true);
+        foreach (var compact in new[] { true, false })
+            Assert.Contains(vm.AllLines(true, compact),
+                l => l.StartsWith("BUILD: ", StringComparison.Ordinal));
+    }
+}
