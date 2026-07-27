@@ -187,6 +187,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private RiskHost? _riskHost;
     private HistoricalScannerHost? _historicalScannerHost;
     private HistoricalBarReplayHost? _barReplayHost;
+    private VolatilityRegimeHost? _volatilityRegimeHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -253,6 +254,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnablePlar = false;
         ShowPlarDiagnostics = false;
         EnableHistoricalScanner = false;
+        VolatilityRegimeLowerBoundaryTicks = 0;
+        VolatilityRegimeUpperBoundaryTicks = 0;
+        VolatilityRegimeDecisionLogReference = "";
         EnablePriceMemory = false;
         ShowPriceMemoryDiagnostics = false;
         EnableImbalance = false;
@@ -591,6 +595,21 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Enable Historical Scanner")]
     [Description("Phase 5A raw-feature collection. Records closed episodes as unlabelled measurements so rule versions can be re-run later. Derives no threshold and unlocks nothing.")]
     public bool EnableHistoricalScanner { get; set; }
+
+    [Category("Research")]
+    [DisplayName("Volatility Regime — Lower Boundary (ticks)")]
+    [Description("Registered boundary below which a completed period is Low volatility. Decided by a research process, not by this build. Zero means unregistered.")]
+    public int VolatilityRegimeLowerBoundaryTicks { get; set; }
+
+    [Category("Research")]
+    [DisplayName("Volatility Regime — Upper Boundary (ticks)")]
+    [Description("Registered boundary at or above which a completed period is High volatility. Zero means unregistered.")]
+    public int VolatilityRegimeUpperBoundaryTicks { get; set; }
+
+    [Category("Research")]
+    [DisplayName("Volatility Regime — DECISION_LOG Reference")]
+    [Description("Where the boundary decision is recorded. Required: a boundary with no provenance is indistinguishable from one somebody typed in, which G-CAL-001 forbids. Blank means unregistered.")]
+    public string VolatilityRegimeDecisionLogReference { get; set; } = "";
 
     [Category("Price Memory")]
     [DisplayName("Enable Price Memory")]
@@ -2003,6 +2022,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var policy = new HistoricalScannerPolicyConfig(enabled: true);
             var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
 
+            _volatilityRegimeHost ??= new VolatilityRegimeHost(enabled: true);
+            _volatilityRegimeHost.Configure(true);
+            _volatilityRegimeHost.Rebuild(
+                _profileHost?.Current?.CurrentAuction?.TpoProfile?.CompletedPeriods);
+            _volatilityRegimeHost.RegisterBoundaries(
+                VolatilityRegimeBoundaries.Register(
+                    VolatilityRegimeLowerBoundaryTicks,
+                    VolatilityRegimeUpperBoundaryTicks,
+                    VolatilityRegimeDecisionLogReference));
+
             _barReplayHost ??= new HistoricalBarReplayHost(enabled: true);
             _barReplayHost.Configure(true);
             _barReplayHost.Replay(
@@ -2011,7 +2040,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             _historicalScannerHost ??= new HistoricalScannerHost(policy);
             _historicalScannerHost.Configure(policy);
-            _historicalScannerHost.Rebuild(episodes, nowUtc: null, replay: _barReplayHost);
+            _historicalScannerHost.Rebuild(
+                episodes, nowUtc: null, replay: _barReplayHost, volatility: _volatilityRegimeHost);
             ClearFault("HistoricalScanner");
         }
         catch (Exception ex)

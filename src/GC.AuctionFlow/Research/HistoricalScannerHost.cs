@@ -65,7 +65,8 @@ public sealed class HistoricalScannerHost
     public void Rebuild(
         AuctionEpisodeSetSnapshot? episodes,
         DateTime? nowUtc = null,
-        HistoricalBarReplayHost? replay = null)
+        HistoricalBarReplayHost? replay = null,
+        VolatilityRegimeHost? volatility = null)
     {
         var now = nowUtc ?? DateTime.UtcNow;
 
@@ -103,7 +104,9 @@ public sealed class HistoricalScannerHost
             ? HistoricalScannerState.Collecting
             : HistoricalScannerState.AwaitingEpisodes;
 
-        var protocol = CalibrationProtocol.Evaluate(hasCollectedRows: _rowsCollected > 0);
+        var protocol = CalibrationProtocol.Evaluate(
+            hasCollectedRows: _rowsCollected > 0,
+            volatilityRegimeCanStratify: volatility?.CanStratify ?? false);
 
         var limitations = new List<string>(HistoricalScannerPolicyConfig.StandingLimitations);
         if (protocol.MissingAxes.Count > 0)
@@ -124,7 +127,8 @@ public sealed class HistoricalScannerHost
             limitations,
             replay?.State ?? BarReplayState.Disabled,
             barRows,
-            replay?.BarsWalked ?? 0);
+            replay?.BarsWalked ?? 0,
+            volatility?.ObservationsSeen ?? 0);
     }
 
     private void Fold(EpisodeDatasetRecord row)

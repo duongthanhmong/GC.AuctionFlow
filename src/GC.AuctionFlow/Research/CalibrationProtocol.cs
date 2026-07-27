@@ -35,11 +35,12 @@ public sealed class StratificationAxisStatus
 /// DECISION_LOG. So this type exists to answer one question honestly: given what the
 /// build can actually do today, which step is the protocol stuck at?
 ///
-/// The answer is currently step two, not step three, and the reason is worth stating
-/// plainly: a distribution must be stratified by ReferenceType x ParticipationRegime x
-/// VolatilityRegime, and only the first of those three classifiers exists. Pooling
-/// across the two missing axes would yield a distribution that looks complete, and a
-/// threshold derived from it would be exactly the coder-chosen number `G-CAL-001` bans.
+/// The answer is currently step two. A distribution must be stratified by ReferenceType x
+/// ParticipationRegime x VolatilityRegime. ReferenceType is emitted on every episode;
+/// VolatilityRegime now has a classifier but no registered boundaries; ParticipationRegime
+/// rests on a label that is itself calibration-gated. Pooling across an axis that cannot
+/// key anything would yield a distribution that looks complete, and a threshold derived
+/// from it would be exactly the coder-chosen number `G-CAL-001` bans.
 /// </summary>
 public sealed class CalibrationProtocol
 {
@@ -80,7 +81,9 @@ public sealed class CalibrationProtocol
     /// Evaluates the protocol against what the build provides.
     /// </summary>
     /// <param name="hasCollectedRows">Whether the scanner has any dataset rows at all.</param>
-    public static CalibrationProtocol Evaluate(bool hasCollectedRows)
+    public static CalibrationProtocol Evaluate(
+        bool hasCollectedRows,
+        bool volatilityRegimeCanStratify = false)
     {
         var axes = new[]
         {
@@ -97,10 +100,20 @@ public sealed class CalibrationProtocol
                 "ThinParticipationLabel is THIN_PARTICIPATION_NOT_CALIBRATED; "
                 + "using it as a key would calibrate one gate with another"),
 
+            // The classifier now exists. Its boundaries are registered from outside the
+            // build rather than derived here: boundaries computed from the observed sample
+            // would move as it grew, which re-chooses the sample criteria after seeing
+            // results (G-FAST-001) and makes step 4's out-of-sample validation impossible,
+            // because the out-of-sample data would have helped build the bins judging it.
             new StratificationAxisStatus(
                 StratificationAxis.VolatilityRegime,
-                StratificationAxisAvailability.NotImplemented,
-                "no volatility regime classifier exists in this build"),
+                volatilityRegimeCanStratify
+                    ? StratificationAxisAvailability.Available
+                    : StratificationAxisAvailability.ImplementedButNotCalibrated,
+                volatilityRegimeCanStratify
+                    ? "realized range per completed period, against registered boundaries"
+                    : "realized range is collected, but no boundaries are registered in "
+                      + "the DECISION_LOG yet"),
         };
 
         if (!hasCollectedRows)

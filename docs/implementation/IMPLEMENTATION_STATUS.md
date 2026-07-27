@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1319** passed / 0 failed / 0 skipped |
+| Test count | **1336** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -360,6 +360,49 @@ worse than none.
   fix attempted, because the cause is unobserved; the source readers now assert the file
   is non-empty and contains the indicator class, so a recurrence reports the real problem
   instead of failing confusingly downstream.
+
+### Phase 5A-c — volatility regime axis
+
+**Neither v1.2 nor v1.3 defines this axis.** It is named as mandatory five times
+(`G-DISC-008`, `G-TF-004`, `G-CAL-002` step 2, §29.5, `G-FAST-003`) and nowhere is it said
+what the buckets are or where their boundaries come from. That gap had to be closed by a
+decision, and the decision matters more than the code.
+
+**Rejected: boundaries derived from the observed sample.** It was the obvious way to break
+the deadlock — no human input needed, the axis becomes usable immediately. It breaks the
+protocol in three places at once:
+
+| | |
+|---|---|
+| `G-FAST-001` | bins rebuilt as the sample grows re-choose the sample criteria after seeing results, continuously |
+| reproducibility | the same episode changes stratum retroactively, so no distribution built on it can be reproduced or refuted |
+| `G-CAL-002` step 4 | out-of-sample validation is impossible when the out-of-sample data helped build the bins judging it |
+
+The third is structural: the protocol would stop being blocked at step 2 and start being
+broken at step 4, silently. And "terciles, nearest-rank" is itself a coder choice that
+moves the boundaries — the numbers come from data, the method does not, which is what
+`G-CAL-001` actually forbids.
+
+**Chosen: registered boundaries.** The DLL collects realized range per completed period —
+observable, complete, no threshold involved — and applies boundaries decided outside. That
+is the six-step protocol working as designed: DLL does step 1, a research process decides,
+the DECISION_LOG records it, the decision comes back in frozen. Frozen bins make step 4
+possible again.
+
+`VolatilityRegimeBoundaries.Register` **refuses** rather than repairs: no DECISION_LOG
+reference, or a mis-ordered pair, yields `Unregistered`. A boundary without provenance is
+indistinguishable from one somebody typed in.
+
+The axis therefore moves `NotImplemented` -> `ImplementedButNotCalibrated`. The protocol is
+still blocked at step 2, but now on a decision somebody can make rather than on a
+classifier that does not exist. Three new operator inputs under **Research**, all
+deliberately unusable by default.
+
+Verified by mutation: adding a `SuggestedLowerBoundaryTicks` that ranks the sample fails
+`A01`; dropping the DECISION_LOG requirement fails `B02`.
+
+**Remaining blocker for step 2: ParticipationRegime**, which rests on `ThinParticipationLabel`
+— itself `THIN_PARTICIPATION_NOT_CALIBRATED`.
 
 ### Phase 5A-b — bar replay, because the live path cannot feed the scanner
 

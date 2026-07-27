@@ -27,7 +27,8 @@ public sealed class HistoricalScannerSnapshot
         IReadOnlyList<string> limitations,
         BarReplayState barReplayState = BarReplayState.Disabled,
         int barDerivedRows = 0,
-        int barsWalked = 0)
+        int barsWalked = 0,
+        int volatilityObservations = 0)
     {
         State = state;
         PolicyVersion = policyVersion ?? "";
@@ -44,6 +45,7 @@ public sealed class HistoricalScannerSnapshot
         BarReplayState = barReplayState;
         BarDerivedRows = barDerivedRows;
         BarsWalked = barsWalked;
+        VolatilityObservations = volatilityObservations;
     }
 
     public HistoricalScannerState State { get; }
@@ -93,6 +95,14 @@ public sealed class HistoricalScannerSnapshot
     public int BarDerivedRows { get; }
 
     public int BarsWalked { get; }
+
+    /// <summary>
+    /// Completed periods whose realized range has been recorded.
+    ///
+    /// Raw material for a boundary decision that happens outside this build. It is not a
+    /// count of anything calibrated.
+    /// </summary>
+    public int VolatilityObservations { get; }
 
     /// <summary>
     /// Always false while the protocol runs outside this DLL.
