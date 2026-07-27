@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1301** passed / 0 failed / 0 skipped |
+| Test count | **1319** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -360,6 +360,58 @@ worse than none.
   fix attempted, because the cause is unobserved; the source readers now assert the file
   is non-empty and contains the indicator class, so a recurrence reports the real problem
   instead of failing confusingly downstream.
+
+### Phase 5A-b — bar replay, because the live path cannot feed the scanner
+
+First live run of 5A reported `SCANNER: 0 ROWS` and stayed there. Not a defect. Every
+`CloseEpisode` call site was traced:
+
+| Close path | Real frequency |
+|---|---|
+| `OnPrimaryAuctionChanged` | once per day, at the 08:20 ET anchor |
+| `SyncEligibleReferences` — reference leaves the eligible set | rare |
+| `InvalidateAll` — data fault | rare |
+
+There is no time-based expiry, and `ReferenceIdentity` states that zone is not part of
+identity, so a Developing level migrating from 4094.1 to 4093.2 keeps its `ReferenceId` and
+retires nothing. Intra-auction episode reset is itself gated —
+`INTRA_AUCTION_EPISODE_RESET_NOT_CALIBRATED`.
+
+That closes a circle:
+
+```
+scanner rows  <-  episodes must close
+episodes close intra-auction  <-  INTRA_AUCTION_EPISODE_RESET must be calibrated
+calibrating it  <-  needs scanner rows
+```
+
+So the live path yields roughly one batch of rows per trading day — precisely the
+multi-month passive wait v1.2 §46 exists to avoid.
+
+**What was built.** `HistoricalBarReplayHost` walks the bars already loaded on the chart
+against the confirmed reference set, buffering them from the existing per-bar pass so there
+is no second walk. Previous-auction levels are fixed for the whole session, so measuring
+this session's bars against them is exact; Developing references are excluded because
+measuring an old bar against a level that did not yet hold that price is reconstruction,
+not observation.
+
+**It does not feed the episode registry.** `EpisodeTradeEvent` is documented as built from
+trade prints and *never from candles* — a locked-phase invariant that nothing enforced.
+Synthesising episode events from bar geometry was the obvious way to build this phase and
+would have silently corrupted every acceptance conclusion downstream, because the sequence
+would have been invented. `D03` now enforces it.
+
+**The limit that shapes the design:** a bar has no intra-bar ordering. It cannot say whether
+price crossed a level once or six times, nor which side it approached from. So bar rows are
+a separate dataset, counted separately, never pooled with live rows, and unable to advance
+the calibration protocol. The card shows a pair — `0 EP / 4 BAR` — not a total.
+
+Both guards verified by mutation: adding a `CrossCount` to the bar record fails `A05`;
+letting bar rows satisfy protocol step one fails `D02`.
+
+What a bar *can* honestly give, and does: zone touch, close location, max excursion above
+and below in ticks, volume at price inside the zone, and delta when both sides are
+reported. Unavailable measurements are null, never zero.
 
 ### Phase 5A — Historical Scanner (step 1 of 6 only)
 

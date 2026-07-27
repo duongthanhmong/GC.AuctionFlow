@@ -491,7 +491,9 @@ public sealed class Phase5AHistoricalScannerTests
         host.Rebuild(Closed(Episode("EP-1")), Utc(60));
 
         var line = AuctionGpsCardMapper.ScannerLine(host.Current);
-        Assert.Contains("1 ROWS", line, StringComparison.Ordinal);
+
+        // Episode and bar rows are a pair, never a total — see Phase5ABBarReplayTests D01.
+        Assert.Contains("1 EP / 0 BAR", line, StringComparison.Ordinal);
         Assert.Contains("CAL STEP 2/6", line, StringComparison.Ordinal);
         Assert.Contains("STRATIFIEDDISTRIBUTION", line, StringComparison.Ordinal);
     }

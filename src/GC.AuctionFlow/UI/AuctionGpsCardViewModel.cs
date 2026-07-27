@@ -1592,9 +1592,12 @@ public static class AuctionGpsCardMapper
         if (scanner.State == HistoricalScannerState.Disabled)
             return "SCANNER: DISABLED";
 
-        return "SCANNER: " + scanner.RowsCollected + " ROWS | CAL STEP "
-               + (int)scanner.Protocol.BlockedAt + "/" + CalibrationProtocol.TotalSteps
-               + " " + scanner.Protocol.BlockedAt.ToString().ToUpperInvariant();
+        // Episode rows and bar rows are shown as a pair rather than a total. They answer
+        // different questions and the operator must be able to tell which one grew.
+        return "SCANNER: " + scanner.RowsCollected + " EP / " + scanner.BarDerivedRows
+               + " BAR | CAL STEP " + (int)scanner.Protocol.BlockedAt + "/"
+               + CalibrationProtocol.TotalSteps + " "
+               + scanner.Protocol.BlockedAt.ToString().ToUpperInvariant();
     }
 
     private static string HumanizeReason(string code) => code switch

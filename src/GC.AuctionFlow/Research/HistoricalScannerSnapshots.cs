@@ -24,7 +24,10 @@ public sealed class HistoricalScannerSnapshot
         IReadOnlyList<ScannerStudy> studies,
         DateTime datasetStartedAtUtc,
         DateTime lastUpdatedAtUtc,
-        IReadOnlyList<string> limitations)
+        IReadOnlyList<string> limitations,
+        BarReplayState barReplayState = BarReplayState.Disabled,
+        int barDerivedRows = 0,
+        int barsWalked = 0)
     {
         State = state;
         PolicyVersion = policyVersion ?? "";
@@ -38,6 +41,9 @@ public sealed class HistoricalScannerSnapshot
         DatasetStartedAtUtc = datasetStartedAtUtc;
         LastUpdatedAtUtc = lastUpdatedAtUtc;
         Limitations = limitations ?? Array.Empty<string>();
+        BarReplayState = barReplayState;
+        BarDerivedRows = barDerivedRows;
+        BarsWalked = barsWalked;
     }
 
     public HistoricalScannerState State { get; }
@@ -72,6 +78,21 @@ public sealed class HistoricalScannerSnapshot
     public DateTime LastUpdatedAtUtc { get; }
 
     public IReadOnlyList<string> Limitations { get; }
+
+    public BarReplayState BarReplayState { get; }
+
+    /// <summary>
+    /// Rows measured from completed bars.
+    ///
+    /// Kept apart from <see cref="RowsCollected"/> and never summed with it. A bar-derived
+    /// row has no intra-bar ordering, so it cannot answer an acceptance or re-entry
+    /// question that a live episode row can; adding the two would produce a larger set
+    /// that is less sound, which is the same error as pooling across a missing
+    /// stratification axis.
+    /// </summary>
+    public int BarDerivedRows { get; }
+
+    public int BarsWalked { get; }
 
     /// <summary>
     /// Always false while the protocol runs outside this DLL.

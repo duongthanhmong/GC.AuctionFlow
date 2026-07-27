@@ -130,7 +130,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     new ModuleDriveStep("AcceptanceReentryResolution", ProcessAcceptanceReentryResolution,
                         null, "AcceptanceReentryEvidence"),
                     new ModuleDriveStep("HistoricalScanner", ProcessHistoricalScanner,
-                        null, "AuctionEpisodes"),
+                        null, "AuctionEpisodes", "StructuralReferences"),
                     new ModuleDriveStep("ExecutedOrderflow", ProcessExecutedOrderflow,
                         EnsureExecutedOrderflowInitializedForPublish),
                     new ModuleDriveStep("ClusterRawFeatures", ProcessClusterRawFeatures,
@@ -186,6 +186,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private CfdMappingHost? _cfdMappingHost;
     private RiskHost? _riskHost;
     private HistoricalScannerHost? _historicalScannerHost;
+    private HistoricalBarReplayHost? _barReplayHost;
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -1264,6 +1265,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
             if (tsDiag is not null)
                 host.NoteTimestampDiagnostic(tsDiag);
 
+            if (EnableHistoricalScanner)
+            {
+                _barReplayHost ??= new HistoricalBarReplayHost(enabled: true);
+                _barReplayHost.Configure(true);
+                _barReplayHost.ObserveBar(obs);
+            }
+
             host.EnableTpoParityReferencePrice = EnableTpoParityReferencePrice;
             host.TpoParityReferencePrice = TpoParityReferencePrice;
             host.UpsertBar(
@@ -1995,9 +2003,15 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var policy = new HistoricalScannerPolicyConfig(enabled: true);
             var episodes = EnableAuctionEpisodes ? _episodeHost?.Current : null;
 
+            _barReplayHost ??= new HistoricalBarReplayHost(enabled: true);
+            _barReplayHost.Configure(true);
+            _barReplayHost.Replay(
+                EnableStructuralReferences ? _referenceHost?.Current : null,
+                ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize);
+
             _historicalScannerHost ??= new HistoricalScannerHost(policy);
             _historicalScannerHost.Configure(policy);
-            _historicalScannerHost.Rebuild(episodes);
+            _historicalScannerHost.Rebuild(episodes, nowUtc: null, replay: _barReplayHost);
             ClearFault("HistoricalScanner");
         }
         catch (Exception ex)

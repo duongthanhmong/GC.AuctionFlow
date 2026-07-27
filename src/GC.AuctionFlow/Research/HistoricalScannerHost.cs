@@ -62,7 +62,10 @@ public sealed class HistoricalScannerHost
     /// whatever it happened to be at snapshot time — a measurement of the publish
     /// schedule rather than of the market.
     /// </summary>
-    public void Rebuild(AuctionEpisodeSetSnapshot? episodes, DateTime? nowUtc = null)
+    public void Rebuild(
+        AuctionEpisodeSetSnapshot? episodes,
+        DateTime? nowUtc = null,
+        HistoricalBarReplayHost? replay = null)
     {
         var now = nowUtc ?? DateTime.UtcNow;
 
@@ -92,7 +95,11 @@ public sealed class HistoricalScannerHost
             }
         }
 
-        var state = _rowsCollected > 0
+        // Bar-derived rows count towards the module being alive but never towards the
+        // episode dataset, which is what the calibration protocol reads.
+        var barRows = replay?.RowsMeasured ?? 0;
+
+        var state = _rowsCollected > 0 || barRows > 0
             ? HistoricalScannerState.Collecting
             : HistoricalScannerState.AwaitingEpisodes;
 
@@ -114,7 +121,10 @@ public sealed class HistoricalScannerHost
             ScannerStudyRegistry.Evaluate(_admissibleRows),
             _datasetStartedAtUtc,
             now,
-            limitations);
+            limitations,
+            replay?.State ?? BarReplayState.Disabled,
+            barRows,
+            replay?.BarsWalked ?? 0);
     }
 
     private void Fold(EpisodeDatasetRecord row)
