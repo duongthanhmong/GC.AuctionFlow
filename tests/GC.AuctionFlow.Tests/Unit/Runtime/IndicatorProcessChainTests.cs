@@ -307,10 +307,13 @@ public sealed class ModuleFaultVisibilityTests
         foreach (System.Text.RegularExpressions.Match call in
                  System.Text.RegularExpressions.Regex.Matches(src, @"RecordFault\(""(\w+)"""))
         {
-            // ModuleSchedule is not a module — it is the chain itself failing to
-            // validate, and it is reported from the builder rather than from any
-            // Process method.
-            if (call.Groups[1].Value == "ModuleSchedule")
+            // Neither of these is a schedule module. ModuleSchedule is the chain itself
+            // failing to validate, reported from the builder; DepthRecording is a
+            // callback-path fault reported from TryRecordDepth. Both still belong in the
+            // fault ledger — a recorder that silently stops writing depth is exactly the
+            // kind of failure this ledger exists to surface — but neither has a Process
+            // method for the name to match.
+            if (call.Groups[1].Value is "ModuleSchedule" or "DepthRecording")
                 continue;
 
             var owner = methods.LastOrDefault(m => m.Pos < call.Index);

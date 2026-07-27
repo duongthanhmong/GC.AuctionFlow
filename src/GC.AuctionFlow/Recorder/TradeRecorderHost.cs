@@ -41,6 +41,11 @@ public sealed class TradeRecorderHost : IDisposable
     public RawEventRecorderSession? Session => _session;
     public bool IsAccepting => _session is { IsAccepting: true };
 
+    /// <summary>Empty until a session starts. Callers must check <see cref="IsAccepting"/> first.</summary>
+    public Guid SessionId => _session?.SessionId ?? Guid.Empty;
+
+    public Guid ProcessId => _processId;
+
     /// <summary>
     /// Callback-safe: gate checks + enqueue pending start only. Never directory/file/JSON/hash/Wait.
     /// Returns SessionNotStarted until lifecycle completes startup.
@@ -289,6 +294,43 @@ public sealed class TradeRecorderHost : IDisposable
     /// <summary>
     /// Single-pass batch: for each raw item dual-maps probe (via callback) and recorder.
     /// </summary>
+    /// <summary>
+    /// Writes one depth or best-bid/ask callback.
+    ///
+    /// Passive only: the caller hands over what the platform already delivered. Nothing
+    /// here subscribes or requests, which is what keeps it clear of the P0-06D finding.
+    /// </summary>
+    public bool ProcessDepthCallback(
+        RawEventDraft? draft)
+    {
+        if (draft is null)
+            return false;
+
+        if (_session is null)
+        {
+            NoteCallbackBeforeStart();
+            return false;
+        }
+
+        if (!_session.IsAccepting)
+        {
+            NoteCallbackAfterStop();
+            return false;
+        }
+
+        NoteAuthorizedCallbackInvocation();
+
+        try
+        {
+            Interlocked.Increment(ref Counters.NormalizedObservations);
+            return _session.TryAcceptDraft(draft) == FanOut.RecorderSinkOutcome.Accepted;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public void ProcessNewTradesBatch(
         IEnumerable<MarketDataArg?>? trades,
         CallbackCaptureContext context,

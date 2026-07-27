@@ -576,9 +576,34 @@ public sealed class FanOutCoordinatorTests
         Assert.Contains("EnableRawEventRecorder", text, StringComparison.Ordinal);
         Assert.Contains("EnableTradeRecording", text, StringComparison.Ordinal);
         Assert.Contains("TradeRecorderHost", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableDomRecording", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("EnableBbaRecording", text, StringComparison.Ordinal);
+        // Narrowed deliberately, and only as far as the evidence supports.
+        //
+        // This originally forbade any depth, quote or MBO recording setting. The rationale
+        // was P0-06D: a chart side effect reproduced on a second GCQ6 chart that did not
+        // even have the indicator attached. But that was observed during an *active MBO
+        // subscription*, and the lock was written wider than its own evidence — passive
+        // receipt of MarketDepthChanged and OnBestBidAskChanged subscribes to nothing and
+        // requests nothing.
+        //
+        // v1.2 §46.5 lists DOM changes among the things no downloaded history contains, so
+        // leaving them unrecorded discards them permanently. Passive depth and quote
+        // recording is therefore allowed; the two things that carried the risk are still
+        // forbidden below, because both are *actions* rather than observation.
+        // The existing MBO subscribe path lives in this file and stays gated; the sibling
+        // test forbids any new one appearing under Recorder/, which is where it would
+        // matter. Asserting its absence here would only forbid what is already present.
         Assert.DoesNotContain("EnableMboRecording", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableDomSnapshotRecording", text, StringComparison.Ordinal);
+
+        // The passive path must stay passive: recording must never trigger a snapshot pull.
+        var recordDepth = text.IndexOf("private void TryRecordDepth", StringComparison.Ordinal);
+        if (recordDepth >= 0)
+        {
+            var end = text.IndexOf("\n    }", recordDepth, StringComparison.Ordinal);
+            var body = text[recordDepth..(end < 0 ? text.Length : end)];
+            Assert.DoesNotContain("TryRequestSnapshotPull", body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Subscribe", body, StringComparison.Ordinal);
+        }
         Assert.Contains("// P0-04B: do not call base.OnNewTrades", text, StringComparison.Ordinal);
         Assert.DoesNotContain("base.OnNewTrades", text.Replace("// P0-04B: do not call base.OnNewTrades", "", StringComparison.Ordinal), StringComparison.Ordinal);
     }

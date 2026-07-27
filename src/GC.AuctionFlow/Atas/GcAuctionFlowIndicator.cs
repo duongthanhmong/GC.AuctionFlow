@@ -254,6 +254,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         EnableThesisContract = false;
         EnablePlar = false;
         ShowPlarDiagnostics = false;
+        EnableDepthAndQuoteRecording = false;
         EnableHistoricalScanner = false;
         VolatilityRegimeLowerBoundaryTicks = 0;
         VolatilityRegimeUpperBoundaryTicks = 0;
@@ -323,6 +324,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Enable Trade Recording")]
     [Description("Effective only when Enable Raw Event Recorder is true. Default true.")]
     public bool EnableTradeRecording { get; set; }
+
+    [Category("Raw Event Recorder")]
+    [DisplayName("Enable Depth And Quote Recording")]
+    [Description("Records MarketDepthChanged and OnBestBidAskChanged as they arrive. v1.2 §46.5 lists DOM changes among the things no downloaded history contains, so unrecorded they are lost permanently. Passive only: subscribes to nothing and requests no snapshot, which is what separates it from the P0-06D finding. DOM snapshot pull and MBO stay out of scope. Default false.")]
+    public bool EnableDepthAndQuoteRecording { get; set; }
 
     [Category("Shared Feed Declaration")]
     [DisplayName("Declared Feed Provider")]
@@ -842,6 +848,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
     protected override void MarketDepthChanged(MarketDataArg depth)
     {
         NoteDepthCallback();
+        TryRecordDepth(depth, RecorderCallbackSource.MarketDepthChanged, bestBidAsk: false);
         EnsureProbesStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
@@ -902,6 +909,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         // The most direct evidence of all: if the platform raises this at all, the feed
         // carries a best bid and ask.
         NoteDepthCallback();
+        TryRecordDepth(depth, RecorderCallbackSource.BestBidAskChanged, bestBidAsk: true);
         EnsureProbesStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
@@ -2475,6 +2483,51 @@ public sealed class GcAuctionFlowIndicator : Indicator
     }
 
     private void NoteDepthCallback() => Interlocked.Increment(ref _depthCallbacksObserved);
+
+    private long _depthCaptureSequence;
+
+    /// <summary>
+    /// Hands a depth or quote callback to the recorder, if one is running and the operator
+    /// asked for it.
+    ///
+    /// Contained like every other callback path: a recorder fault must never escape into
+    /// ATAS, and a dropped depth frame is a smaller loss than a broken indicator.
+    /// </summary>
+    private void TryRecordDepth(MarketDataArg? arg, RecorderCallbackSource source, bool bestBidAsk)
+    {
+        if (!EnableDepthAndQuoteRecording || arg is null)
+            return;
+
+        var host = TryGetRecorderReady();
+        var probe = _tradeProbe;
+        if (host is null)
+            return;
+
+        try
+        {
+            var identity = ObservedInstrumentIdentityMapper.FromSnapshot(
+                probe?.GetObservedInstrument() ?? new ObservedInstrumentSnapshot(
+                    null, null, null, null, null, null, null, null, null, null, null));
+            var ctx = host.Capture(source);
+            var seq = Interlocked.Increment(ref _depthCaptureSequence);
+
+            var draft = bestBidAsk
+                ? DepthToRawEventAdapter.TryBestBidAskDraft(
+                    arg, ctx, identity, host.SessionId, host.ProcessId, seq,
+                    DeclaredDataSourceMode.ToString(), DataSourceModeProvenance.ToString(),
+                    DeclaredFeedProvider.ToString(), FeedProviderProvenance.ToString())
+                : DepthToRawEventAdapter.TryDepthDraft(
+                    arg, ctx, identity, host.SessionId, host.ProcessId, seq,
+                    DeclaredDataSourceMode.ToString(), DataSourceModeProvenance.ToString(),
+                    DeclaredFeedProvider.ToString(), FeedProviderProvenance.ToString());
+
+            host.ProcessDepthCallback(draft);
+        }
+        catch (Exception ex)
+        {
+            RecordFault("DepthRecording", ex);
+        }
+    }
 
     private void PublishRuntimeSnapshot()
     {
