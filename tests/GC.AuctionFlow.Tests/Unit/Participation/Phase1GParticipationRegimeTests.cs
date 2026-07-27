@@ -440,7 +440,7 @@ public sealed class Phase1GParticipationRegimeTests
     [Fact]
     public void H01_SnapshotVersion_is_0_14_0()
     {
-        Assert.Equal("0.24.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.25.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]

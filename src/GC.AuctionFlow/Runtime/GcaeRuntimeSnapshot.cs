@@ -25,7 +25,7 @@ namespace GC.AuctionFlow.Runtime;
 /// <summary>Immutable UI-facing runtime snapshot. No mutable probe/recorder/profile engines.</summary>
 public sealed class GcaeRuntimeSnapshot
 {
-    public const string SnapshotVersion = "0.24.0";
+    public const string SnapshotVersion = "0.25.0";
 
     public GcaeRuntimeSnapshot(
         DataGateSnapshot dataGate,
@@ -79,7 +79,8 @@ public sealed class GcaeRuntimeSnapshot
         DayStructureSnapshot? dayStructure = null,
         EntryPolicySnapshot? entryPolicy = null,
         CfdMappingSnapshot? cfdMapping = null,
-        RiskSnapshot? risk = null)
+        RiskSnapshot? risk = null,
+        IReadOnlyList<string>? moduleFaults = null)
     {
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
@@ -133,6 +134,7 @@ public sealed class GcaeRuntimeSnapshot
         EntryPolicy = entryPolicy;
         CfdMapping = cfdMapping;
         Risk = risk;
+        ModuleFaults = moduleFaults ?? Array.Empty<string>();
     }
 
     public DataGateSnapshot DataGate { get; }
@@ -170,6 +172,15 @@ public sealed class GcaeRuntimeSnapshot
     public EntryPolicySnapshot? EntryPolicy { get; }
     public CfdMappingSnapshot? CfdMapping { get; }
     public RiskSnapshot? Risk { get; }
+
+    /// <summary>
+    /// Modules that threw during their last update, with the reason.
+    ///
+    /// Without this a module killed by an exception is indistinguishable from one
+    /// the operator disabled — both render as NOT AVAILABLE — and the failure is
+    /// invisible for the whole session.
+    /// </summary>
+    public IReadOnlyList<string> ModuleFaults { get; }
     public string RecorderDiagnosticSummary { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }

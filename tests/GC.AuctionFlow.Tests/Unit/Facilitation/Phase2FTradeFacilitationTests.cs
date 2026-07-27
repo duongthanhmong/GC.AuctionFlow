@@ -408,9 +408,9 @@ public sealed class Phase2FTradeFacilitationTests
     // ---------- I: Runtime integration ----------
 
     [Fact]
-    public void I01_RuntimeSnapshot_SnapshotVersion_is_0_24_0()
+    public void I01_RuntimeSnapshot_SnapshotVersion_is_0_25_0()
     {
-        Assert.Equal("0.24.0", GcaeRuntimeSnapshot.SnapshotVersion);
+        Assert.Equal("0.25.0", GcaeRuntimeSnapshot.SnapshotVersion);
     }
 
     [Fact]

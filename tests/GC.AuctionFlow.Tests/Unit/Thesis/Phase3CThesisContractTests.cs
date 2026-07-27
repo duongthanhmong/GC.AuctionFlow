@@ -522,8 +522,8 @@ public sealed class Phase3CThesisContractTests
     }
 
     [Fact]
-    public void K01_SnapshotVersion_is_0_24_0() =>
-        Assert.Equal("0.24.0", GcaeRuntimeSnapshot.SnapshotVersion);
+    public void K01_SnapshotVersion_is_0_25_0() =>
+        Assert.Equal("0.25.0", GcaeRuntimeSnapshot.SnapshotVersion);
 
     [Fact]
     public void K02_Contract_defaults_to_null_on_snapshot() =>

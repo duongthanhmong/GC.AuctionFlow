@@ -87,6 +87,9 @@ public sealed class AuctionGpsCardViewModel
     public string RecorderLine { get; }
     public string MboLine { get; }
     public IReadOnlyList<string> DiagnosticRows { get; }
+
+    /// <summary>Loud when any module threw; otherwise a quiet all-clear.</summary>
+    public string FaultLine { get; init; } = "FAULTS: none";
     public DataState DataState { get; }
     public long SnapshotPublicationSequence { get; }
 
@@ -119,6 +122,7 @@ public sealed class AuctionGpsCardViewModel
         {
             Title,
             "BUILD: " + BuildId + " | SCHEMA " + GcaeRuntimeSnapshot.SnapshotVersion,
+            FaultLine,
             DataLine,
             ReasonLine,
             ContractLine,
@@ -338,7 +342,16 @@ public static class AuctionGpsCardMapper
             mboLine: "MBO: BLOCKED",
             diagnosticRows: diagnostics,
             dataState: g.DataState,
-            snapshotPublicationSequence: snapshot.PublicationSequence);
+            snapshotPublicationSequence: snapshot.PublicationSequence)
+        {
+            // A module killed by an exception must not look like one that was
+            // switched off. Both used to render as NOT AVAILABLE.
+            FaultLine = snapshot.ModuleFaults.Count == 0
+                ? "FAULTS: none"
+                : "FAULTS (" + snapshot.ModuleFaults.Count.ToString(
+                      System.Globalization.CultureInfo.InvariantCulture) + "): "
+                  + string.Join("; ", snapshot.ModuleFaults.Take(3))
+        };
     }
 
     public static IReadOnlyList<string> BuildCompositeLines(CompositeSetSnapshot? set, bool showDiagnostics)

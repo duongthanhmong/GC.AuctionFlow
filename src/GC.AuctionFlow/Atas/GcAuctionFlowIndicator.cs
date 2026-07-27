@@ -82,6 +82,18 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private ThesisContractHost? _thesisContractHost;
     private PlarHost? _plarHost;
     private PriceMemoryHost? _priceMemoryHost;
+
+    /// <summary>
+    /// Last fault per module. Swallowing exceptions kept the indicator alive but made a
+    /// dead module indistinguishable from a disabled one for the whole session.
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _moduleFaults = new();
+
+    private void RecordFault(string module, Exception ex) =>
+        _moduleFaults[module] = module + ": " + ex.GetType().Name + " " + ex.Message;
+
+    private void ClearFault(string module) => _moduleFaults.TryRemove(module, out _);
+
     private ImbalanceHost? _imbalanceHost;
     private DayStructureHost? _dayStructureHost;
     private EntryPolicyHost? _entryPolicyHost;
@@ -1257,9 +1269,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
             if (_referenceHost.Current is not null && _referenceHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedReferenceFingerprint = fp;
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained — do not advance fingerprint.
+            // Fingerprint is deliberately not advanced, so the next bar retries.
+            RecordFault("StructuralReferences", ex);
         }
     }
 
@@ -1293,9 +1306,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
             if (_directionalHost.Current is not null && _directionalHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedDirectionalFingerprint = fp;
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained — do not advance fingerprint.
+            // Fingerprint is deliberately not advanced, so the next bar retries.
+            RecordFault("DirectionalContext", ex);
         }
     }
 
@@ -1325,10 +1339,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_episodeHost.Current is not null && _episodeHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedEpisodeFingerprint = fp;
+            ClearFault("Composite");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("AuctionEpisodes", ex);
         }
     }
 
@@ -1468,10 +1483,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_evidenceHost.Current is not null && _evidenceHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedEvidenceFingerprint = fp;
+            ClearFault("AcceptanceReentryEvidence");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("AcceptanceReentryEvidence", ex);
         }
     }
 
@@ -1500,10 +1516,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_orderflowHost.Current is not null && _orderflowHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedOrderflowFingerprint = fp;
+            ClearFault("ExecutedOrderflow");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("ExecutedOrderflow", ex);
         }
     }
 
@@ -1531,10 +1548,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_clusterHost.Current is not null && _clusterHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedClusterFingerprint = fp;
+            ClearFault("ClusterRawFeatures");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("ClusterRawFeatures", ex);
         }
     }
 
@@ -1566,10 +1584,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_efficiencyHost.Current is not null && _efficiencyHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedEfficiencyFingerprint = fp;
+            ClearFault("AuctionEfficiencyEvidence");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("AuctionEfficiencyEvidence", ex);
         }
     }
 
@@ -1593,10 +1612,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_resolutionHost.Current is not null && _resolutionHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedResolutionFingerprint = fp;
+            ClearFault("AcceptanceReentryResolution");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("AcceptanceReentryResolution", ex);
         }
     }
 
@@ -1620,10 +1640,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_effortResultHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedEffortResultFingerprint = fp;
+            ClearFault("EffortResult");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("EffortResult", ex);
         }
     }
 
@@ -1646,10 +1667,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_farThesisHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedFarThesisFingerprint = fp;
+            ClearFault("FarThesis");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("FarThesis", ex);
         }
     }
 
@@ -1672,10 +1694,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (_aacThesisHost.LastAppliedFingerprint is { } fp)
                 _lastAppliedAacThesisFingerprint = fp;
+            ClearFault("AacThesis");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("AacThesis", ex);
         }
     }
 
@@ -1743,10 +1766,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _tradeFacilitationHost ??= new TradeFacilitationHost(policy);
             _tradeFacilitationHost.Configure(policy);
             _tradeFacilitationHost.Rebuild(efficiency);
+            ClearFault("TradeFacilitation");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("TradeFacilitation", ex);
         }
     }
 
@@ -1801,10 +1825,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var path = plarSet?.PathFor(dir);
 
             _signalMaturityHost.Rebuild(far, aac, location, path);
+            ClearFault("SignalMaturity");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("SignalMaturity", ex);
         }
     }
 
@@ -1858,10 +1883,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _riskHost ??= new RiskHost(new RiskPolicyConfig(enabled: true));
             _riskHost.Configure(new RiskPolicyConfig(enabled: true));
             _riskHost.Rebuild(_entryPolicyHost.Current, _cfdMappingHost.Current);
+            ClearFault("ExecutionReadiness");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("ExecutionReadiness", ex);
         }
     }
 
@@ -1882,10 +1908,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _imbalanceHost ??= new ImbalanceHost(policy);
             _imbalanceHost.Configure(policy);
             _imbalanceHost.Rebuild(cluster, location);
+            ClearFault("Imbalance");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("Imbalance", ex);
         }
     }
 
@@ -1905,10 +1932,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _priceMemoryHost ??= new PriceMemoryHost(policy);
             _priceMemoryHost.Configure(policy);
             _priceMemoryHost.Rebuild(episodes);
+            ClearFault("PriceMemory");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("PriceMemory", ex);
         }
     }
 
@@ -1928,10 +1956,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _plarHost ??= new PlarHost(policy);
             _plarHost.Configure(policy);
             _plarHost.Rebuild(references?.ActiveReferences, references?.Nearest?.CurrentPriceTick);
+            ClearFault("Plar");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("Plar", ex);
         }
     }
 
@@ -1951,10 +1980,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _thesisContractHost ??= new ThesisContractHost(policy);
             _thesisContractHost.Configure(policy);
             _thesisContractHost.Rebuild(maturity);
+            ClearFault("ThesisContract");
         }
-        catch
+        catch (Exception ex)
         {
-            // Contained.
+            RecordFault("ThesisContract", ex);
         }
     }
 
@@ -2438,7 +2468,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 dayStructure: dayStructure,
                 entryPolicy: entryPolicy,
                 cfdMapping: cfdMapping,
-                risk: risk);
+                risk: risk,
+                moduleFaults: _moduleFaults.Values.OrderBy(v => v).ToArray());
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

@@ -103,7 +103,8 @@ public sealed class GcaeRuntimeEngine
         DayStructureSnapshot? dayStructure = null,
         EntryPolicySnapshot? entryPolicy = null,
         CfdMappingSnapshot? cfdMapping = null,
-        RiskSnapshot? risk = null)
+        RiskSnapshot? risk = null,
+        IReadOnlyList<string>? moduleFaults = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -287,7 +288,8 @@ public sealed class GcaeRuntimeEngine
             dayStructure,
             entryPolicy,
             cfdMapping,
-            risk);
+            risk,
+            moduleFaults);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

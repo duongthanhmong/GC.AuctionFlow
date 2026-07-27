@@ -101,3 +101,90 @@ public sealed class IndicatorProcessChainTests
         }
     }
 }
+
+/// <summary>
+/// Module faults must be visible.
+///
+/// Every Process method used to end in an empty catch. That kept the indicator alive,
+/// which is right, but it meant a module killed by an exception rendered exactly like a
+/// module the operator had switched off — NOT AVAILABLE — and the failure stayed
+/// invisible for the whole session. Seven rows read that way during the first live run
+/// and there was no way to tell which cause applied.
+/// </summary>
+public sealed class ModuleFaultVisibilityTests
+{
+    private static string IndicatorSource()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+    }
+
+    /// <summary>
+    /// Every guarded module reports its faults.
+    ///
+    /// Counting is used rather than parsing method bodies: brace-matching by regex is
+    /// brittle, and the invariant is simply that no guarded module is left without a
+    /// fault report.
+    /// </summary>
+    [Fact]
+    public void A01_Every_guarded_module_records_faults()
+    {
+        var src = IndicatorSource();
+
+        var guardedModules = System.Text.RegularExpressions.Regex.Matches(
+            src, @"private void Process(\w+)\(\)").Count;
+        var faultReports = System.Text.RegularExpressions.Regex.Matches(
+            src, @"RecordFault\(""").Count;
+
+        Assert.True(faultReports >= guardedModules - 1,
+            "only " + faultReports + " modules report faults out of " + guardedModules
+            + "; a module that throws would render as NOT AVAILABLE and hide the failure");
+    }
+
+    [Fact]
+    public void A02_Every_process_catch_records_a_fault()
+    {
+        var src = IndicatorSource();
+        var catches = System.Text.RegularExpressions.Regex.Matches(
+            src, @"private void Process\w+\(\).*?catch \(Exception ex\)\s*\{(.*?)\}",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        Assert.NotEmpty(catches);
+        foreach (System.Text.RegularExpressions.Match c in catches)
+            Assert.Contains("RecordFault(", c.Groups[1].Value, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A fault must be attributed to the module that actually threw.
+    ///
+    /// The first pass at this instrumentation labelled ProcessAuctionEpisodes' catch as
+    /// "Composite". A misattributed fault is worse than none: it sends the reader to a
+    /// healthy module and clears the guilty one.
+    /// </summary>
+    [Fact]
+    public void A02b_Every_fault_label_matches_its_own_method()
+    {
+        var src = IndicatorSource();
+
+        var methods = System.Text.RegularExpressions.Regex
+            .Matches(src, @"private void Process(\w+)\(")
+            .Select(m => (Pos: m.Index, Name: m.Groups[1].Value))
+            .ToArray();
+
+        foreach (System.Text.RegularExpressions.Match call in
+                 System.Text.RegularExpressions.Regex.Matches(src, @"RecordFault\(""(\w+)"""))
+        {
+            var owner = methods.LastOrDefault(m => m.Pos < call.Index);
+            Assert.Equal(owner.Name, call.Groups[1].Value);
+        }
+    }
+
+    [Fact]
+    public void A03_Faults_reach_the_published_snapshot()
+    {
+        var src = IndicatorSource();
+        Assert.Contains("moduleFaults: _moduleFaults", src, StringComparison.Ordinal);
+    }
+}
