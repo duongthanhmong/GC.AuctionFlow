@@ -112,7 +112,8 @@ public sealed class GcaeRuntimeEngine
         long tradesWithAggressorSide = 0,
         long depthCallbacksObserved = 0,
         bool mboRecordingUnlocked = false,
-        long depthFramesRecorded = 0)
+        long depthFramesRecorded = 0,
+        bool depthRecordingEnabled = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -192,8 +193,15 @@ public sealed class GcaeRuntimeEngine
         // Depth frames are reported alongside the recorder state because session byte
         // size cannot separate "depth recording is on" from "depth recording is on and
         // writing" — trades dominate the file either way.
-        var recorderSummary = capability.RecorderState.ToString().ToUpperInvariant()
-            + (depthFramesRecorded > 0 ? " (+" + depthFramesRecorded + " DEPTH)" : "");
+        // Three states, not two. "Depth off" and "depth on but writing nothing" look
+        // identical from the file system and need opposite responses — flip a switch, or
+        // debug. Collapsing them cost a round trip once already.
+        var depthSummary =
+            !depthRecordingEnabled ? ""
+            : depthFramesRecorded > 0 ? " (+" + depthFramesRecorded + " DEPTH)"
+            : " (DEPTH ON, 0 FRAMES)";
+
+        var recorderSummary = capability.RecorderState.ToString().ToUpperInvariant() + depthSummary;
 
         var limitations = new List<string>();
         limitations.AddRange(contract.KnownLimitations);

@@ -860,10 +860,15 @@ public sealed class GcAuctionFlowIndicator : Indicator
     protected override void MarketDepthChanged(MarketDataArg depth)
     {
         NoteDepthCallback();
-        TryRecordDepth(depth, RecorderCallbackSource.MarketDepthChanged, bestBidAsk: false);
         EnsureProbesStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
+
+        // After the probe and instrument identity exist, not before. TryGetRecorderReady
+        // requires both, so recording from the top of the callback silently dropped every
+        // frame that arrived before setup completed — and left no trace that it had.
+        TryRecordDepth(depth, RecorderCallbackSource.MarketDepthChanged, bestBidAsk: false);
+
         var probe = _domProbe;
         if (probe is null || depth is null) return;
         try
@@ -921,10 +926,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
         // The most direct evidence of all: if the platform raises this at all, the feed
         // carries a best bid and ask.
         NoteDepthCallback();
-        TryRecordDepth(depth, RecorderCallbackSource.BestBidAskChanged, bestBidAsk: true);
         EnsureProbesStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
+
+        // Same ordering requirement as MarketDepthChanged.
+        TryRecordDepth(depth, RecorderCallbackSource.BestBidAskChanged, bestBidAsk: true);
+
         var probe = _domProbe;
         if (probe is null || depth is null) return;
         try
@@ -2670,7 +2678,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 mboRecordingUnlocked: MboOperationalLock.MboRecordingEnabled,
                 depthFramesRecorded: recorder is null
                     ? 0L
-                    : Interlocked.Read(ref recorder.Counters.DepthFramesAccepted));
+                    : Interlocked.Read(ref recorder.Counters.DepthFramesAccepted),
+                depthRecordingEnabled: EnableDepthAndQuoteRecording);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
