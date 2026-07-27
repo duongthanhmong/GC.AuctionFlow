@@ -5,10 +5,10 @@
 
 | Field | Value |
 |-------|--------|
-| Current phase | **SKELETON COMPLETE — LIVE ACCEPTANCE PENDING (batched)** |
+| Current phase | **SKELETON COMPLETE — FIRST LIVE RUN DONE; PER-PHASE ACCEPTANCE STILL PENDING** |
 | Probe version | **0.0.6** (unchanged) |
 | RawEventRecorderSchemaVersion | **1.2.0** |
-| Runtime snapshot schema | **0.24.0** (execution readiness published) |
+| Runtime snapshot schema | **0.25.0** (module fault reporting) |
 | Profile snapshot schema | **1.0.2** (Completed TPO period feed) |
 | Composite policy | **COMPOSITE_POLICY_V1** (unchanged) |
 | Reference policy | **REFERENCE_POLICY_V1** (unchanged) |
@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1226** passed / 0 failed / 0 skipped |
+| Test count | **1252** passed / 0 failed / 0 skipped |
 | GPS diagnostic rows | **21** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -255,6 +255,69 @@ Focused live gate proved Episode PARTIAL publication, live trade admission, Conf
 - FAR / AAC overall conclusion (NOT CALIBRATED)
 - Thesis / Entry / Risk phases
 - Overlay alerts
+
+## First live run (2026-07-27) — GCQ6 / Rithmic
+
+| Gate | Result |
+|------|--------|
+| Modules reporting real state | **21 / 21** |
+| Modules confirmed behaving correctly | **20 / 21** |
+| Integration defects found | **3** — all invisible to 1226 green unit tests |
+| Card at close | build `FF75B587`, schema `0.25.0`, `FAULTS: none` |
+| Per-phase live acceptance | **STILL PENDING** — this proved the modules are alive, not that each phase's semantics are correct |
+
+### What the run established
+
+Foundation READY: Profile, Composite (5 auctions), References (16 confirmed / 8 developing
+/ 22 confluence), Directional. The chain Episode -> Evidence -> Orderflow -> Cluster ->
+Efficiency -> Resolution -> EffortResult -> FAR -> AAC runs PARTIAL on live data, where
+PARTIAL means aggressor classification is absent rather than the module being broken.
+
+Four modules report exactly what they were designed to and that is a pass, not a gap:
+`DAY STRUCTURE: NOTCALIBRATED`, `ENTRY PLAN: OBSERVEONLY`, `CFD MAP: INVALID`,
+`RISK: NOTCALIBRATED`.
+
+### The three defects, and why the suite could not see them
+
+| Defect | Why unit tests missed it |
+|---|---|
+| Trade Facilitation was reachable only through its `Ensure` guard, which early-returns once a snapshot exists, so it published `AwaitingEfficiency` once and froze | no test simulated more than one publish path |
+| Seven modules were populated only in the `OnCalculate` chain, but `PublishRuntimeSnapshot` is reachable from **six** call sites and trade callbacks publish far more often than bars close, so the last publish saw nulls | tests drive hosts directly and never go through the indicator |
+| PLAR held a full reference set but no price, because `NearestReferenceView` carries one only when the reference extraction produced it | tests always passed a price in |
+
+All three are integration defects, and every one sat behind a green suite.
+
+### Correction to an earlier claim
+
+The `phase2f-b` fix commit called `Ensure*InitializedForPublish` "a first-publish safety
+net" and said the per-bar chain was the real update path. That is backwards. `Ensure` is
+how a module survives the five non-bar publish paths; the chain is the optional half.
+Facilitation was broken in both directions at once, which is why fixing only the chain
+changed nothing on the card.
+
+### Diagnostics added because the failure was unreadable
+
+- **`BUILD: <mvid8>`** on the card. Two consecutive screenshots were byte-identical
+  including a row just fixed, and nothing distinguished "stale DLL" from "fix did not
+  work". A screenshot now proves which binary produced it.
+- **`FAULTS:`** row. Every `Process*` ended in an empty `catch`, so a module killed by an
+  exception looked identical to one switched off.
+- **`ENABLED BUT NO SNAPSHOT`**. `NOT AVAILABLE` conflated off / idle / silently-not-
+  publishing. Separating the third case is what located the root cause.
+- **GPS card compact mode**. With every module on, the card ran to several hundred lines
+  and the status block sat below the bottom of any screen.
+
+### Open
+
+- `TRADE FACILITATION: AWAITINGEFFICIENCY` while `AUCTION EFFICIENCY: PARTIAL`.
+  Facilitation reports that when efficiency exposes no scope at all, and
+  `MATURITY: AWAITINGTHESIS` alongside `FAR/AAC: PARTIAL` fits the same shape — modules
+  running, content empty. Not established whether that is correct (no qualifying episode)
+  or a content-chain defect. Needs scope counts from the non-compact detail block.
+- One test failed once immediately after a clean rebuild and passed on four subsequent
+  runs. Suspected source-file read racing the build. Recorded, not reproduced.
+- `COMPLETED PERIODS: 17` against `TPO PERIOD INDEX: 36`, indicator added mid-session.
+  May be correct under LIVE_ONLY or may be a historical-initialisation gap.
 
 ## Phase 2E code/test (2026-07-26) — LIVE ACCEPTANCE PENDING
 
