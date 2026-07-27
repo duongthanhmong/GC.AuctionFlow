@@ -29,3 +29,15 @@ Thumbs.db
 .env
 *.pfx
 credentials*.json
+rithmic.env
+rithmic*.env
+
+# OptionFlow sidecar (research/optionflow)
+research/optionflow/.venv/
+research/optionflow/**/__pycache__/
+research/optionflow/**/*.pyc
+research/optionflow/.pytest_cache/
+research/optionflow/tests/fixtures/*.json
+!research/optionflow/tests/fixtures/.gitkeep
+# published option levels are runtime output, not source
+artifacts/optionflow/

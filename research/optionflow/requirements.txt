@@ -1,0 +1,8 @@
+# Runtime
+async_rithmic>=1.0        # open-source Rithmic R|Protocol client (protobuf, login, subscribe)
+
+# Test
+pytest>=8.0
+
+# Note: the GEX math in gex/ is pure-python and needs no numpy/scipy, so the
+# offline test suite runs with just pytest even before async_rithmic is installed.
