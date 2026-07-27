@@ -94,6 +94,19 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     private void ClearFault(string module) => _moduleFaults.TryRemove(module, out _);
 
+    /// <summary>
+    /// A module that is switched on but has produced no snapshot renders as NOT
+    /// AVAILABLE, identical to one that is switched off. That ambiguity cost a full
+    /// debugging cycle, so the state is reported explicitly.
+    /// </summary>
+    private void NoteIfEnabledButUnpublished(string module, bool enabled, object? current)
+    {
+        if (enabled && current is null)
+            _moduleFaults[module] = module + ": ENABLED BUT NO SNAPSHOT";
+        else if (enabled)
+            _moduleFaults.TryRemove(module, out _);
+    }
+
     private ImbalanceHost? _imbalanceHost;
     private DayStructureHost? _dayStructureHost;
     private EntryPolicyHost? _entryPolicyHost;
@@ -2408,6 +2421,14 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var entryPolicy = EnableExecutionReadiness ? _entryPolicyHost?.Current : null;
             var cfdMapping = EnableExecutionReadiness ? _cfdMappingHost?.Current : null;
             var risk = EnableExecutionReadiness ? _riskHost?.Current : null;
+
+            NoteIfEnabledButUnpublished("Plar", EnablePlar, plarSetForPublish);
+            NoteIfEnabledButUnpublished("PriceMemory", EnablePriceMemory, priceMemory);
+            NoteIfEnabledButUnpublished("Imbalance", EnableImbalance, imbalance);
+            NoteIfEnabledButUnpublished("DayStructure", EnableExecutionReadiness, dayStructure);
+            NoteIfEnabledButUnpublished("EntryPolicy", EnableExecutionReadiness, entryPolicy);
+            NoteIfEnabledButUnpublished("CfdMapping", EnableExecutionReadiness, cfdMapping);
+            NoteIfEnabledButUnpublished("Risk", EnableExecutionReadiness, risk);
             var participation = new ParticipationSetSnapshot(
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());

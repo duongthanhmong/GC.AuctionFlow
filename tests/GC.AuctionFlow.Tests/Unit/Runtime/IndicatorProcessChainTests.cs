@@ -188,3 +188,43 @@ public sealed class ModuleFaultVisibilityTests
         Assert.Contains("moduleFaults: _moduleFaults", src, StringComparison.Ordinal);
     }
 }
+
+/// <summary>
+/// A module that is switched on but has produced no snapshot must say so.
+///
+/// The first live run showed seven rows reading NOT AVAILABLE with their toggles
+/// verified on and FAULTS: none. That state is genuinely ambiguous — off, idle, or
+/// silently not publishing all render identically — and it cost a full debugging cycle
+/// before the distinction was even reportable.
+/// </summary>
+public sealed class EnabledButUnpublishedTests
+{
+    private static string IndicatorSource()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
+            dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(
+            dir!.FullName, "src", "GC.AuctionFlow", "Atas", "GcAuctionFlowIndicator.cs"));
+    }
+
+    [Fact]
+    public void A01_Every_optional_published_module_is_checked()
+    {
+        var src = IndicatorSource();
+        foreach (var module in new[]
+                 { "Plar", "PriceMemory", "Imbalance", "DayStructure", "EntryPolicy", "CfdMapping", "Risk" })
+            Assert.Contains("NoteIfEnabledButUnpublished(\"" + module + "\"", src, StringComparison.Ordinal);
+    }
+
+    /// <summary>The note must clear once the module starts publishing, or it becomes noise.</summary>
+    [Fact]
+    public void A02_The_note_clears_when_the_module_publishes()
+    {
+        var src = IndicatorSource();
+        var body = System.Text.RegularExpressions.Regex.Match(src,
+            @"private void NoteIfEnabledButUnpublished\(.*?\n    \}",
+            System.Text.RegularExpressions.RegexOptions.Singleline).Value;
+        Assert.Contains("TryRemove", body, StringComparison.Ordinal);
+    }
+}
