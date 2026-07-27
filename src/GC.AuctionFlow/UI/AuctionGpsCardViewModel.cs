@@ -97,7 +97,8 @@ public sealed class AuctionGpsCardViewModel
     /// overflows any screen and puts the module status rows — the part that actually
     /// answers "is each module alive" — out of reach. <paramref name="compact"/> drops
     /// the detail block and keeps the header plus the status rows, so the whole engine
-    /// state fits in one view.
+    /// state fits in one view. It implies <paramref name="includeDiagnostics"/>, because
+    /// a compact card without the status rows shows nothing worth reading.
     /// </summary>
     public IReadOnlyList<string> AllLines(bool includeDiagnostics, bool compact = false)
     {
@@ -121,7 +122,10 @@ public sealed class AuctionGpsCardViewModel
         lines.Add(RollLine);
         lines.Add(RecorderLine);
         lines.Add(MboLine);
-        if (includeDiagnostics)
+        // Compact implies the status rows. Its entire purpose is to surface them, and a
+        // compact card without them is a bare header with nothing to read — there is no
+        // use for that combination, so the flag is not left as a way to reach it.
+        if (includeDiagnostics || compact)
             lines.AddRange(DiagnosticRows);
         return lines;
     }

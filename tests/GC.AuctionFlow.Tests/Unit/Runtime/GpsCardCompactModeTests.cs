@@ -75,14 +75,30 @@ public sealed class GpsCardCompactModeTests
             Assert.DoesNotContain(detail, compact);
     }
 
+    /// <summary>
+    /// Compact implies the status rows.
+    ///
+    /// This originally asserted the two flags were independent. That encoded a bad
+    /// design, and the first live run proved it: turning on Compact Mode while leaving
+    /// diagnostics off produced a bare 15-line header with nothing to read. Compact
+    /// exists to surface the status block, so it must never be reachable without it.
+    /// </summary>
     [Fact]
-    public void A05_Compact_without_diagnostics_still_omits_status_rows()
+    public void A05_Compact_implies_the_status_rows()
     {
-        // compact controls the detail block; showDiagnostics controls the status rows.
-        // The two flags stay independent.
         var vm = Card(showDiagnostics: true);
         var compactNoDiag = vm.AllLines(includeDiagnostics: false, compact: true);
-        Assert.All(vm.DiagnosticRows, r => Assert.DoesNotContain(r, compactNoDiag));
+        foreach (var row in vm.DiagnosticRows)
+            Assert.Contains(row, compactNoDiag);
+    }
+
+    /// <summary>Non-compact keeps the original meaning: diagnostics gates the rows.</summary>
+    [Fact]
+    public void A05b_Non_compact_still_respects_the_diagnostics_flag()
+    {
+        var vm = Card(showDiagnostics: true);
+        var plain = vm.AllLines(includeDiagnostics: false, compact: false);
+        Assert.All(vm.DiagnosticRows, r => Assert.DoesNotContain(r, plain));
     }
 
     /// <summary>Existing callers must be unaffected.</summary>
