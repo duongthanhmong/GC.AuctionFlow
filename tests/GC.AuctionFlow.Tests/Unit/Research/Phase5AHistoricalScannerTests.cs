@@ -47,6 +47,9 @@ public sealed class Phase5AHistoricalScannerTests
     private static HistoricalScannerHost Host() =>
         new(new HistoricalScannerPolicyConfig(enabled: true));
 
+    /// <summary>Shared with the store tests so both build identical rows.</summary>
+    internal static AuctionEpisodeSnapshot EpisodeForStore(string id) => Episode(id);
+
     private static AuctionEpisodeSnapshot Episode(
         string id,
         ReferenceType type = ReferenceType.PreviousPrimaryTpoPoc,
@@ -95,6 +98,8 @@ public sealed class Phase5AHistoricalScannerTests
             eventRevision: 11,
             dataQuality: quality,
             limitations: Array.Empty<string>());
+
+    internal static AuctionEpisodeSetSnapshot ClosedForStore(params AuctionEpisodeSnapshot[] e) => Closed(e);
 
     private static AuctionEpisodeSetSnapshot Closed(params AuctionEpisodeSnapshot[] episodes) =>
         new(

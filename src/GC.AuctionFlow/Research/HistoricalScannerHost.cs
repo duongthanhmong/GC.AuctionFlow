@@ -30,10 +30,21 @@ public sealed class HistoricalScannerHost
     private int _admissibleRows;
     private int _rowsDropped;
 
-    public HistoricalScannerHost(HistoricalScannerPolicyConfig? policy = null)
+    private readonly EpisodeDatasetStore _store;
+    private Task<IReadOnlyList<PersistedEpisodeRow>>? _loading;
+    private int _loadMerged;
+    private int _recoveredRows;
+
+    public HistoricalScannerHost(
+        HistoricalScannerPolicyConfig? policy = null,
+        EpisodeDatasetStore? store = null)
     {
         _policy = policy ?? new HistoricalScannerPolicyConfig(enabled: false);
+        _store = store ?? new EpisodeDatasetStore();
     }
+
+    /// <summary>Rows recovered from previous sessions, once the background load lands.</summary>
+    public int RecoveredRows => Volatile.Read(ref _recoveredRows);
 
     public HistoricalScannerSnapshot? Current => _published;
 
@@ -80,6 +91,30 @@ public sealed class HistoricalScannerHost
         if (_datasetStartedAtUtc == default)
             _datasetStartedAtUtc = now;
 
+        // Recovery is dispatched once and merged whenever it completes. Reading on this
+        // thread would put disk work back on an ATAS callback, which is the defect that
+        // corrupted a chart earlier today.
+        _loading ??= _store.LoadAsync();
+        if (Volatile.Read(ref _loadMerged) == 0 && _loading.IsCompletedSuccessfully)
+        {
+            Volatile.Write(ref _loadMerged, 1);
+            foreach (var persisted in _loading.Result)
+            {
+                // Recovered rows seed the dedup set so a re-observed episode is not
+                // counted twice, and count towards the sample without re-entering the
+                // retained list — the file is the retained list now.
+                if (_foldedEpisodeIds.Add(persisted.EpisodeId))
+                {
+                    _rowsCollected++;
+                    if (persisted.Admissibility == DatasetRowAdmissibility.Admissible)
+                        _admissibleRows++;
+                    _recoveredRows++;
+                }
+            }
+        }
+
+        var newRows = new List<EpisodeDatasetRecord>();
+
         if (episodes is not null)
         {
             foreach (var episode in episodes.RecentlyClosedEpisodes)
@@ -93,9 +128,16 @@ public sealed class HistoricalScannerHost
                 if (!_foldedEpisodeIds.Add(episode.EpisodeId))
                     continue;
 
-                Fold(EpisodeDatasetRecord.FromEpisode(episode));
+                var row = EpisodeDatasetRecord.FromEpisode(episode);
+                Fold(row);
+                newRows.Add(row);
             }
         }
+
+        // Persisted after folding, so a row that survives dedup is the one that reaches
+        // disk. The call queues and returns; the write happens in the background.
+        if (newRows.Count > 0)
+            _store.Append(newRows);
 
         // Bar-derived rows count towards the module being alive but never towards the
         // episode dataset, which is what the calibration protocol reads.
@@ -130,7 +172,8 @@ public sealed class HistoricalScannerHost
             replay?.State ?? BarReplayState.Disabled,
             barRows,
             replay?.BarsWalked ?? 0,
-            volatility?.ObservationsSeen ?? 0);
+            volatility?.ObservationsSeen ?? 0,
+            _recoveredRows);
     }
 
     private void Fold(EpisodeDatasetRecord row)

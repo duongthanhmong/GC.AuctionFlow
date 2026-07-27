@@ -28,7 +28,8 @@ public sealed class HistoricalScannerSnapshot
         BarReplayState barReplayState = BarReplayState.Disabled,
         int barDerivedRows = 0,
         int barsWalked = 0,
-        int volatilityObservations = 0)
+        int volatilityObservations = 0,
+        int recoveredRows = 0)
     {
         State = state;
         PolicyVersion = policyVersion ?? "";
@@ -46,6 +47,7 @@ public sealed class HistoricalScannerSnapshot
         BarDerivedRows = barDerivedRows;
         BarsWalked = barsWalked;
         VolatilityObservations = volatilityObservations;
+        RecoveredRows = recoveredRows;
     }
 
     public HistoricalScannerState State { get; }
@@ -103,6 +105,13 @@ public sealed class HistoricalScannerSnapshot
     /// count of anything calibrated.
     /// </summary>
     public int VolatilityObservations { get; }
+
+    /// <summary>
+    /// Rows restored from previous sessions. Counted inside <see cref="RowsCollected"/> but
+    /// named separately: a sample rebuilt from disk and one earned today are the same number
+    /// and not the same fact.
+    /// </summary>
+    public int RecoveredRows { get; }
 
     /// <summary>
     /// Always false while the protocol runs outside this DLL.

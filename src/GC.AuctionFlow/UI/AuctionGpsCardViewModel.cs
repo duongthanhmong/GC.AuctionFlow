@@ -1652,7 +1652,14 @@ public static class AuctionGpsCardMapper
 
         // Episode rows and bar rows are shown as a pair rather than a total. They answer
         // different questions and the operator must be able to tell which one grew.
-        return "SCANNER: " + scanner.RowsCollected + " EP / " + scanner.BarDerivedRows
+        // Recovered rows are named, not folded into the total. "6 EP" earned today and
+        // "6 EP" restored from disk call for different reactions, and today has already
+        // shown what happens when two states render identically.
+        var recovered = scanner.RecoveredRows > 0
+            ? " (" + scanner.RecoveredRows + " RESTORED)"
+            : "";
+
+        return "SCANNER: " + scanner.RowsCollected + recovered + " EP / " + scanner.BarDerivedRows
                + " BAR | CAL STEP " + (int)scanner.Protocol.BlockedAt + "/"
                + CalibrationProtocol.TotalSteps + " "
                + scanner.Protocol.BlockedAt.ToString().ToUpperInvariant();
