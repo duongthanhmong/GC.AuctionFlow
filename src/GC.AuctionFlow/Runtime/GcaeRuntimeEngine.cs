@@ -113,7 +113,8 @@ public sealed class GcaeRuntimeEngine
         long depthCallbacksObserved = 0,
         bool mboRecordingUnlocked = false,
         long depthFramesRecorded = 0,
-        bool depthRecordingEnabled = false)
+        bool depthRecordingEnabled = false,
+        long preStartReplayTrades = 0)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -202,6 +203,12 @@ public sealed class GcaeRuntimeEngine
             : " (DEPTH ON, 0 FRAMES)";
 
         var recorderSummary = capability.RecorderState.ToString().ToUpperInvariant() + depthSummary;
+
+        // Rejected replay is reported, never silent. ATAS delivers a backlog through the
+        // live callbacks on indicator add, and an engine that quietly discards it looks
+        // identical to one that quietly consumed it.
+        if (preStartReplayTrades > 0)
+            recorderSummary += " | " + preStartReplayTrades + " PRE-START REPLAY REJECTED";
 
         var limitations = new List<string>();
         limitations.AddRange(contract.KnownLimitations);

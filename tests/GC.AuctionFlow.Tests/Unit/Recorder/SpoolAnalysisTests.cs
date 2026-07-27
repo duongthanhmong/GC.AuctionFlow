@@ -158,6 +158,63 @@ public sealed class SpoolAnalysisTests
         _out.WriteLine("   Sell at ask " + sellAtAsk.ToString().PadLeft(7) + "   at bid " + sellAtBid.ToString().PadLeft(7));
         _out.WriteLine("   (no quote in force: " + noQuote + ")");
 
+        // Did trades actually print at the extremes, or did only the chart move? The
+        // recorded prints settle it without anyone having to trust a rendering.
+        var prices = ordered
+            .Where(e => e.Kind is "NewTrade" or "CumulativeTradeNew")
+            .Select(e => (Px: ReadNestedDecimal(e.Json, "payload", "price"), e.WriterUtc))
+            .Where(t => t.Px > 0m)
+            .ToArray();
+
+        // Source time, not writer time. Grouping by writerDequeuedUtc collapses a
+        // start-up backlog into a few seconds and makes replayed prints look like a live
+        // move — which is exactly how a burst got read as a 47-point collapse.
+        var byExchange = ordered
+            .Where(e => e.Kind is "NewTrade" or "CumulativeTradeNew")
+            .Select(e => (Px: ReadNestedDecimal(e.Json, "payload", "price"),
+                          Src: ReadLong(e.Json, "sourceTimeTicks")))
+            .Where(t => t.Px > 0m && t.Src > 0)
+            .Select(t => (t.Px, When: new DateTime(t.Src)))
+            .OrderBy(t => t.When)
+            .ToArray();
+
+        if (byExchange.Length > 0)
+        {
+            _out.WriteLine("");
+            _out.WriteLine("BY EXCHANGE SOURCE TIME:");
+            _out.WriteLine("   span " + byExchange[0].When.ToString("HH:mm:ss")
+                           + " -> " + byExchange[^1].When.ToString("HH:mm:ss")
+                           + "  (" + (byExchange[^1].When - byExchange[0].When).TotalMinutes.ToString("F1") + " min)");
+            foreach (var m in byExchange.GroupBy(t => t.When.ToString("HH:mm"))
+                         .Select(g => (M: g.Key, Lo: g.Min(x => x.Px), Hi: g.Max(x => x.Px), N: g.Count()))
+                         .OrderByDescending(g => g.Hi - g.Lo).Take(6))
+                _out.WriteLine("      " + m.M + "  " + m.Lo + " -> " + m.Hi
+                               + "   span " + (m.Hi - m.Lo) + "   trades " + m.N);
+        }
+
+        if (prices.Length > 0)
+        {
+            var lo = prices.OrderBy(t => t.Px).First();
+            var hi = prices.OrderByDescending(t => t.Px).First();
+            _out.WriteLine("");
+            _out.WriteLine("recorded trade prices:");
+            _out.WriteLine("   low  " + lo.Px + " at " + lo.WriterUtc.ToString("HH:mm:ss"));
+            _out.WriteLine("   high " + hi.Px + " at " + hi.WriterUtc.ToString("HH:mm:ss"));
+            _out.WriteLine("   range " + (hi.Px - lo.Px));
+
+            // Minute buckets by traded range, to show where the move actually happened.
+            var byMinute = prices
+                .GroupBy(t => t.WriterUtc.ToString("HH:mm"))
+                .Select(g => (Min: g.Key, Lo: g.Min(x => x.Px), Hi: g.Max(x => x.Px), N: g.Count()))
+                .OrderByDescending(g => g.Hi - g.Lo)
+                .Take(5);
+
+            _out.WriteLine("   widest minutes:");
+            foreach (var m in byMinute)
+                _out.WriteLine("      " + m.Min + "  " + m.Lo + " -> " + m.Hi
+                               + "   span " + (m.Hi - m.Lo) + "   trades " + m.N);
+        }
+
         _out.WriteLine("");
         foreach (var kind in new[] { "NewTrade", "BestBidAsk" })
         {

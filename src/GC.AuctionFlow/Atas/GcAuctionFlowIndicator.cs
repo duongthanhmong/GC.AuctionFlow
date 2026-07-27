@@ -1504,6 +1504,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         if (!EnableAuctionEpisodes || obs is null || Volatile.Read(ref _disposed) != 0)
             return;
+
+        // Pre-start replay must not drive live analysis. On indicator add ATAS delivers a
+        // backlog through these same callbacks — one session carried 853 minutes of
+        // exchange time in 3.8 minutes of wall clock — and the engine was forming episodes
+        // out of fourteen hours of history compressed into seconds.
+        if (!TradeObservationFreshness.MayDriveLiveAnalysis(Freshness(obs)))
+        {
+            Interlocked.Increment(ref _preStartReplayTrades);
+            return;
+        }
         try
         {
             EnsureAuctionEpisodesInitializedForPublish();
@@ -1554,6 +1564,14 @@ public sealed class GcAuctionFlowIndicator : Indicator
     {
         if (!EnableExecutedOrderflow || obs is null || Volatile.Read(ref _disposed) != 0)
             return;
+
+        // Same gate as the episode path. Orderflow, delta and CVD were accumulating over
+        // replayed history as though it were the present.
+        if (!TradeObservationFreshness.MayDriveLiveAnalysis(Freshness(obs)))
+        {
+            Interlocked.Increment(ref _preStartReplayTrades);
+            return;
+        }
         try
         {
             EnsureExecutedOrderflowInitializedForPublish();
@@ -2489,10 +2507,27 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private long _tradesWithAggressorSide;
     private long _depthCallbacksObserved;
 
+    private long _observationStartUtcTicks;
+    private long _preStartReplayTrades;
+
+    /// <summary>
+    /// When observation began, stamped on the first trade callback.
+    ///
+    /// This is the `LIVE_ONLY` boundary made concrete: a trade whose exchange time precedes
+    /// it is pre-start activity, and pre-start activity is not to be reconstructed. Using
+    /// the first callback rather than construction time avoids counting the gap between the
+    /// indicator being created and data actually flowing.
+    /// </summary>
+    private DateTime ObservationStartUtc => new(Interlocked.Read(ref _observationStartUtcTicks), DateTimeKind.Utc);
+
+    private TradeFreshness Freshness(NewTradeObservation obs) =>
+        TradeObservationFreshness.Classify(obs.SourceTimeTicks, ObservationStartUtc);
+
     private void NoteTradeCallback()
     {
         _tradeObserved = true;
         _lastTradeCallbackUtc = DateTime.UtcNow;
+        Interlocked.CompareExchange(ref _observationStartUtcTicks, DateTime.UtcNow.Ticks, 0);
     }
 
     /// <summary>
@@ -2695,7 +2730,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 depthFramesRecorded: recorder is null
                     ? 0L
                     : Interlocked.Read(ref recorder.Counters.DepthFramesAccepted),
-                depthRecordingEnabled: EnableDepthAndQuoteRecording);
+                depthRecordingEnabled: EnableDepthAndQuoteRecording,
+                preStartReplayTrades: Interlocked.Read(ref _preStartReplayTrades));
 
             if (EnableAuctionGpsCard && renderer is not null)
             {
