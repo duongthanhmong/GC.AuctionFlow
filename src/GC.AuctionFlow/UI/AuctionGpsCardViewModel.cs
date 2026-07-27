@@ -370,7 +370,7 @@ public static class AuctionGpsCardMapper
             profileDetailLines: details,
             rollLine: "ROLL: " + roll,
             recorderLine: "RECORDER: " + recorder,
-            mboLine: "MBO: BLOCKED",
+            mboLine: MboLine(cap),
             diagnosticRows: diagnostics,
             dataState: g.DataState,
             snapshotPublicationSequence: snapshot.PublicationSequence)
@@ -1581,6 +1581,30 @@ public static class AuctionGpsCardMapper
 
     private static string Fmt(decimal? v) =>
         v is null ? "—" : v.Value.ToString("0.0", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// The MBO row.
+    ///
+    /// This was the literal string "MBO: BLOCKED". It stayed correct only for as long as
+    /// the lock did, and the moment recording was authorised the card kept reporting
+    /// BLOCKED while frames were being written — the fifth time in one session that a value
+    /// was computed correctly and then replaced by a constant at the display layer.
+    ///
+    /// Blocked and Unavailable stay distinct: the first means capture is refused, the
+    /// second that the feed did not supply it.
+    /// </summary>
+    public static string MboLine(RuntimeCapabilitySnapshot capability)
+    {
+        ArgumentNullException.ThrowIfNull(capability);
+
+        return "MBO: " + capability.MboState switch
+        {
+            RuntimeCapabilityState.Blocked => "BLOCKED",
+            RuntimeCapabilityState.NotReady => "AUTHORISED (COMPLETENESS UNPROVEN)",
+            RuntimeCapabilityState.Unavailable => "UNAVAILABLE",
+            _ => capability.MboState.ToString().ToUpperInvariant(),
+        };
+    }
 
     /// <summary>
     /// The bid/ask and DOM row.

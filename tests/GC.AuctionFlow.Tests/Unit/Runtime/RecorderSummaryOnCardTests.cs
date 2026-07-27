@@ -33,6 +33,35 @@ public sealed class RecorderSummaryOnCardTests
             depthFramesRecorded: depthFrames,
             depthRecordingEnabled: depthEnabled);
 
+    private static GcaeRuntimeSnapshot PublishMbo(bool mboAuthorised) =>
+        new GcaeRuntimeEngine().Publish(
+            null, "GCQ6", DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
+            DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
+            tradeObserved: true, lastTradeCallbackUtc: null,
+            rawRecorderMasterEnabled: true, tradeRecordingEnabled: true,
+            recorderAccepting: true, recorderFaulted: false, recorderSessionPresent: true,
+            indicatorDisposed: false,
+            mboRecordingUnlocked: mboAuthorised);
+
+    /// <summary>
+    /// Read through the card, not through the helper.
+    ///
+    /// The first attempt at this asserted on `MboLine()` directly and passed while the card
+    /// still emitted the literal "MBO: BLOCKED" — the helper was right and unused. A row is
+    /// only covered if the assertion travels the same path the operator's eyes do.
+    /// </summary>
+    private static string MboRow(GcaeRuntimeSnapshot snapshot) =>
+        AuctionGpsCardMapper.FromSnapshot(snapshot, true)
+            .AllLines(includeDiagnostics: true)
+            .Single(l => l.StartsWith("MBO:", StringComparison.Ordinal));
+
+    [Fact]
+    public void A07_The_mbo_row_on_the_card_follows_the_capability()
+    {
+        Assert.Contains("BLOCKED", MboRow(PublishMbo(mboAuthorised: false)), StringComparison.Ordinal);
+        Assert.DoesNotContain("BLOCKED", MboRow(PublishMbo(mboAuthorised: true)), StringComparison.Ordinal);
+    }
+
     private static string RecorderLine(GcaeRuntimeSnapshot snapshot) =>
         AuctionGpsCardMapper.FromSnapshot(snapshot, true)
             .AllLines(includeDiagnostics: true)

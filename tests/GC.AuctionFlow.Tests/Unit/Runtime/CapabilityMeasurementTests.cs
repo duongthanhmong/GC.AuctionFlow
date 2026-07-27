@@ -102,6 +102,29 @@ public sealed class CapabilityMeasurementTests
         Assert.Contains("UNKNOWN", unknown, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// The MBO row was the literal string "MBO: BLOCKED", so it kept saying BLOCKED after
+    /// recording was authorised and while frames were being written.
+    /// </summary>
+    [Fact]
+    public void B03_The_mbo_row_follows_the_capability_rather_than_a_constant()
+    {
+        var blocked = GC.AuctionFlow.UI.AuctionGpsCardMapper.MboLine(Build(10, 10));
+        var authorised = GC.AuctionFlow.UI.AuctionGpsCardMapper.MboLine(
+            RuntimeCapabilitySnapshotBuilder.Build(
+                DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared,
+                DeclaredFeedProvider.Rithmic, FeedProviderProvenance.OperatorDeclared,
+                instrumentIdentityAvailable: true, tradeObserved: true,
+                lastTradeCallbackUtc: null,
+                rawRecorderMasterEnabled: true, tradeRecordingEnabled: true,
+                recorderAccepting: true, recorderFaulted: false, recorderSessionPresent: true,
+                mboRecordingUnlocked: true));
+
+        Assert.Contains("BLOCKED", blocked, StringComparison.Ordinal);
+        Assert.DoesNotContain("BLOCKED", authorised, StringComparison.Ordinal);
+        Assert.Contains("COMPLETENESS UNPROVEN", authorised, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void B02_Card_reports_dom_alongside_bid_ask() =>
         Assert.Contains(
