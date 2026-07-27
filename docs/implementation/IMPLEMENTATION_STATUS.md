@@ -394,6 +394,54 @@ no code changed, and 1356 tests pass on both.
 | Build identity | `B0543F6E` |
 | Source == deployed | yes |
 
+### CORRECTION: the feed does carry aggressor side — the engine reads the wrong field
+
+Recorded earlier in this document, and **wrong**: *"trades arrive in volume and none carry
+an aggressor side"*. That was measured from `MarketDataArg.IsAsk` / `IsBid`, which Rithmic
+never populates. Reading the recording back shows the side is present on every trade, in
+`Direction`:
+
+```
+directionName across 24,214 trades      isAsk || isBid true
+   Sell   12,300                            0
+   Buy    11,914
+```
+
+No `Between`, no absent values, and a 50.8 / 49.2 split — the shape of a real aggressor
+stream, not an artefact.
+
+**Where it is lost.** `TradeStreamAtasMapper` captures `trade.Direction` into
+`NewTradeObservation.Direction`, so the value reaches the engine intact. Then
+`EpisodeTradeEvent.TryFromNewTrade` computes:
+
+```csharp
+var classified = obs.IsAsk || obs.IsBid;   // always false on this feed
+```
+
+and passes `obs.IsAsk, obs.IsBid` onward. The correct field is carried the whole way and
+discarded at the last step — the same failure shape as the four display-layer defects, one
+layer deeper.
+
+**What this invalidates:**
+
+| Reported as | Actually |
+|---|---|
+| `BID/ASK: UNAVAILABLE (FEED CARRIES NO SIDE)` on the card | wrong — the card states a measurement of the wrong field |
+| `AggressorEvidenceMissing` on scanner rows is "this feed" | wrong — it is this bug |
+| `CanonicalOutsideDelta` permanently null here | wrong — recoverable |
+| Auction Efficiency ask/bid components unavailable | wrong — recoverable |
+| Deriving side from the quote is the only path | wrong — no derivation needed, the feed states it |
+
+**Fix scope, not yet done.** `EpisodeTradeEvent` is Phase 1E and LOCKED, and correcting it
+changes delta, efficiency, imbalance and episode evidence simultaneously — every module
+that consumes aggressor evidence would begin producing different values, and today's live
+acceptance would need re-running for those modules. That is a deliberate, tested change
+with a re-acceptance, not a patch to slip in.
+
+Found only because the recording could be read back. Nothing in the live card or the test
+suite could have surfaced it: every layer agreed, and all of them were reading the same
+wrong field.
+
 ### The recording was read back for the first time
 
 `SegmentReader` opens a real `.seg` and decodes it. The frame codec already had tests, but
