@@ -734,6 +734,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     FeedProviderProvenance.ToString(),
                     probePerItem: (trade, _) =>
                     {
+                        // Counted here as well as in OnNewTrade. Counting only the single
+                        // callback left the tally at zero whenever the feed delivered in
+                        // batches, so bid/ask reported Unknown for a reason that was about
+                        // our instrumentation rather than about the feed.
+                        NoteAggressorEvidence(trade);
+
                         // Episode admission is independent of TradeStreamProbe enable/gates.
                         var obs = MapNormalizedNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, key);
                         if (obs is not null)
@@ -762,6 +768,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 foreach (var trade in trades)
                 {
                     if (trade is null) continue;
+
+                    // The recorder-absent batch path. Capability must be measured whether
+                    // or not a recorder happens to be running — otherwise the answer to
+                    // "does this feed carry aggressor side" would depend on an unrelated
+                    // operator switch.
+                    NoteAggressorEvidence(trade);
 
                     // One normalization → Episode always; probe enqueue only when gated.
                     var obs = MapNormalizedNewTrade(trade, TradeCallbackSource.OnNewTradesBatch, key);
