@@ -679,6 +679,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
         TryCaptureInstrument();
         TrySubscribeMboOnce();
         NoteTradeCallback();
+        NoteAggressorEvidence(trade);
         var probe = _tradeProbe;
         var mapper = _tradeMapper;
         if (probe is null || mapper is null || trade is null) return;
@@ -840,6 +841,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     protected override void MarketDepthChanged(MarketDataArg depth)
     {
+        NoteDepthCallback();
         EnsureProbesStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
@@ -897,6 +899,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     protected override void OnBestBidAskChanged(MarketDataArg depth)
     {
+        // The most direct evidence of all: if the platform raises this at all, the feed
+        // carries a best bid and ask.
+        NoteDepthCallback();
         EnsureProbesStarted();
         TryCaptureInstrument();
         TrySubscribeMboOnce();
@@ -2441,11 +2446,35 @@ public sealed class GcAuctionFlowIndicator : Indicator
         ProcessComposite();
     }
 
+    private long _tradesObserved;
+    private long _tradesWithAggressorSide;
+    private long _depthCallbacksObserved;
+
     private void NoteTradeCallback()
     {
         _tradeObserved = true;
         _lastTradeCallbackUtc = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Counts what the feed actually delivers, so the capability snapshot can report an
+    /// observation instead of a pinned constant.
+    ///
+    /// Aggressor side arrives on every trade callback as IsAsk/IsBid. Whether it is
+    /// populated was reported as "unknown" for the life of the project while the answer sat
+    /// in the callback arguments unread.
+    /// </summary>
+    private void NoteAggressorEvidence(MarketDataArg? trade)
+    {
+        if (trade is null)
+            return;
+
+        Interlocked.Increment(ref _tradesObserved);
+        if (trade.IsAsk || trade.IsBid)
+            Interlocked.Increment(ref _tradesWithAggressorSide);
+    }
+
+    private void NoteDepthCallback() => Interlocked.Increment(ref _depthCallbacksObserved);
 
     private void PublishRuntimeSnapshot()
     {
@@ -2569,7 +2598,11 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 cfdMapping: cfdMapping,
                 risk: risk,
                 moduleFaults: _moduleFaults.Values.OrderBy(v => v).ToArray(),
-                historicalScanner: historicalScanner);
+                historicalScanner: historicalScanner,
+                tradesObserved: Interlocked.Read(ref _tradesObserved),
+                tradesWithAggressorSide: Interlocked.Read(ref _tradesWithAggressorSide),
+                depthCallbacksObserved: Interlocked.Read(ref _depthCallbacksObserved),
+                mboRecordingUnlocked: MboOperationalLock.MboRecordingEnabled);
 
             if (EnableAuctionGpsCard && renderer is not null)
             {

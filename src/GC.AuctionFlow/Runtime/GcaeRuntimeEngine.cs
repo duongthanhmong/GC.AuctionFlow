@@ -107,7 +107,11 @@ public sealed class GcaeRuntimeEngine
         CfdMappingSnapshot? cfdMapping = null,
         RiskSnapshot? risk = null,
         IReadOnlyList<string>? moduleFaults = null,
-        HistoricalScannerSnapshot? historicalScanner = null)
+        HistoricalScannerSnapshot? historicalScanner = null,
+        long tradesObserved = 0,
+        long tradesWithAggressorSide = 0,
+        long depthCallbacksObserved = 0,
+        bool mboRecordingUnlocked = false)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -176,7 +180,11 @@ public sealed class GcaeRuntimeEngine
             recorderFaulted,
             recorderSessionPresent,
             profileState: profileCap,
-            extraLimitations: profileExtra);
+            extraLimitations: profileExtra,
+            tradesObserved: tradesObserved,
+            tradesWithAggressorSide: tradesWithAggressorSide,
+            depthCallbacksObserved: depthCallbacksObserved,
+            mboRecordingUnlocked: mboRecordingUnlocked);
 
         var gate = DataGateEngine.Evaluate(contract, capability, _config, indicatorDisposed, now);
         var seq = Interlocked.Increment(ref _publicationSequence);

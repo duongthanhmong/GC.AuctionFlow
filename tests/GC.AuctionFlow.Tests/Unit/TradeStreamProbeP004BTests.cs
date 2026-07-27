@@ -266,10 +266,30 @@ public sealed class TradeStreamProbeP004BTests
         while (i < il.Length)
         {
             var op = il[i++];
+
+            // Two-byte opcodes. Only ldftn/ldvirtftn carry a token; the rest take either
+            // nothing or a 2-byte local index. Skipping the second byte and guessing, as
+            // this did before, desynchronises the whole scan the moment one appears.
             if (op == 0xFE)
             {
                 if (i >= il.Length) break;
-                i++; // skip fe prefix operand byte; size handled loosely below
+                var second = il[i++];
+                i += second switch
+                {
+                    0x06 or 0x07 => 4,              // ldftn, ldvirtftn
+                    0x09 or 0x0A or 0x0B or 0x0C or 0x0D or 0x0E => 2, // ldarg/starg/ldloc/stloc
+                    0x15 or 0x1C => 4,              // initobj, sizeof
+                    _ => 0,
+                };
+                continue;
+            }
+
+            // switch: a 4-byte count followed by that many 4-byte offsets.
+            if (op == 0x45)
+            {
+                if (i + 4 > il.Length) break;
+                var targets = BitConverter.ToUInt32(il, i);
+                i += 4 + checked((int)(targets * 4));
                 continue;
             }
 
@@ -279,6 +299,14 @@ public sealed class TradeStreamProbeP004BTests
                 if (i + 4 > il.Length) break;
                 var token = BitConverter.ToInt32(il, i);
                 i += 4;
+
+                // A call operand is always a MethodDef, MemberRef or MethodSpec. Anything
+                // else means the scan drifted, and resolving it would either throw or
+                // invent a call target that is not in the method.
+                var tableId = (byte)(token >>> 24);
+                if (tableId is not (0x06 or 0x0A or 0x2B))
+                    continue;
+
                 list.Add(ResolveMember(md, token));
                 continue;
             }
@@ -362,8 +390,19 @@ public sealed class TradeStreamProbeP004BTests
         0x38 or 0x39 or 0x3A or 0x3B or 0x3C or 0x3D or 0x3E or 0x3F or 0x40 or 0x41 or 0x42 or 0x43 or 0x44 => 4,
         0x6A or 0x6B or 0x6C or 0x6D or 0x6E => 0,
         0x70 or 0x71 or 0x72 => 4,
-        0x8C or 0x8D or 0xA4 or 0xA5 or 0xC2 or 0xC6 or 0xD1 => 4,
+        // Field and token-bearing opcodes. stfld/ldsfld/ldsflda were absent, and because
+        // the fallback below silently returned 0 the scan drifted four bytes and then read
+        // an arbitrary word as a metadata token. That is how this decoder reported an
+        // invalid token rather than an honest miss.
+        0x7D or 0x7E or 0x7F => 4,      // stfld, ldsfld, ldsflda
+        0x8C or 0x8D or 0x8F => 4,      // box, newarr, ldelema
+        0xA2 or 0xA4 or 0xA5 => 4,      // stelem, stobj/ldobj family
+        0xC2 or 0xC6 or 0xC8 or 0xD1 => 4,
         0x2A => 0, // ret
+
+        // Everything else is a no-operand instruction. Unknown opcodes are treated as
+        // no-operand deliberately, but the token reader below validates before resolving,
+        // so a drift surfaces as a clear failure instead of a bogus call target.
         _ => 0
     };
 }
