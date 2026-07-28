@@ -15,7 +15,7 @@
   — KDK is the highest **domain** authority; code/tests are evidence of behaviour, not
   authority over meaning.
 - **KDK requirement:** KDK is the grounding domain source (whole document; hierarchy
-  lines 323–341).
+  lines 323–341 in v3 [historical] → **v4 lines 344–363**).
 - **current resolution:** CLAUDE.md rewritten; `AUTHORITY_ORDER.md` issued. Order is
   PO → KDK → reviewer spec → v1.2/v1.3 (non-conflicting) → STATUS → code/tests.
 - **implementation impact:** No domain code may be changed until the corrected order
@@ -23,11 +23,11 @@
 - **status:** RESOLVED (docs only; awaiting reviewer sign-off).
 
 ## SUP-002 — GEX vs the Options pillar
-- **documents:** CLAUDE.md/v1.3 (GEX-centric wording) vs KDK glossary (line 373)
+- **documents:** CLAUDE.md/v1.3 (GEX-centric wording) vs KDK glossary (v3 line 373 [historical] → **v4 line 396**)
 - **conflicting statements:** older wording treated "GEX" as the Options feature. KDK —
   "GEX là một mô-đun exposure bên trong trụ Options"; the Options pillar also includes
-  IV structure, activity, public positioning, scenario exposure (glossary line 372).
-- **KDK requirement:** Ch44 (pillar role/architecture); glossary 372–373.
+  IV structure, activity, public positioning, scenario exposure (v4 glossary line 395).
+- **KDK requirement:** Ch44 (pillar role/architecture); glossary v3 372–373 [historical] → **v4 395–396**.
 - **current resolution:** CLAUDE.md and roadmap phase C now say GEX is one module inside
   the Options pillar; the pillar is broader.
 - **implementation impact:** Options rebuild (roadmap C) must model the full pillar, not
@@ -119,7 +119,7 @@
 ---
 
 ### Alignments (recorded, no conflict)
-- **v1.3 §50 ↔ KDK Ch50 / hierarchy line 339:** both say Options never vetoes clear price
+- **v1.3 §50 ↔ KDK Ch50 / hierarchy non-veto rule (v4 line 361):** both say Options never vetoes clear price
   acceptance and GEX is never a necessary condition. **ALIGNED.**
 - **G-CAL-001 ↔ KDK "không tự đặt threshold":** both forbid self-set thresholds. **ALIGNED.**
 - **One-DLL (D-P0-02-002) ↔ KDK:** no domain conflict. **ALIGNED.**
@@ -128,3 +128,30 @@
 New conflicts are appended with the next `SUP-NNN`. A conflict is only closed to
 `RESOLVED_*` when either the docs are corrected (doc-only) or the authorized phase lands the
 fix with tests + reviewer sign-off. `OPEN` items are the domain-correctness backlog.
+
+## SUP-011 — Kim Đấu Kinh v3 → v4 (canonical domain doctrine update)
+- **documents:** prior KDK (6018-line v3) vs new canonical KDK v4
+- **conflicting statements:** v3 was the grounding domain source through Round 1B. The PO supplied a
+  new canonical v4 (6309 lines) with new Ch44 parallel-preparation language, a new Ch51 phase-authority
+  matrix, and (after correction) a Ch50 "reaction at Options zones" section.
+- **KDK requirement:** whole document; new material in Ch44/50/51.
+- **current resolution:** v4 staged in the working tree at `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md`
+  (repo hash `4cf22c02…`, 6382 lines) with two authorized editorial corrections; v3 preserved in git history.
+  Content accepted by the reviewer. Catalog regeneration and independent review are complete
+  (679 active requirements, ordered chapter-constrained migration, 02B provisional); KDK v4 is
+  adopted by this reviewer-authorized commit.
+- **implementation impact:** the KDK requirement catalog (02A/02B) has been regenerated from v4 —
+  **679 active requirements**; the old 669-count and v3 line references are void. 02B remains provisional.
+  No domain code changes during adoption.
+- **status:** ADOPTED_IN_DOCS / CATALOG_REGENERATED.
+
+### Canonical invariants carried forward (unchanged by v4)
+- Evidence tiers hold: Options remains below realized price acceptance in the evidence hierarchy and
+  cannot override it. Options is not universally required for every trade; when Options is unavailable,
+  only policies that explicitly permit AMT + Order Flow may operate, and no Options-specific regime,
+  expected move, exposure or dealer claim may be invented. (Options is a full pillar, not an always-optional
+  extra — "never necessary" was too absolute and is withdrawn.)
+- "AMT and Options prepare in parallel" is NOT a score-voting model; AMT owns location/state/acceptance,
+  Order Flow owns executed effort/result, Options owns risk pricing/horizon/sensitive zones, Governance
+  owns permission, Execution owns GC→CFD translation.
+- An Options line alone is never an entry signal; GEX is one exposure module inside the Options pillar.

@@ -37,7 +37,7 @@ code does something KDK does not sanction:
    The old KDK text is preserved in history (never silently overwritten).
 
 ## Hard constraints (cannot be waived by this process)
-- The 9-tier evidence hierarchy ordering (KDK 323–341) and "lower never vetoes higher".
+- The 9-tier evidence hierarchy ordering (KDK v4 344–363) and "lower never vetoes higher".
 - Options (tier 7) never vetoes clear price acceptance (tier 4); GEX is a module inside Options.
 - `*` content never creates entry/size/direction and never vetoes price acceptance pre-validation.
 - "Never trade one signal" (evidence + invalidation + target space + reliable data).
@@ -47,3 +47,34 @@ code does something KDK does not sanction:
 Every KDK change and every code-vs-KDK conflict resolution is traceable through:
 `SUPERSESSION_REGISTER.md` (the conflict), the catalog CSVs (the requirement status), and the
 git history of KDK itself (the text change). No branch of this trail may be skipped.
+
+---
+
+## KDK v4 canonical adoption record (Product Owner, supersedes v3)
+
+- **Supplied canonical (PO):** `KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md`
+  SHA-256 `51cbf1087b252fdaf1d5db83784de25b100b677b59b54775618396a7d2547c76`, 6309 lines.
+- **Repository canonical path (stable):** `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md`
+  (no `(3)`/`(4)` in the filename).
+- **Two authorized editorial corrections applied:**
+  1. Ch51 new block — removed 18 accidental Markdown escapes (`\####`, `\###`, `\-`, `\*\*`),
+     local only, no global reformat.
+  2. Ch50 — inserted the approved section **"Giao dịch phản ứng tại vùng Options"** (73 lines)
+     between "Options trong sự kiện" and "Khi Options xung đột với giá".
+- **Repository canonical after corrections:**
+  SHA-256 `4cf22c028d682a997e73571462b3579aab64f996cfdc0d00f886a47e529f8c5c`, 6382 lines.
+- **Change size (for the record):** the two corrections together are **91 additions, 18 deletions,
+  net +73 lines** (196 diff-content lines): the 73-line Ch50 section added, plus the 18 escaped Ch51
+  lines replaced by their 18 unescaped forms. (Do not describe this as "71 added / 18 removed".)
+- **Permanent provenance (canonical, does not depend on any review artifact):** the PO-supplied hash
+  `51cbf108…` (6309 lines), the corrected repository hash `4cf22c02…` (6382 lines), the two-correction
+  description above, and the Git history of `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md` together
+  form the immutable provenance record. The focused editorial diff (`docs/review/kdk_v4/KDK_V4_EDITORIAL.diff`)
+  is **review evidence only** and is **not** a canonical dependency; `docs/review/` is not committed source
+  and this record must remain valid without it.
+- **Why the hashes differ:** the PO hash is the raw supplied file; the repo hash reflects the two
+  authorized editorial corrections above (unescape + Ch50 section), and nothing else.
+- **Pre-existing note (NOT fixed, out of authorized scope):** line 367 (front-matter star-convention)
+  carries a similar `\*\*…\*\*` escape; flagged for a separate decision, not touched here.
+- The previous KDK requirement count (669) and its line references are **no longer assumed valid**;
+  the catalog is regenerated from this canonical file before any Phase B/C work.

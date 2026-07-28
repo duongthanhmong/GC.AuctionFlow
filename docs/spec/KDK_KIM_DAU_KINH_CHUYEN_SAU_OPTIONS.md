@@ -13,15 +13,15 @@ GEX được giữ lại như một mô-đun exposure, không còn đại diện
 
 Sau khi học xong, người đọc phải làm được năm việc:
 
-1.  **Đọc cuộc đấu giá:** xác định thị trường đang cân bằng, khám phá giá hay chuyển tiếp.
-2.  **Đọc vị trí:** xác định vùng giá trị, mốc cấu trúc, biên, trung tâm và đường đi có ý nghĩa.
-3.  **Đọc hành vi thực thi:** phân biệt áp lực mua bán chủ động với kết quả giá thực tế.
-4.  **Đọc trụ Options:** đọc cấu trúc kỳ hạn, biến động hàm ý, dòng giao dịch, vị thế công khai và các exposure theo kịch bản; đồng thời biết rõ dữ liệu cho phép và không cho phép kết luận điều gì.
-5.  **Xây dựng kế hoạch:** hình thành luận điểm, điều kiện vào lệnh, vô hiệu, mục tiêu, quản trị và quyết định không giao dịch.
+1. **Đọc cuộc đấu giá:** xác định thị trường đang cân bằng, khám phá giá hay chuyển tiếp.
+2. **Đọc vị trí:** xác định vùng giá trị, mốc cấu trúc, biên, trung tâm và đường đi có ý nghĩa.
+3. **Đọc hành vi thực thi:** phân biệt áp lực mua bán chủ động với kết quả giá thực tế.
+4. **Đọc trụ Options:** đọc cấu trúc kỳ hạn, biến động hàm ý, dòng giao dịch, vị thế công khai và các exposure theo kịch bản; đồng thời biết rõ dữ liệu cho phép và không cho phép kết luận điều gì.
+5. **Xây dựng kế hoạch:** hình thành luận điểm, điều kiện vào lệnh, vô hiệu, mục tiêu, quản trị và quyết định không giao dịch.
 
 ## Ba trụ của phương pháp
 
-    AMT
+&#x20;   AMT
     → Bản đồ và phán quyết cuộc đấu giá:
       thị trường đang ở đâu, đang thử làm gì và mức giá mới có được chấp nhận hay không?
 
@@ -34,14 +34,16 @@ Sau khi học xong, người đọc phải làm được năm việc:
       thị trường quyền chọn đang định giá bao nhiêu biến động, rủi ro tập trung ở kỳ hạn/giá thực hiện nào,
       dòng giao dịch và vị thế công khai đang thay đổi ra sao, và cơ chế phòng hộ nào là ứng viên cần kiểm chứng?
 
+
 Ba trụ không phải ba bộ chỉ báo cộng điểm và cũng không tranh cùng một quyền phán quyết. **AMT có quyền cao nhất đối với vị trí, trạng thái và sự chấp nhận đã hiện thực hóa trên giá.** **Order Flow** có quyền đối với nỗ lực thực thi đã khớp và kết quả giá. **Options** có quyền đối với điều thị trường quyền chọn đang định giá và những vùng nhạy cảm được suy ra có điều kiện. Options không còn là lớp trang trí cuối cùng, nhưng cũng không được dùng để phủ quyết sự chấp nhận rõ ràng của giá hoặc gán chắc chắn vị thế cho nhà tạo lập.
+
 
 
 ## Các khái niệm nền tảng cần biết
 
 Phần này giải thích những khái niệm cốt lõi được sử dụng xuyên suốt tài liệu. Mục đích không phải ghi nhớ thật nhiều thuật ngữ, mà là hiểu mỗi khái niệm trả lời câu hỏi nào và không được phép kết luận điều gì từ nó.
 
-### 1. AMT là gì?
+### 1\. AMT là gì?
 
 **AMT**, viết tắt của *Auction Market Theory*, là Lý thuyết thị trường đấu giá. AMT xem thị trường như một quá trình đấu giá hai chiều liên tục, trong đó giá di chuyển để tìm nơi người mua và người bán sẵn sàng giao dịch.
 
@@ -49,33 +51,37 @@ Khi hai phía cùng giao dịch thuận lợi trong một vùng, thị trường
 
 AMT giúp trả lời:
 
-    Thị trường đang cân bằng, khám phá giá hay chuyển tiếp?
+&#x20;   Thị trường đang cân bằng, khám phá giá hay chuyển tiếp?
     Giá đang ở đâu trong cấu trúc?
     Mốc nào đang được kiểm tra?
     Giá mới có được duy trì hay không?
     Điều gì chứng minh luận điểm sai?
 
+
 AMT không phải chỉ báo mua bán. Nó tạo bản đồ, bối cảnh và điều kiện để đánh giá hành vi giá.
 
-### 2. Cuộc đấu giá là gì?
+### 2\. Cuộc đấu giá là gì?
 
 **Cuộc đấu giá** là quá trình giá được chào, giao dịch được thực hiện và thị trường kiểm tra xem một vùng giá có thu hút đủ hoạt động hai chiều hay không.
 
 Một cuộc đấu giá không được đánh giá bằng một cây nến đơn lẻ. Nó được đọc qua cả quá trình:
 
-    Tiếp cận mốc
+&#x20;   Tiếp cận mốc
     → tương tác
     → thử đi ra ngoài
     → được chấp nhận, tái nhập hoặc chưa được giải quyết
 
 
-### 3. Cân bằng, khám phá giá và chuyển tiếp
 
-- **Cân bằng:** thị trường giao dịch hai chiều trong một vùng được chấp nhận. Giá thường luân phiên quanh trung tâm và kiểm tra hai biên.
-- **Khám phá giá:** thị trường rời vùng thỏa thuận cũ để tìm vùng giao dịch mới. Dấu hiệu quan trọng là giá, POC và vùng giá trị có cùng dịch chuyển hay không.
-- **Chuyển tiếp:** vùng trung gian khi cân bằng cũ đã suy yếu nhưng cân bằng mới chưa hình thành. Đây là trạng thái dễ xuất hiện bằng chứng xung đột và thường cần kiên nhẫn hơn.
 
-### 4. Giá và giá trị khác nhau thế nào?
+
+### 3\. Cân bằng, khám phá giá và chuyển tiếp
+
+* **Cân bằng:** thị trường giao dịch hai chiều trong một vùng được chấp nhận. Giá thường luân phiên quanh trung tâm và kiểm tra hai biên.
+* **Khám phá giá:** thị trường rời vùng thỏa thuận cũ để tìm vùng giao dịch mới. Dấu hiệu quan trọng là giá, POC và vùng giá trị có cùng dịch chuyển hay không.
+* **Chuyển tiếp:** vùng trung gian khi cân bằng cũ đã suy yếu nhưng cân bằng mới chưa hình thành. Đây là trạng thái dễ xuất hiện bằng chứng xung đột và thường cần kiên nhẫn hơn.
+
+### 4\. Giá và giá trị khác nhau thế nào?
 
 **Giá** là mức đang được chào hoặc giao dịch tại một thời điểm. **Giá trị** là vùng mà thị trường đã tổ chức hoạt động và duy trì giao dịch trong một phạm vi thời gian xác định.
 
@@ -84,140 +90,145 @@ Giá có thể đi rất xa trong thời gian ngắn nhưng chưa chắc đã t�
 Vùng giá trị không phải “giá thật” tuyệt đối của vàng. Nó chỉ mô tả vùng được chấp nhận tương đối trong hồ sơ và khoảng thời gian đang xét.
 
 
-### 5. Sự chấp nhận, từ chối, tái nhập và tái chấp nhận
 
-- **Sự chấp nhận:** thị trường duy trì giao dịch và bắt đầu tổ chức hoạt động hoặc vùng giá trị tại vùng mới.
-- **Sự từ chối:** giá thử một vùng rồi bị đẩy ra. Một phản ứng nhanh mới chỉ là dấu hiệu ban đầu, chưa đủ kết luận cuộc đấu giá thất bại.
-- **Tái nhập:** giá quay về vùng cũ về mặt hình học.
-- **Tái chấp nhận:** sau khi tái nhập, thị trường tiếp tục duy trì giao dịch và tổ chức lại hoạt động trong vùng cũ.
+### 5\. Sự chấp nhận, từ chối, tái nhập và tái chấp nhận
+
+* **Sự chấp nhận:** thị trường duy trì giao dịch và bắt đầu tổ chức hoạt động hoặc vùng giá trị tại vùng mới.
+* **Sự từ chối:** giá thử một vùng rồi bị đẩy ra. Một phản ứng nhanh mới chỉ là dấu hiệu ban đầu, chưa đủ kết luận cuộc đấu giá thất bại.
+* **Tái nhập:** giá quay về vùng cũ về mặt hình học.
+* **Tái chấp nhận:** sau khi tái nhập, thị trường tiếp tục duy trì giao dịch và tổ chức lại hoạt động trong vùng cũ.
 
 Một cây nến đóng ngoài không tự chứng minh sự chấp nhận. Một râu nến quay vào cũng không tự chứng minh tái chấp nhận.
 
 
-### 6. Episode là gì?
+
+### 6\. Episode là gì?
 
 **Episode** là toàn bộ vòng đời tương tác giữa giá và một mốc tham chiếu. Episode bắt đầu khi giá thực sự tương tác với mốc và kết thúc khi cuộc đấu giá được giải quyết, mốc mất vai trò hoặc luận điểm hết thời hạn.
 
 Episode giúp người giao dịch theo dõi một quá trình thay vì phán quyết từ một khoảnh khắc. Các thông tin chính gồm:
 
-- thời điểm tương tác đầu tiên;
-- số lần thử;
-- độ lệch tối đa khỏi mốc;
-- thời gian, khối lượng và số giao dịch ngoài vùng;
-- tốc độ tái nhập;
-- vị trí POC và vùng giá trị cục bộ;
-- khả năng duy trì trong hoặc ngoài vùng.
+* thời điểm tương tác đầu tiên;
+* số lần thử;
+* độ lệch tối đa khỏi mốc;
+* thời gian, khối lượng và số giao dịch ngoài vùng;
+* tốc độ tái nhập;
+* vị trí POC và vùng giá trị cục bộ;
+* khả năng duy trì trong hoặc ngoài vùng.
 
 
-### 7. Market Profile và TPO là gì?
+
+### 7\. Market Profile và TPO là gì?
 
 **Market Profile** tổ chức giá theo thời gian. **TPO**, viết tắt của *Time Price Opportunity*, ghi nhận việc giá đã xuất hiện trong từng khoảng thời gian.
 
 Market Profile giúp nhìn:
 
-- nơi thị trường dành nhiều hoặc ít thời gian;
-- hình dạng phân phối;
-- vùng giá trị;
-- POC theo thời gian;
-- Initial Balance;
-- cấu trúc ngày và các vùng excess, single prints hoặc poor extreme.
+* nơi thị trường dành nhiều hoặc ít thời gian;
+* hình dạng phân phối;
+* vùng giá trị;
+* POC theo thời gian;
+* Initial Balance;
+* cấu trúc ngày và các vùng excess, single prints hoặc poor extreme.
 
 TPO không đo chính xác số hợp đồng đã giao dịch và không cho biết chắc ai đang mua hoặc bán.
 
-### 8. Volume Profile là gì?
+### 8\. Volume Profile là gì?
 
 **Volume Profile** phân bổ khối lượng đã khớp theo từng mức giá. Nó cho thấy nơi hoạt động thực thi tập trung hoặc thưa thớt trong phạm vi được chọn.
 
 Các mốc chính:
 
-- **Volume POC:** mức có khối lượng lớn nhất.
-- **VAH/VAL:** biên trên và biên dưới của vùng giá trị.
-- **HVN:** vùng có khối lượng cao, thường từng có hoạt động hai chiều dày.
-- **LVN:** vùng có khối lượng thấp, thường từng được đi qua nhanh hoặc ít tạo thỏa thuận.
-- **nPOC:** POC chưa được kiểm tra lại.
+* **Volume POC:** mức có khối lượng lớn nhất.
+* **VAH/VAL:** biên trên và biên dưới của vùng giá trị.
+* **HVN:** vùng có khối lượng cao, thường từng có hoạt động hai chiều dày.
+* **LVN:** vùng có khối lượng thấp, thường từng được đi qua nhanh hoặc ít tạo thỏa thuận.
+* **nPOC:** POC chưa được kiểm tra lại.
 
 Các mốc này là nơi quan sát, không phải nam châm hoặc hỗ trợ kháng cự bắt buộc.
 
-### 9. Order Flow là gì?
+### 9\. Order Flow là gì?
 
 **Order Flow** là dữ liệu về các giao dịch đã thực sự khớp. Nó giúp đánh giá phía nào đang chủ động lấy thanh khoản, mức độ tham gia ra sao và nỗ lực đó có tạo tiến triển giá hay không.
 
 Các công cụ thường dùng gồm:
 
-    Footprint
+&#x20;   Footprint
     Bid và Ask
     Delta
     CVD
-    Tape hoặc Time & Sales
+    Tape hoặc Time \& Sales
     Khối lượng và số giao dịch
+
 
 Order Flow không cho biết chắc danh tính, mục đích hoặc chất lượng thông tin của người tham gia. Nó chỉ có giá trị khi được đặt đúng vị trí và so sánh với kết quả giá.
 
-### 10. Lệnh thị trường, lệnh giới hạn, Bid và Ask
+### 10\. Lệnh thị trường, lệnh giới hạn, Bid và Ask
 
-- **Lệnh giới hạn** cung cấp thanh khoản bằng cách chờ khớp tại một mức giá xác định.
-- **Lệnh thị trường**, hoặc lệnh có khả năng khớp ngay, lấy thanh khoản đang có.
-- **Bid** là giá mua chờ cao nhất.
-- **Ask** là giá bán chờ thấp nhất.
+* **Lệnh giới hạn** cung cấp thanh khoản bằng cách chờ khớp tại một mức giá xác định.
+* **Lệnh thị trường**, hoặc lệnh có khả năng khớp ngay, lấy thanh khoản đang có.
+* **Bid** là giá mua chờ cao nhất.
+* **Ask** là giá bán chờ thấp nhất.
 
 Giao dịch khớp tại Ask thường được phân loại là mua chủ động. Giao dịch khớp tại Bid thường được phân loại là bán chủ động. Mỗi giao dịch luôn có cả người mua và người bán; khái niệm chủ động chỉ nói bên nào chấp nhận giá đang có để khớp ngay.
 
-### 11. Footprint là gì?
+### 11\. Footprint là gì?
 
 **Footprint** hiển thị khối lượng khớp tại Bid và Ask ở từng mức giá trong một thanh. Nó giúp quan sát chi tiết nơi dòng chủ động xuất hiện, nơi có mất cân bằng và mối quan hệ giữa khối lượng với tiến triển giá.
 
 Footprint không hiển thị toàn bộ lệnh đang treo và không tự chứng minh hấp thụ, người giao dịch mắc kẹt hay đảo chiều.
 
-### 12. Delta và CVD là gì?
+### 12\. Delta và CVD là gì?
 
 **Delta** là chênh lệch giữa khối lượng mua chủ động và khối lượng bán chủ động trong phạm vi đang xét.
 
-    Delta = khối lượng khớp tại Ask − khối lượng khớp tại Bid
+&#x20;   Delta = khối lượng khớp tại Ask − khối lượng khớp tại Bid
+
 
 **CVD** là Delta được cộng dồn theo thời gian. Delta và CVD đo áp lực chủ động, không đo vị thế ròng và không cho biết chắc người tham gia đang mở hay đóng vị thế.
 
 Delta lớn nhưng giá không tiến triển có ý nghĩa khác với Delta lớn đi cùng sự mở rộng và duy trì của giá.
 
-### 13. Nỗ lực và Kết quả
+### 13\. Nỗ lực và Kết quả
 
 **Nỗ lực** là mức độ hoạt động giao dịch, có thể quan sát qua khối lượng, số giao dịch, Delta, tốc độ hoặc dòng quét. **Kết quả** là mức tiến triển thực tế của giá và khả năng duy trì tiến triển đó.
 
 Các trường hợp cơ bản:
 
-- nỗ lực lớn, kết quả lớn: dòng chủ động đang tạo thuận lợi cho chuyển động;
-- nỗ lực lớn, kết quả nhỏ: có thể xuất hiện đối ứng, hấp thụ hoặc trạng thái chưa được giải quyết;
-- nỗ lực tương đối nhỏ, kết quả lớn: có thể phản ánh thanh khoản mỏng hoặc ít lực cản.
+* nỗ lực lớn, kết quả lớn: dòng chủ động đang tạo thuận lợi cho chuyển động;
+* nỗ lực lớn, kết quả nhỏ: có thể xuất hiện đối ứng, hấp thụ hoặc trạng thái chưa được giải quyết;
+* nỗ lực tương đối nhỏ, kết quả lớn: có thể phản ánh thanh khoản mỏng hoặc ít lực cản.
 
 Nỗ lực–Kết quả phải được đánh giá tại đúng vị trí, không dùng như tín hiệu độc lập.
 
-### 14. Hấp thụ và cạn kiệt
+### 14\. Hấp thụ và cạn kiệt
 
-- **Hấp thụ:** giả thuyết rằng dòng chủ động lớn gặp lực đối ứng đủ mạnh nên không tạo được tiến triển tương xứng.
-- **Cạn kiệt:** giả thuyết rằng một phía giảm khả năng tiếp tục đẩy giá vì hoạt động chủ động suy yếu tại cực trị.
+* **Hấp thụ:** giả thuyết rằng dòng chủ động lớn gặp lực đối ứng đủ mạnh nên không tạo được tiến triển tương xứng.
+* **Cạn kiệt:** giả thuyết rằng một phía giảm khả năng tiếp tục đẩy giá vì hoạt động chủ động suy yếu tại cực trị.
 
 Cả hai đều là kết luận suy ra. Cần có phản ứng giá, tiến triển theo phía đối diện và khả năng duy trì trước khi dùng trong luận điểm.
 
-### 15. Imbalance là gì?
+### 15\. Imbalance là gì?
 
 **Imbalance** là sự chênh lệch đáng kể giữa khối lượng chủ động ở hai phía tại các mức giá được so sánh. Nó giúp làm nổi bật nơi áp lực mua hoặc bán chủ động tập trung.
 
 Một Imbalance không tự tạo tín hiệu. Chuỗi Imbalance chỉ có ý nghĩa khi tạo kết quả giá và phù hợp với vị trí cấu trúc.
 
-### 16. DOM, MBO và thanh khoản hiển thị
+### 16\. DOM, MBO và thanh khoản hiển thị
 
 **DOM** là sổ lệnh tổng hợp theo mức giá. **MBO** là dữ liệu từng lệnh trong hàng đợi khi nguồn dữ liệu hỗ trợ.
 
 Chúng giúp quan sát:
 
-- thanh khoản đang treo gần giá;
-- lệnh được thêm, rút hoặc di chuyển;
-- vị trí và vòng đời của lệnh;
-- ứng viên iceberg;
-- dòng quét hoặc cụm dừng lỗ được kích hoạt.
+* thanh khoản đang treo gần giá;
+* lệnh được thêm, rút hoặc di chuyển;
+* vị trí và vòng đời của lệnh;
+* ứng viên iceberg;
+* dòng quét hoặc cụm dừng lỗ được kích hoạt.
 
 Thanh khoản hiển thị có thể bị hủy. Vì vậy, sổ lệnh thể hiện ý định tạm thời, không phải cam kết chắc chắn.
 
-### 17. Open Interest và COT
+### 17\. Open Interest và COT
 
 **Open Interest**, viết tắt là OI, là số hợp đồng còn mở. OI khác với khối lượng giao dịch. OI tăng cho thấy tổng số hợp đồng mở tăng, nhưng không tự nói bên mua hay bên bán đang chiếm ưu thế.
 
@@ -225,83 +236,90 @@ Thanh khoản hiển thị có thể bị hủy. Vì vậy, sổ lệnh thể hi
 
 Delta kết hợp với OI chỉ tạo bối cảnh về hoạt động và sự thay đổi số hợp đồng mở; nó không xác định chắc “người mua mới” hay “người bán mới”.
 
-### 18. Trụ Options là gì?
+### 18\. Trụ Options là gì?
 
 **Trụ Options** là lớp phân tích toàn bộ dữ liệu quyền chọn có thể quan sát và tính toán được, gồm hợp đồng, kỳ hạn, giá thực hiện, báo giá, giao dịch, khối lượng, Open Interest, biến động hàm ý, Greeks và các exposure theo kịch bản.
 
 Trụ này trả lời năm nhóm câu hỏi:
 
-1.  **Thị trường đang định giá bao nhiêu biến động?**
-    - IV tại ATM;
-    - cấu trúc kỳ hạn;
-    - skew và convexity;
-    - expected move theo từng horizon.
-2.  **Rủi ro đang tập trung ở đâu?**
-    - theo giá thực hiện;
-    - theo ngày đáo hạn;
-    - theo Call/Put;
-    - theo Gamma, Delta, Vega và các độ nhạy khác.
-3.  **Hoạt động quyền chọn đang thay đổi thế nào?**
-    - khối lượng;
-    - Open Interest và thay đổi Open Interest;
-    - premium/notional;
-    - dòng giao dịch chủ động nếu nguồn cho phép phân loại.
-4.  **Cơ chế nào có thể tác động lên đường đi của giá?**
-    - ứng viên ổn định hoặc luân phiên;
-    - ứng viên khuếch đại;
-    - áp lực gần đáo hạn;
-    - rủi ro sự kiện và thay đổi biến động.
-5.  **Dữ liệu nào chỉ là mô hình?**
-    - GEX, DEX và các exposure tổng hợp;
-    - dealer positioning;
-    - pinning, vanna flow, charm flow hoặc hedging pressure.
+1. **Thị trường đang định giá bao nhiêu biến động?**
+
+   * IV tại ATM;
+   * cấu trúc kỳ hạn;
+   * skew và convexity;
+   * expected move theo từng horizon.
+2. **Rủi ro đang tập trung ở đâu?**
+
+   * theo giá thực hiện;
+   * theo ngày đáo hạn;
+   * theo Call/Put;
+   * theo Gamma, Delta, Vega và các độ nhạy khác.
+3. **Hoạt động quyền chọn đang thay đổi thế nào?**
+
+   * khối lượng;
+   * Open Interest và thay đổi Open Interest;
+   * premium/notional;
+   * dòng giao dịch chủ động nếu nguồn cho phép phân loại.
+4. **Cơ chế nào có thể tác động lên đường đi của giá?**
+
+   * ứng viên ổn định hoặc luân phiên;
+   * ứng viên khuếch đại;
+   * áp lực gần đáo hạn;
+   * rủi ro sự kiện và thay đổi biến động.
+5. **Dữ liệu nào chỉ là mô hình?**
+
+   * GEX, DEX và các exposure tổng hợp;
+   * dealer positioning;
+   * pinning, vanna flow, charm flow hoặc hedging pressure.
 
 **GEX** vẫn được sử dụng, nhưng chỉ là một mô-đun bên trong trụ Options. Nó không còn đại diện cho toàn bộ quyền chọn. Một mức GEX, nhãn vendor như Call Resistance/Put Support hoặc Gamma Flip chỉ được dùng khi công thức, quy ước dấu, kỳ hạn và giả định vị thế được ghi rõ.
 
 Trụ Options không tự xác nhận điểm mua, điểm bán hoặc hướng đi. Nó xây **kịch bản có điều kiện**, điều chỉnh kỳ vọng về biến động, đường đi, yêu cầu xác nhận và quản trị. Giá, Episode, sự chấp nhận và Order Flow cho biết kịch bản nào đang thực sự được kích hoạt.
 
-### 19. FAR và AAC
+### 19\. FAR và AAC
 
 **FAR**, cuộc đấu giá thất bại và tái nhập, xuất hiện khi giá thử đi ra ngoài vùng cũ nhưng không xây được sự chấp nhận bền vững, sau đó tái nhập và duy trì trong vùng cũ.
 
 **AAC**, cuộc đấu giá được chấp nhận và tiếp diễn, xuất hiện khi giá đi ra ngoài vùng cũ, xây hoạt động hoặc vùng giá trị mới và không thể tái chấp nhận bền vững vùng cũ.
 
-    Thử đi ra ngoài
+&#x20;   Thử đi ra ngoài
     ├─ thất bại và tái nhập → FAR
     ├─ được chấp nhận và tiếp diễn → AAC
     └─ bằng chứng chưa đủ → chưa được giải quyết
 
+
 FAR và AAC là hai họ luận điểm, không phải hai mẫu nến.
 
-### 20. Luận điểm, hành vi kỳ vọng và vô hiệu
+### 20\. Luận điểm, hành vi kỳ vọng và vô hiệu
 
 **Luận điểm** là cách diễn đạt có điều kiện về điều thị trường cần làm tại một vị trí cụ thể. Một luận điểm hoàn chỉnh phải có:
 
-- trạng thái và vị trí;
-- mốc đang được kiểm tra;
-- điều thị trường đang thử làm;
-- bằng chứng đang có và còn thiếu;
-- hành vi phải xuất hiện nếu luận điểm đúng;
-- điều kiện làm luận điểm sai;
-- mục tiêu và các rào cản trên đường đi.
+* trạng thái và vị trí;
+* mốc đang được kiểm tra;
+* điều thị trường đang thử làm;
+* bằng chứng đang có và còn thiếu;
+* hành vi phải xuất hiện nếu luận điểm đúng;
+* điều kiện làm luận điểm sai;
+* mục tiêu và các rào cản trên đường đi.
 
 **Vô hiệu** không chỉ là một mức dừng lỗ. Luận điểm có thể sai do giá, do sự chấp nhận của cuộc đấu giá, do hết thời gian, do bối cảnh thay đổi hoặc do dữ liệu không còn đủ tin cậy.
 
-### 21. Rủi ro và khối lượng vị thế
+### 21\. Rủi ro và khối lượng vị thế
 
 Rủi ro được xác định từ nơi luận điểm sai, không phải từ số tiền người giao dịch muốn kiếm. Trình tự đúng là:
 
-    Luận điểm
+&#x20;   Luận điểm
     → điểm vô hiệu
     → khoảng cách dừng lỗ
     → ngân sách rủi ro
     → khối lượng vị thế
 
+
 Không chọn khối lượng vị thế trước rồi kéo dừng lỗ cho vừa. Chi phí, trượt giá, chênh lệch giá và rủi ro sự kiện phải được tính vào khả năng chịu lỗ thực tế.
 
 ### Mối quan hệ giữa các khái niệm
 
-    AMT
+&#x20;   AMT
     → cho biết thị trường đang ở đâu và đang thử làm gì
 
     Market Profile và Volume Profile
@@ -320,9 +338,12 @@ Không chọn khối lượng vị thế trước rồi kéo dừng lỗ cho v�
     → chuyển phân tích thành một quyết định có thể quản trị
 
 
+
+
+
 ## Tháp quyền hạn của bằng chứng
 
-    1. Tính toàn vẹn dữ liệu
+&#x20;   1. Tính toàn vẹn dữ liệu
     2. Vị trí cấu trúc
     3. Diễn biến cuộc đấu giá
     4. Sự chấp nhận hoặc tái chấp nhận của giá
@@ -332,34 +353,36 @@ Không chọn khối lượng vị thế trước rồi kéo dừng lỗ cho v�
     8. Kỹ thuật vào lệnh
     9. Câu chuyện, ẩn dụ và mẫu hình
 
+
 Quy tắc quyền hạn:
 
-- Tầng dưới không được phủ quyết tầng trên.
-- Dòng lệnh mạnh không phủ quyết sự chấp nhận giá theo hướng ngược lại.
-- Options không phủ quyết bằng chứng chấp nhận rõ ràng từ giá; xung đột làm giảm độ chắc chắn hoặc thay đổi quản trị theo quy tắc đã kiểm chứng.
-- Một mẫu hình đẹp không cứu được vị trí sai.
-- Một câu chuyện về nhà tạo lập không phủ quyết dữ liệu đã khớp.
+* Tầng dưới không được phủ quyết tầng trên.
+* Dòng lệnh mạnh không phủ quyết sự chấp nhận giá theo hướng ngược lại.
+* Options không phủ quyết bằng chứng chấp nhận rõ ràng từ giá; xung đột làm giảm độ chắc chắn hoặc thay đổi quản trị theo quy tắc đã kiểm chứng.
+* Một mẫu hình đẹp không cứu được vị trí sai.
+* Một câu chuyện về nhà tạo lập không phủ quyết dữ liệu đã khớp.
 
-## Quy ước dấu sao `*`
+## Quy ước dấu sao `\*`
 
-> **Dấu** `*` đánh dấu nội dung có giá trị sư phạm, kinh nghiệm hoặc nghiên cứu nhưng chưa được xem là quy luật phổ quát hay lợi thế đã xác nhận. Nội dung có dấu `*` không được tự mình tạo điểm vào, tăng khối lượng vị thế, xác định hướng hoặc phủ quyết sự chấp nhận của giá.
+> \*\*Dấu\*\* `\*` đánh dấu nội dung có giá trị sư phạm, kinh nghiệm hoặc nghiên cứu nhưng chưa được xem là quy luật phổ quát hay lợi thế đã xác nhận. Nội dung có dấu `\*` không được tự mình tạo điểm vào, tăng khối lượng vị thế, xác định hướng hoặc phủ quyết sự chấp nhận của giá.
 
 Các nhãn có thể đi kèm:
 
-- `* [Kinh nghiệm]`: quy tắc kinh nghiệm cần kiểm chứng.
-- `* [Số liệu nguồn]`: con số từ nguồn nhưng chưa có bộ dữ liệu đầy đủ.
-- `* [Phụ thuộc dữ liệu]`: kết quả phụ thuộc cách gom dữ liệu hoặc cấu hình.
-- `* [Nhận định thời điểm]`: bình luận chỉ có giá trị trong bối cảnh lịch sử cụ thể.
+* `\* \[Kinh nghiệm]`: quy tắc kinh nghiệm cần kiểm chứng.
+* `\* \[Số liệu nguồn]`: con số từ nguồn nhưng chưa có bộ dữ liệu đầy đủ.
+* `\* \[Phụ thuộc dữ liệu]`: kết quả phụ thuộc cách gom dữ liệu hoặc cấu hình.
+* `\* \[Nhận định thời điểm]`: bình luận chỉ có giá trị trong bối cảnh lịch sử cụ thể.
 
 Lộ trình nâng một giả thuyết thành quy tắc sử dụng:
 
-    Nguồn hoặc quan sát
-    → Giả thuyết*
+&#x20;   Nguồn hoặc quan sát
+    → Giả thuyết\*
     → Phát lại dữ liệu
     → Quan sát không thực thi
     → Giao dịch mô phỏng hoặc quy mô rất nhỏ
     → Đánh giá ngoài mẫu
     → Chấp nhận, sửa đổi hoặc loại bỏ
+
 
 ## Nguyên tắc xuyên suốt
 
@@ -367,152 +390,149 @@ Lộ trình nâng một giả thuyết thành quy tắc sử dụng:
 
 ## Bảng tra nhanh thuật ngữ
 
-- **AMT:** Auction Market Theory, Lý thuyết thị trường đấu giá.
-- **Order Flow:** dòng lệnh đã khớp.
-- **Options:** trụ dữ liệu quyền chọn gồm cấu trúc biến động, hoạt động, vị thế công khai và exposure theo kịch bản.
-- **GEX:** Gamma Exposure, một mô-đun exposure bên trong trụ Options.
-- **TPO:** Time Price Opportunity, cơ hội giá theo thời gian.
-- **POC:** Point of Control, mức hoạt động lớn nhất theo thước đo đang dùng.
-- **VAH/VAL:** biên trên và biên dưới vùng giá trị.
-- **CVD:** Cumulative Volume Delta, chênh lệch khối lượng chủ động tích lũy.
-- **DOM:** Depth of Market, sổ lệnh theo mức giá.
-- **MBO:** Market By Order, dữ liệu từng lệnh trong hàng đợi.
-- **OI:** Open Interest, số hợp đồng còn mở.
-- **COT:** Commitments of Traders, báo cáo vị thế theo nhóm.
-- **FAR:** Failed Auction Re-entry, cuộc đấu giá thất bại và tái nhập vùng cũ.
-- **AAC:** Accepted Auction Continuation, cuộc đấu giá được chấp nhận và tiếp diễn.
-- **MFE/MAE:** mức thuận lợi tối đa và mức bất lợi tối đa sau khi vào lệnh.
+* **AMT:** Auction Market Theory, Lý thuyết thị trường đấu giá.
+* **Order Flow:** dòng lệnh đã khớp.
+* **Options:** trụ dữ liệu quyền chọn gồm cấu trúc biến động, hoạt động, vị thế công khai và exposure theo kịch bản.
+* **GEX:** Gamma Exposure, một mô-đun exposure bên trong trụ Options.
+* **TPO:** Time Price Opportunity, cơ hội giá theo thời gian.
+* **POC:** Point of Control, mức hoạt động lớn nhất theo thước đo đang dùng.
+* **VAH/VAL:** biên trên và biên dưới vùng giá trị.
+* **CVD:** Cumulative Volume Delta, chênh lệch khối lượng chủ động tích lũy.
+* **DOM:** Depth of Market, sổ lệnh theo mức giá.
+* **MBO:** Market By Order, dữ liệu từng lệnh trong hàng đợi.
+* **OI:** Open Interest, số hợp đồng còn mở.
+* **COT:** Commitments of Traders, báo cáo vị thế theo nhóm.
+* **FAR:** Failed Auction Re-entry, cuộc đấu giá thất bại và tái nhập vùng cũ.
+* **AAC:** Accepted Auction Continuation, cuộc đấu giá được chấp nhận và tiếp diễn.
+* **MFE/MAE:** mức thuận lợi tối đa và mức bất lợi tối đa sau khi vào lệnh.
 
 # MỤC LỤC
 
 ## PHẦN I — NỀN TẢNG TƯ DUY THỊ TRƯỜNG
 
-- Chương 1. Thị trường là một cuộc đấu giá
-- Chương 2. Hai trạng thái cốt lõi: Cân bằng và Khám phá giá
-- Chương 3. Giá trị, thời gian và khối lượng
-- Chương 4. Người tham gia và khung thời gian
-- Chương 5. Dữ liệu, bằng chứng và kết luận
-- Chương 6. Cấu trúc thị trường, vùng mốc và kế hoạch điều kiện
+* Chương 1. Thị trường là một cuộc đấu giá
+* Chương 2. Hai trạng thái cốt lõi: Cân bằng và Khám phá giá
+* Chương 3. Giá trị, thời gian và khối lượng
+* Chương 4. Người tham gia và khung thời gian
+* Chương 5. Dữ liệu, bằng chứng và kết luận
+* Chương 6. Cấu trúc thị trường, vùng mốc và kế hoạch điều kiện
 
 ## PHẦN II — LÝ THUYẾT THỊ TRƯỜNG ĐẤU GIÁ
 
-- Chương 7. Market Profile và TPO
-- Chương 8. Volume Profile
-- Chương 9. Vùng giá trị và POC
-- Chương 10. Initial Balance
-- Chương 11. Hình dạng Profile và cấu trúc ngày
-- Chương 12. Hệ thống mốc tham chiếu
-- Chương 13. Composite Profile và cấu trúc nhiều phiên
-- Chương 14. Dịch chuyển giá trị và bối cảnh định hướng
-- Chương 15. One-Time Framing: nhịp cực trị một chiều
-- Chương 16. Auction Episode: vòng đời tương tác với một mốc
-- Chương 17. Sự chấp nhận, từ chối và tái nhập
-- Chương 18. Cuộc đấu giá thất bại và cuộc đấu giá tiếp diễn
-- Chương 19. Năm quy tắc kinh nghiệm quanh vùng giá trị\*
+* Chương 7. Market Profile và TPO
+* Chương 8. Volume Profile
+* Chương 9. Vùng giá trị và POC
+* Chương 10. Initial Balance
+* Chương 11. Hình dạng Profile và cấu trúc ngày
+* Chương 12. Hệ thống mốc tham chiếu
+* Chương 13. Composite Profile và cấu trúc nhiều phiên
+* Chương 14. Dịch chuyển giá trị và bối cảnh định hướng
+* Chương 15. One-Time Framing: nhịp cực trị một chiều
+* Chương 16. Auction Episode: vòng đời tương tác với một mốc
+* Chương 17. Sự chấp nhận, từ chối và tái nhập
+* Chương 18. Cuộc đấu giá thất bại và cuộc đấu giá tiếp diễn
+* Chương 19. Năm quy tắc kinh nghiệm quanh vùng giá trị\*
 
 ## PHẦN III — DÒNG LỆNH ĐÃ KHỚP VÀ VI CẤU TRÚC THỊ TRƯỜNG
 
-- Chương 20. Cơ chế thực thi lệnh
-- Chương 21. Bid, Ask và phân loại phía chủ động
-- Chương 22. Delta
-- Chương 23. Cumulative Volume Delta
-- Chương 24. Biểu đồ Footprint
-- Chương 25. Imbalance
-- Chương 26. Khối lượng, số giao dịch và kích thước giao dịch trung bình
-- Chương 27. Lần kiểm tra, tái kiểm tra và ký ức mức giá
-- Chương 28. Ứng viên hấp thụ
-- Chương 29. Ứng viên cạn kiệt
-- Chương 30. Nỗ lực và Kết quả
-- Chương 31. Khả năng tạo thuận lợi cho giao dịch
-- Chương 32. Quét thanh khoản, kích hoạt dừng lỗ và người giao dịch mắc kẹt
-- Chương 33. DOM và vòng đời thanh khoản hiển thị
-- Chương 34. Pulling và Stacking: thanh khoản bị rút và được thêm
-- Chương 35. Iceberg và các công cụ phát hiện lệnh ẩn
-- Chương 36. Nhận diện dừng lỗ và lệnh quét
-- Chương 37. Các chỉ báo tổng hợp về áp lực và mức động
-- Chương 38. Limit Tracing: giả thuyết nghiên cứu về chuỗi thanh khoản
-- Chương 39. Cực trị thanh chưa hoàn tất và cực trị kém hoàn thiện\*
+* Chương 20. Cơ chế thực thi lệnh
+* Chương 21. Bid, Ask và phân loại phía chủ động
+* Chương 22. Delta
+* Chương 23. Cumulative Volume Delta
+* Chương 24. Biểu đồ Footprint
+* Chương 25. Imbalance
+* Chương 26. Khối lượng, số giao dịch và kích thước giao dịch trung bình
+* Chương 27. Lần kiểm tra, tái kiểm tra và ký ức mức giá
+* Chương 28. Ứng viên hấp thụ
+* Chương 29. Ứng viên cạn kiệt
+* Chương 30. Nỗ lực và Kết quả
+* Chương 31. Khả năng tạo thuận lợi cho giao dịch
+* Chương 32. Quét thanh khoản, kích hoạt dừng lỗ và người giao dịch mắc kẹt
+* Chương 33. DOM và vòng đời thanh khoản hiển thị
+* Chương 34. Pulling và Stacking: thanh khoản bị rút và được thêm
+* Chương 35. Iceberg và các công cụ phát hiện lệnh ẩn
+* Chương 36. Nhận diện dừng lỗ và lệnh quét
+* Chương 37. Các chỉ báo tổng hợp về áp lực và mức động
+* Chương 38. Limit Tracing: giả thuyết nghiên cứu về chuỗi thanh khoản
+* Chương 39. Cực trị thanh chưa hoàn tất và cực trị kém hoàn thiện\*
 
 ## PHẦN IV — HỢP ĐỒNG, PHIÊN, SỰ KIỆN VÀ VỊ THẾ
 
-- Chương 40. Hợp đồng, chuyển tháng và chế độ tham gia
-- Chương 41. Sự kiện, vĩ mô và thị trường bên ngoài
-- Chương 42. Open Interest và giới hạn suy luận vị thế
-- Chương 43. COT, nhà tạo lập và rủi ro tồn kho
+* Chương 40. Hợp đồng, chuyển tháng và chế độ tham gia
+* Chương 41. Sự kiện, vĩ mô và thị trường bên ngoài
+* Chương 42. Open Interest và giới hạn suy luận vị thế
+* Chương 43. COT, nhà tạo lập và rủi ro tồn kho
 
 ## PHẦN V — TRỤ OPTIONS: ĐỊNH GIÁ RỦI RO, DÒNG GIAO DỊCH VÀ EXPOSURE
 
-- Chương 44. Vai trò, quyền hạn và kiến trúc của trụ Options
-- Chương 45. Dữ liệu Options, ánh xạ hợp đồng và kiểm soát chất lượng
-- Chương 46. Kỳ hạn, moneyness và cấu trúc biến động hàm ý
-- Chương 47. Volume, Open Interest và Options Flow
-- Chương 48. Greeks, GEX và exposure theo kịch bản
-- Chương 49. Expected move, vùng nhạy cảm và Options Regime
-- Chương 50. Tích hợp Options với AMT, Order Flow và quản trị
+* Chương 44. Vai trò, quyền hạn và kiến trúc của trụ Options
+* Chương 45. Dữ liệu Options, ánh xạ hợp đồng và kiểm soát chất lượng
+* Chương 46. Kỳ hạn, moneyness và cấu trúc biến động hàm ý
+* Chương 47. Volume, Open Interest và Options Flow
+* Chương 48. Greeks, GEX và exposure theo kịch bản
+* Chương 49. Expected move, vùng nhạy cảm và Options Regime
+* Chương 50. Tích hợp Options với AMT, Order Flow và quản trị
 
 ## PHẦN VI — HỢP NHẤT TAM TRỤ
 
-- Chương 51. Vai trò của ba trụ
-- Chương 52. Quy trình đọc thị trường từ trên xuống
-- Chương 53. Vị trí trước tín hiệu
-- Chương 54. Bối cảnh trước thực thi
-- Chương 55. Từ mốc tham chiếu đến Episode
-- Chương 56. Từ Episode đến bằng chứng chấp nhận
-- Chương 57. Từ bằng chứng đến Order Flow
-- Chương 58. Tích hợp Options Intelligence vào câu chuyện đấu giá
-- Chương 59. Xây dựng luận điểm thị trường
-- Chương 60. Vô hiệu đa chiều
-- Chương 61. Mục tiêu và đường đi ít cản trở
-- Chương 62. Quản trị rủi ro
+* Chương 51. Vai trò của ba trụ
+* Chương 52. Quy trình đọc thị trường từ trên xuống
+* Chương 53. Vị trí trước tín hiệu
+* Chương 54. Bối cảnh trước thực thi
+* Chương 55. Từ mốc tham chiếu đến Episode
+* Chương 56. Từ Episode đến bằng chứng chấp nhận
+* Chương 57. Từ bằng chứng đến Order Flow
+* Chương 58. Tích hợp Options Intelligence vào câu chuyện đấu giá
+* Chương 59. Xây dựng luận điểm thị trường
+* Chương 60. Vô hiệu đa chiều
+* Chương 61. Mục tiêu và đường đi ít cản trở
+* Chương 62. Quản trị rủi ro
 
 ## PHẦN VII — CÁC HỌ CHIẾN LƯỢC VÀ LỐI VÀO LỆNH
 
-- Chương 63. Ba kết quả của một lần thử đấu giá ngoài vùng
-- Chương 64. FAR: Failed Auction Re-entry
-- Chương 65. AAC: Accepted Auction Continuation
-- Chương 66. Luân phiên trong vùng giá trị
-- Chương 67. Luân phiên quanh đường trung tâm
-- Chương 68. Giao dịch đáp ứng tại biên
-- Chương 69. Phá vỡ chủ động
-- Chương 70. Hồi về vùng giá trị mới
-- Chương 71. FAR hai lần thử
-- Chương 72. Nỗ lực lớn nhưng tiến triển hạn chế
-- Chương 73. Kết quả lớn với nỗ lực tương đối thấp
-- Chương 74. Từ chối tại biên Composite
-- Chương 75. Phá Composite và xây vùng giá trị mới
-- Chương 76. Ứng viên luân phiên trong chế độ Options ổn định
-- Chương 77. Ứng viên khuếch đại trong chế độ Options bất ổn
-- Chương 78. AMT và Order Flow đồng thuận, Options hỗ trợ hoặc trung tính
-- Chương 79. AMT và Order Flow đồng thuận nhưng Options xung đột
-- Chương 80. Order Flow mạnh tại vị trí sai
-- Chương 81. Không giao dịch
+* Chương 63. Ba kết quả của một lần thử đấu giá ngoài vùng
+* Chương 64. FAR: Failed Auction Re-entry
+* Chương 65. AAC: Accepted Auction Continuation
+* Chương 66. Luân phiên trong vùng giá trị
+* Chương 67. Luân phiên quanh đường trung tâm
+* Chương 68. Giao dịch đáp ứng tại biên
+* Chương 69. Phá vỡ chủ động
+* Chương 70. Hồi về vùng giá trị mới
+* Chương 71. FAR hai lần thử
+* Chương 72. Nỗ lực lớn nhưng tiến triển hạn chế
+* Chương 73. Kết quả lớn với nỗ lực tương đối thấp
+* Chương 74. Từ chối tại biên Composite
+* Chương 75. Phá Composite và xây vùng giá trị mới
+* Chương 76. Ứng viên luân phiên trong chế độ Options ổn định
+* Chương 77. Ứng viên khuếch đại trong chế độ Options bất ổn
+* Chương 78. AMT và Order Flow đồng thuận, Options hỗ trợ hoặc trung tính
+* Chương 79. AMT và Order Flow đồng thuận nhưng Options xung đột
+* Chương 80. Order Flow mạnh tại vị trí sai
+* Chương 81. Không giao dịch
 
 ## PHẦN VIII — QUY TRÌNH GIAO DỊCH
 
-- Chương 82. Phân tách thị trường phân tích và thị trường thực thi
-- Chương 83. Chuẩn bị trước phiên
-- Chương 84. Quy trình đọc thị trường trong 90 giây
-- Chương 85. Quy trình ra quyết định
-- Chương 86. Quản lý giao dịch
-- Chương 87. Nhật ký giao dịch
-- Chương 88. Đánh giá lại và phát triển phương pháp
+* Chương 82. Phân tách thị trường phân tích và thị trường thực thi
+* Chương 83. Chuẩn bị trước phiên
+* Chương 84. Quy trình đọc thị trường trong 90 giây
+* Chương 85. Quy trình ra quyết định
+* Chương 86. Quản lý giao dịch
+* Chương 87. Nhật ký giao dịch
+* Chương 88. Đánh giá lại và phát triển phương pháp
 
 ## PHẦN IX — NGHIÊN CỨU, KIỂM CHỨNG VÀ THƯ VIỆN TÌNH HUỐNG
 
-- Chương 89. Chuẩn hóa dữ liệu và cấu hình quan sát
-- Chương 90. Đo lường lợi thế và độ bất định
-- Chương 91. Kiểm định độ bền và rủi ro chuỗi thua
-- Chương 92. Xây dựng thư viện tình huống
+* Chương 89. Chuẩn hóa dữ liệu và cấu hình quan sát
+* Chương 90. Đo lường lợi thế và độ bất định
+* Chương 91. Kiểm định độ bền và rủi ro chuỗi thua
+* Chương 92. Xây dựng thư viện tình huống
 
 ## PHẦN X — GIẢNG DẠY PHƯƠNG PHÁP
 
-- Chương 93. Lộ trình đào tạo bốn cấp
-
-- Chương 94. Phương pháp giảng một bài
-
-- Phụ lục A–O
-
-- Kết luận
+* Chương 93. Lộ trình đào tạo bốn cấp
+* Chương 94. Phương pháp giảng một bài
+* Phụ lục A–O
+* Kết luận
 
 # PHẦN I — NỀN TẢNG TƯ DUY THỊ TRƯỜNG
 
@@ -540,16 +560,16 @@ Người giao dịch không cần đoán mọi bước đi. Nhiệm vụ là nh�
 
 ### Quy trình áp dụng
 
-1.  Xác định vùng đang có hoạt động hai chiều.
-2.  Đánh dấu điểm giá bắt đầu rời vùng đó.
-3.  Quan sát xem thị trường có duy trì hoạt động ở vùng mới hay nhanh chóng quay lại.
-4.  Chỉ sau đó mới xem xét hướng giao dịch.
+1. Xác định vùng đang có hoạt động hai chiều.
+2. Đánh dấu điểm giá bắt đầu rời vùng đó.
+3. Quan sát xem thị trường có duy trì hoạt động ở vùng mới hay nhanh chóng quay lại.
+4. Chỉ sau đó mới xem xét hướng giao dịch.
 
 ### Sai lầm thường gặp
 
-- Gọi mọi cú phá đỉnh là mua chủ động thành công.
-- Đồng nhất một cây nến lớn với sự chấp nhận.
-- Kể câu chuyện về “cá mập” khi chỉ có dữ liệu giá.
+* Gọi mọi cú phá đỉnh là mua chủ động thành công.
+* Đồng nhất một cây nến lớn với sự chấp nhận.
+* Kể câu chuyện về “cá mập” khi chỉ có dữ liệu giá.
 
 ### Ghi nhớ
 
@@ -558,6 +578,7 @@ Người giao dịch không cần đoán mọi bước đi. Nhiệm vụ là nh�
 ## Chương 2. Hai trạng thái cốt lõi: Cân bằng và Khám phá giá
 
 Phần lớn diễn biến thị trường có thể được hiểu như sự luân phiên giữa cân bằng, khám phá giá và giai đoạn chuyển tiếp. Đây là ngữ pháp cơ bản của AMT.
+
 
 
 ### Nội dung cốt lõi
@@ -582,28 +603,28 @@ Hoạt động chủ động chấp nhận giao dịch ngoài vùng quen thuộc
 
 AMT truyền thống phân biệt hai chức năng:
 
-| Thuật ngữ          | Cách hiểu trong phương pháp                                                                          |
-|--------------------|------------------------------------------------------------------------------------------------------|
-| Responsive Buying  | Mua đáp ứng dưới vùng giá trị đã được chấp nhận; có thể hỗ trợ ứng viên FAR mua hoặc nhịp luân phiên |
-| Responsive Selling | Bán đáp ứng trên vùng giá trị đã được chấp nhận; có thể hỗ trợ ứng viên FAR bán hoặc nhịp luân phiên |
-| Initiating Buying  | Mua khởi xướng tạo và duy trì sự chấp nhận phía trên vùng giá trị; có thể hỗ trợ ứng viên AAC mua    |
-| Initiating Selling | Bán khởi xướng tạo và duy trì sự chấp nhận phía dưới vùng giá trị; có thể hỗ trợ ứng viên AAC bán    |
+|Thuật ngữ|Cách hiểu trong phương pháp|
+|-|-|
+|Responsive Buying|Mua đáp ứng dưới vùng giá trị đã được chấp nhận; có thể hỗ trợ ứng viên FAR mua hoặc nhịp luân phiên|
+|Responsive Selling|Bán đáp ứng trên vùng giá trị đã được chấp nhận; có thể hỗ trợ ứng viên FAR bán hoặc nhịp luân phiên|
+|Initiating Buying|Mua khởi xướng tạo và duy trì sự chấp nhận phía trên vùng giá trị; có thể hỗ trợ ứng viên AAC mua|
+|Initiating Selling|Bán khởi xướng tạo và duy trì sự chấp nhận phía dưới vùng giá trị; có thể hỗ trợ ứng viên AAC bán|
 
 Đây là **mô hình chức năng**, không phải danh tính người tham gia. Không gọi hoạt động đáp ứng chỉ vì giá trông “đắt” hoặc “rẻ”. Không gọi hoạt động khởi xướng chỉ vì có phá biên hoặc Delta lớn. Phải xem Episode, tiến triển giá, sự chấp nhận và khả năng duy trì.
 
 ### Quy trình áp dụng
 
-1.  Xác định vùng giá trị gần nhất.
-2.  Quan sát giá đang ở trong, tại biên hay ngoài vùng.
-3.  Kiểm tra POC và giá trị có dịch theo giá hay không.
-4.  Phân loại: cân bằng, khám phá hoặc chuyển tiếp.
-5.  Chỉ chọn lối giao dịch phù hợp với trạng thái.
+1. Xác định vùng giá trị gần nhất.
+2. Quan sát giá đang ở trong, tại biên hay ngoài vùng.
+3. Kiểm tra POC và giá trị có dịch theo giá hay không.
+4. Phân loại: cân bằng, khám phá hoặc chuyển tiếp.
+5. Chỉ chọn lối giao dịch phù hợp với trạng thái.
 
 ### Sai lầm thường gặp
 
-- Giao dịch ngược mọi cú phá biên chỉ vì thị trường trước đó cân bằng.
-- Mua đuổi mọi cú phá biên mà chưa có giá trị mới.
-- Ép thị trường vào hai nhãn tăng hoặc giảm khi thực tế đang chuyển tiếp.
+* Giao dịch ngược mọi cú phá biên chỉ vì thị trường trước đó cân bằng.
+* Mua đuổi mọi cú phá biên mà chưa có giá trị mới.
+* Ép thị trường vào hai nhãn tăng hoặc giảm khi thực tế đang chuyển tiếp.
 
 ### Ghi nhớ
 
@@ -633,16 +654,16 @@ Giá có thể dành nhiều thời gian nhưng khối lượng thấp, hoặc k
 
 ### Quy trình áp dụng
 
-1.  Đặt TPO Profile và Volume Profile cạnh nhau.
-2.  So sánh POC, vùng giá trị và các nút lớn.
-3.  Ghi nhận vùng đồng thuận và vùng bất đồng.
-4.  Quan sát kết quả khi giá quay lại các vùng đó.
+1. Đặt TPO Profile và Volume Profile cạnh nhau.
+2. So sánh POC, vùng giá trị và các nút lớn.
+3. Ghi nhận vùng đồng thuận và vùng bất đồng.
+4. Quan sát kết quả khi giá quay lại các vùng đó.
 
 ### Sai lầm thường gặp
 
-- Gọi mọi vùng khối lượng cao là hỗ trợ.
-- Dùng TPO như thước đo tiền.
-- Dùng khối lượng như bằng chứng chắc chắn về ý định.
+* Gọi mọi vùng khối lượng cao là hỗ trợ.
+* Dùng TPO như thước đo tiền.
+* Dùng khối lượng như bằng chứng chắc chắn về ý định.
 
 ### Ghi nhớ
 
@@ -672,16 +693,16 @@ Một cấu trúc ngày có thể đang tăng trong khi cấu trúc nhiều ngà
 
 ### Quy trình áp dụng
 
-1.  Tách bối cảnh nhiều phiên khỏi bối cảnh trong ngày.
-2.  Ghi rõ khung nào đang khám phá và khung nào đang cân bằng.
-3.  Không gán danh tính cho dòng lệnh.
-4.  Điều chỉnh thời gian giữ lệnh theo khung tạo luận điểm.
+1. Tách bối cảnh nhiều phiên khỏi bối cảnh trong ngày.
+2. Ghi rõ khung nào đang khám phá và khung nào đang cân bằng.
+3. Không gán danh tính cho dòng lệnh.
+4. Điều chỉnh thời gian giữ lệnh theo khung tạo luận điểm.
 
 ### Sai lầm thường gặp
 
-- Dùng một lệnh lớn để kết luận “tổ chức vào hàng”.
-- Dùng xu hướng khung nhỏ để phủ nhận biên lớn.
-- Trộn luận điểm nhiều ngày với điểm vô hiệu vài nhịp giá.
+* Dùng một lệnh lớn để kết luận “tổ chức vào hàng”.
+* Dùng xu hướng khung nhỏ để phủ nhận biên lớn.
+* Trộn luận điểm nhiều ngày với điểm vô hiệu vài nhịp giá.
 
 ### Ghi nhớ
 
@@ -690,6 +711,7 @@ Một cấu trúc ngày có thể đang tăng trong khi cấu trúc nhiều ngà
 ## Chương 5. Dữ liệu, bằng chứng và kết luận
 
 Một phương pháp có thể đúng về ý tưởng nhưng thất bại vì ngôn ngữ quá chắc chắn. Chương này xây hàng rào giữa điều quan sát được, điều tính được và điều chỉ là giả thuyết.
+
 
 
 ### Nội dung cốt lõi
@@ -712,16 +734,16 @@ Dùng “phù hợp với giả thuyết”, “bằng chứng đang phát tri�
 
 ### Quy trình áp dụng
 
-1.  Gắn nhãn cho từng thông tin: quan sát, tính toán hoặc suy luận.
-2.  Viết điều đang biết, chưa biết, đang chờ và điều làm giả thuyết sai.
-3.  Chỉ chuyển từ quan sát sang luận điểm khi có chuỗi bằng chứng.
-4.  Lưu lại nhận định trước khi biết kết quả.
+1. Gắn nhãn cho từng thông tin: quan sát, tính toán hoặc suy luận.
+2. Viết điều đang biết, chưa biết, đang chờ và điều làm giả thuyết sai.
+3. Chỉ chuyển từ quan sát sang luận điểm khi có chuỗi bằng chứng.
+4. Lưu lại nhận định trước khi biết kết quả.
 
 ### Sai lầm thường gặp
 
-- Biến tương quan thành nhân quả.
-- Dùng từ tuyệt đối để che sự thiếu chắc chắn.
-- Chọn lọc dữ liệu chỉ vì nó ủng hộ lệnh đang muốn vào.
+* Biến tương quan thành nhân quả.
+* Dùng từ tuyệt đối để che sự thiếu chắc chắn.
+* Chọn lọc dữ liệu chỉ vì nó ủng hộ lệnh đang muốn vào.
 
 ### Ghi nhớ
 
@@ -732,11 +754,12 @@ Dùng “phù hợp với giả thuyết”, “bằng chứng đang phát tri�
 Các công cụ chỉ có giá trị khi chúng được đặt lên một cấu trúc đã xác định. Hồ sơ, Delta, iceberg, IV hay bất kỳ exposure Options nào cũng không thể cứu một luận điểm sinh ra từ vị trí sai.
 
 
+
 ### Cấu trúc đứng trước chỉ báo
 
 Thứ tự làm việc:
 
-    Trạng thái cuộc đấu giá
+&#x20;   Trạng thái cuộc đấu giá
     → Cấu trúc khung thời gian lớn
     → Vùng mốc cấu trúc
     → Luận điểm
@@ -745,6 +768,7 @@ Thứ tự làm việc:
     → Options và bối cảnh ngoài
     → Order Flow kiểm chứng tại điểm tương tác
     → Thực thi và rủi ro
+
 
 Luận điểm không bắt đầu từ phân kỳ Delta hoặc một dấu iceberg. Luận điểm bắt đầu từ câu hỏi: **giá đang ở đâu và bên nào cần chứng minh điều gì tại vùng này?**
 
@@ -758,21 +782,22 @@ Không gượng vẽ mốc vì đang nóng lòng tìm lệnh. Một vùng chỉ 
 
 Một mốc chỉ có giá trị giao dịch khi thị trường thể hiện hành vi phù hợp với vai trò được gán:
 
-- Vùng hỗ trợ không bắt buộc bật hình chữ V, nhưng phải làm giảm khả năng tiếp diễn xuống hoặc tạo phản ứng có kết quả.
-- Nếu giá xây vùng giá trị và duy trì bên dưới vùng hỗ trợ, luận điểm mua suy yếu.
-- Nếu giá chỉ giằng co và chưa xây được sự chấp nhận theo phía nào, trạng thái đúng là chưa được giải quyết.
+* Vùng hỗ trợ không bắt buộc bật hình chữ V, nhưng phải làm giảm khả năng tiếp diễn xuống hoặc tạo phản ứng có kết quả.
+* Nếu giá xây vùng giá trị và duy trì bên dưới vùng hỗ trợ, luận điểm mua suy yếu.
+* Nếu giá chỉ giằng co và chưa xây được sự chấp nhận theo phía nào, trạng thái đúng là chưa được giải quyết.
 
 ### Kế hoạch điều kiện
 
 Không cố đoán người tham gia lớn đang nghĩ gì. Chuẩn bị cây quyết định:
 
-    Giá tiếp cận vùng mốc
+&#x20;   Giá tiếp cận vùng mốc
     ├─ Tái nhập và duy trì vùng cũ
     │  └─ Xem xét FAR
     ├─ Xây hoạt động và duy trì ngoài vùng
     │  └─ Xem xét AAC
     └─ Bằng chứng xung đột hoặc thiếu
        └─ Chưa giải quyết / Không giao dịch
+
 
 ### Mẫu hình chỉ là hình thức biểu hiện
 
@@ -787,6 +812,7 @@ SFP, Quasimodo, tam giác, hình chữ nhật hoặc phá vỡ rồi kiểm tra 
 ## Chương 7. Market Profile và TPO
 
 Market Profile tổ chức diễn biến giá theo thời gian để làm lộ cấu trúc của cuộc đấu giá. Nó không dự báo; nó giúp nhìn thấy nơi thị trường dành thời gian và cách phạm vi phát triển.
+
 
 
 ### Nội dung cốt lõi
@@ -809,16 +835,16 @@ Single Prints là vùng chỉ có một TPO trong cấu trúc, thường phản 
 
 ### Quy trình áp dụng
 
-1.  Xác định TPO POC, VAH, VAL.
-2.  Đánh dấu Single Prints, Excess, đỉnh kém hoàn thiện và đáy kém hoàn thiện.
-3.  Quan sát vị trí mở cửa và cách phạm vi mở rộng.
-4.  So sánh cấu trúc đang phát triển với phiên hoàn tất.
+1. Xác định TPO POC, VAH, VAL.
+2. Đánh dấu Single Prints, Excess, đỉnh kém hoàn thiện và đáy kém hoàn thiện.
+3. Quan sát vị trí mở cửa và cách phạm vi mở rộng.
+4. So sánh cấu trúc đang phát triển với phiên hoàn tất.
 
 ### Sai lầm thường gặp
 
-- Giao dịch mọi Single Print như khoảng trống phải lấp.
-- Coi đỉnh kém hoàn thiện là mục tiêu bắt buộc.
-- Quên rằng hình dạng đang phát triển có thể thay đổi trước khi phiên kết thúc.
+* Giao dịch mọi Single Print như khoảng trống phải lấp.
+* Coi đỉnh kém hoàn thiện là mục tiêu bắt buộc.
+* Quên rằng hình dạng đang phát triển có thể thay đổi trước khi phiên kết thúc.
 
 ### Ghi nhớ
 
@@ -827,6 +853,7 @@ Single Prints là vùng chỉ có một TPO trong cấu trúc, thường phản 
 ## Chương 8. Volume Profile
 
 Hồ sơ khối lượng phân bổ số hợp đồng đã khớp theo mức giá. Nó là bản đồ hoạt động thực thi và thường bổ sung cho TPO.
+
 
 
 ### Nội dung cốt lõi
@@ -849,25 +876,25 @@ Hồ sơ theo phiên, theo vùng cố định và composite trả lời các câ
 
 ### Ngữ nghĩa và giới hạn của POC, HVN, LVN và nPOC
 
-- **POC** là mức hoạt động lớn nhất trong hồ sơ đã chọn. Nó không phải giá trị nội tại, không mặc định là hỗ trợ/kháng cự và không có lực hút vật lý. Trong cân bằng, POC có thể là mục tiêu trung gian của nhịp luân phiên; trong khám phá giá mạnh, nó có thể bị bỏ lại lâu.
-- **nPOC** nên được hiểu là POC chưa được kiểm tra lại. Nó là mốc tham chiếu lịch sử, không tạo nghĩa vụ cho giá phải quay về.
-- **HVN** cho thấy vùng từng có hoạt động và sự chấp nhận cao. Nó có thể là vùng luân phiên, rào cản hoặc mục tiêu, nhưng vai trò hiện tại phải được Episode xác nhận.
-- **LVN** cho thấy vùng ít hoạt động trong hồ sơ lịch sử. Sau khi được chấp nhận xuyên qua, nó có thể trở thành hành lang di chuyển nhanh; mép LVN cũng có thể tạo từ chối. Không được mặc định “vào LVN là giá sẽ bay”.
+* **POC** là mức hoạt động lớn nhất trong hồ sơ đã chọn. Nó không phải giá trị nội tại, không mặc định là hỗ trợ/kháng cự và không có lực hút vật lý. Trong cân bằng, POC có thể là mục tiêu trung gian của nhịp luân phiên; trong khám phá giá mạnh, nó có thể bị bỏ lại lâu.
+* **nPOC** nên được hiểu là POC chưa được kiểm tra lại. Nó là mốc tham chiếu lịch sử, không tạo nghĩa vụ cho giá phải quay về.
+* **HVN** cho thấy vùng từng có hoạt động và sự chấp nhận cao. Nó có thể là vùng luân phiên, rào cản hoặc mục tiêu, nhưng vai trò hiện tại phải được Episode xác nhận.
+* **LVN** cho thấy vùng ít hoạt động trong hồ sơ lịch sử. Sau khi được chấp nhận xuyên qua, nó có thể trở thành hành lang di chuyển nhanh; mép LVN cũng có thể tạo từ chối. Không được mặc định “vào LVN là giá sẽ bay”.
 
 Không dùng các câu tuyệt đối: “POC là nam châm”, “HVN chắc chắn giữ”, “LVN là chân không”, “nPOC bắt buộc được lấp”.
 
 ### Quy trình áp dụng
 
-1.  Chọn phạm vi theo một cuộc đấu giá có lý do rõ.
-2.  Đánh dấu POC, VAH, VAL, HVN và LVN.
-3.  So sánh với TPO và cấu trúc giá.
-4.  Kiểm tra phản ứng khi giá quay lại, thay vì mặc định phản ứng.
+1. Chọn phạm vi theo một cuộc đấu giá có lý do rõ.
+2. Đánh dấu POC, VAH, VAL, HVN và LVN.
+3. So sánh với TPO và cấu trúc giá.
+4. Kiểm tra phản ứng khi giá quay lại, thay vì mặc định phản ứng.
 
 ### Sai lầm thường gặp
 
-- Kéo phạm vi cho đến khi POC nằm đúng nơi mong muốn.
-- Coi HVN luôn là vùng đảo chiều.
-- Dùng LVN như bức tường không thể xuyên.
+* Kéo phạm vi cho đến khi POC nằm đúng nơi mong muốn.
+* Coi HVN luôn là vùng đảo chiều.
+* Dùng LVN như bức tường không thể xuyên.
 
 ### Ghi nhớ
 
@@ -876,6 +903,7 @@ Không dùng các câu tuyệt đối: “POC là nam châm”, “HVN chắc ch
 ## Chương 9. Vùng giá trị và POC
 
 VAH, VAL và POC là những điểm neo quan trọng, nhưng giá trị của chúng đến từ câu chuyện đấu giá chứ không phải từ việc biến chúng thành đường hỗ trợ kháng cự máy móc.
+
 
 
 ### Nội dung cốt lõi
@@ -904,16 +932,16 @@ Vùng giá trị là nơi hoạt động được chấp nhận tương đối t
 
 ### Quy trình áp dụng
 
-1.  Xác định giá đang trong, trên hay dưới vùng giá trị.
-2.  So sánh vùng giá trị hiện tại với phiên trước.
-3.  Quan sát POC đang đứng yên hay dịch.
-4.  Chờ bằng chứng tái nhập hoặc chấp nhận trước khi chọn FAR hay AAC.
+1. Xác định giá đang trong, trên hay dưới vùng giá trị.
+2. So sánh vùng giá trị hiện tại với phiên trước.
+3. Quan sát POC đang đứng yên hay dịch.
+4. Chờ bằng chứng tái nhập hoặc chấp nhận trước khi chọn FAR hay AAC.
 
 ### Sai lầm thường gặp
 
-- Bán ngay tại VAH và mua ngay tại VAL.
-- Gọi POC là nam châm bất kể trạng thái.
-- Không phân biệt POC đang phát triển với POC hoàn tất.
+* Bán ngay tại VAH và mua ngay tại VAL.
+* Gọi POC là nam châm bất kể trạng thái.
+* Không phân biệt POC đang phát triển với POC hoàn tất.
 
 ### Ghi nhớ
 
@@ -922,6 +950,7 @@ Vùng giá trị là nơi hoạt động được chấp nhận tương đối t
 ## Chương 10. Initial Balance
 
 Initial Balance (IB) là phạm vi hình thành trong giai đoạn đầu của phiên theo quy ước của thị trường. Nó cung cấp khung tham chiếu cho cách phạm vi còn lại phát triển.
+
 
 
 ### Nội dung cốt lõi
@@ -946,20 +975,21 @@ IB là một đầu vào cho phân loại cấu trúc ngày, không phải toàn
 
 Vị trí mở cửa cung cấp câu hỏi đầu tiên của phiên, không phải tín hiệu giao dịch:
 
-- **Mở trong vùng giá trị và trong phạm vi trước:** thị trường bắt đầu gần vùng thỏa thuận cũ; ưu tiên quan sát luân phiên cho đến khi một phía chứng minh được khả năng rời vùng.
-- **Mở ngoài vùng giá trị nhưng vẫn trong phạm vi trước:** giá đang thử phần ít được chấp nhận hơn của phạm vi; cần phân biệt phản ứng quay về với hoạt động khởi xướng tiếp tục ra ngoài.
-- **Mở ngoài phạm vi trước:** thị trường bắt đầu bằng một khoảng cách khỏi vùng thỏa thuận cũ; cần đánh giá việc khoảng cách được duy trì hay bị lấp lại.
+* **Mở trong vùng giá trị và trong phạm vi trước:** thị trường bắt đầu gần vùng thỏa thuận cũ; ưu tiên quan sát luân phiên cho đến khi một phía chứng minh được khả năng rời vùng.
+* **Mở ngoài vùng giá trị nhưng vẫn trong phạm vi trước:** giá đang thử phần ít được chấp nhận hơn của phạm vi; cần phân biệt phản ứng quay về với hoạt động khởi xướng tiếp tục ra ngoài.
+* **Mở ngoài phạm vi trước:** thị trường bắt đầu bằng một khoảng cách khỏi vùng thỏa thuận cũ; cần đánh giá việc khoảng cách được duy trì hay bị lấp lại.
 
 ### Các kiểu mở cửa thường gặp
 
 Các kiểu mở cửa chỉ là mô hình mô tả ban đầu và có thể thay đổi khi dữ liệu phát triển:
 
-- **Mở cửa dẫn động:** giá rời vùng mở cửa nhanh, ít quay lại và liên tục tạo tiến triển.
-- **Mở cửa thử rồi đi:** giá kiểm tra một phía trước, thất bại, sau đó phát triển theo phía còn lại.
-- **Mở cửa từ chối rồi đảo:** giá đi ra một phía, bị từ chối rõ và quay xuyên vùng mở cửa theo hướng ngược lại.
-- **Mở cửa đấu giá:** giá qua lại quanh vùng mở cửa, chưa có phía nào tạo được sự duy trì.
+* **Mở cửa dẫn động:** giá rời vùng mở cửa nhanh, ít quay lại và liên tục tạo tiến triển.
+* **Mở cửa thử rồi đi:** giá kiểm tra một phía trước, thất bại, sau đó phát triển theo phía còn lại.
+* **Mở cửa từ chối rồi đảo:** giá đi ra một phía, bị từ chối rõ và quay xuyên vùng mở cửa theo hướng ngược lại.
+* **Mở cửa đấu giá:** giá qua lại quanh vùng mở cửa, chưa có phía nào tạo được sự duy trì.
 
 Không gắn nhãn quá sớm. Kiểu mở cửa phải được kiểm tra bằng phạm vi, khối lượng, POC đang phát triển, khả năng duy trì và diễn biến sau lần thử đầu tiên.
+
 
 
 ### Tồn kho qua đêm
@@ -968,24 +998,24 @@ Tồn kho qua đêm mô tả việc vị thế ngắn hạn trong phiên điện
 
 Dấu hiệu cần theo dõi:
 
-- Giá qua đêm di chuyển một chiều và đóng gần cực trị.
-- Phần lớn phạm vi qua đêm nằm trên hoặc dưới vùng giá trị trước.
-- Khi phiên chính mở cửa, thị trường giữ được vùng qua đêm hay nhanh chóng quay lại vùng thỏa thuận cũ.
+* Giá qua đêm di chuyển một chiều và đóng gần cực trị.
+* Phần lớn phạm vi qua đêm nằm trên hoặc dưới vùng giá trị trước.
+* Khi phiên chính mở cửa, thị trường giữ được vùng qua đêm hay nhanh chóng quay lại vùng thỏa thuận cũ.
 
 Sự điều chỉnh tồn kho chỉ là giả thuyết\*. Nếu giá tiếp tục được chấp nhận theo hướng qua đêm, việc cố giao dịch ngược chỉ vì “tồn kho lệch” là sai logic.
 
 ### Quy trình áp dụng
 
-1.  Xác định IB theo đúng mốc thời gian đã chọn.
-2.  Đo độ rộng tương đối với lịch sử.
-3.  Ghi lần phá IB đầu tiên và phản ứng sau phá.
-4.  Kiểm tra vùng giá trị/POC có đi theo mở rộng phạm vi.
+1. Xác định IB theo đúng mốc thời gian đã chọn.
+2. Đo độ rộng tương đối với lịch sử.
+3. Ghi lần phá IB đầu tiên và phản ứng sau phá.
+4. Kiểm tra vùng giá trị/POC có đi theo mở rộng phạm vi.
 
 ### Sai lầm thường gặp
 
-- Mua mọi cú phá đỉnh IB.
-- Gán Trend Day quá sớm.
-- Thay đổi thời lượng IB tùy ý sau khi nhìn kết quả.
+* Mua mọi cú phá đỉnh IB.
+* Gán Trend Day quá sớm.
+* Thay đổi thời lượng IB tùy ý sau khi nhìn kết quả.
 
 ### Ghi nhớ
 
@@ -994,6 +1024,7 @@ Sự điều chỉnh tồn kho chỉ là giả thuyết\*. Nếu giá tiếp t�
 ## Chương 11. Hình dạng Profile và cấu trúc ngày
 
 Loại ngày là cách mô tả cấu trúc sau khi dữ liệu phát triển đủ. Trong phiên, mọi nhãn chỉ là ứng viên có thể thay đổi.
+
 
 
 ### Nội dung cốt lõi
@@ -1016,16 +1047,16 @@ Phân phối kép (Double Distribution) phản ánh hai vùng thỏa thuận đ�
 
 ### Quy trình áp dụng
 
-1.  Gắn nhãn “ứng viên” trong phiên.
-2.  Cập nhật khi vùng giá trị, mở rộng phạm vi và hình phân phối thay đổi.
-3.  Chỉ xác nhận sau khi phiên đủ hoàn chỉnh.
-4.  Dùng loại ngày để điều chỉnh kỳ vọng, không dùng như tín hiệu vào.
+1. Gắn nhãn “ứng viên” trong phiên.
+2. Cập nhật khi vùng giá trị, mở rộng phạm vi và hình phân phối thay đổi.
+3. Chỉ xác nhận sau khi phiên đủ hoàn chỉnh.
+4. Dùng loại ngày để điều chỉnh kỳ vọng, không dùng như tín hiệu vào.
 
 ### Sai lầm thường gặp
 
-- Gọi P-shape là đóng vị thế bán chắc chắn.
-- Cố giữ nhãn Trend Day dù giá đã tái nhập vùng giá trị.
-- Dự đoán loại ngày quá sớm để biện minh cho lệnh.
+* Gọi P-shape là đóng vị thế bán chắc chắn.
+* Cố giữ nhãn Trend Day dù giá đã tái nhập vùng giá trị.
+* Dự đoán loại ngày quá sớm để biện minh cho lệnh.
 
 ### Ghi nhớ
 
@@ -1063,7 +1094,7 @@ Mốc nên được trình bày như một **vùng giá**, không phải đúng 
 
 Mỗi vùng mốc phải có:
 
-    Nguồn hình thành
+&#x20;   Nguồn hình thành
     Khung thời gian
     Vai trò: biên / trung tâm / cực trị / hành lang
     Tuổi của mốc
@@ -1071,19 +1102,20 @@ Mỗi vùng mốc phải có:
     Hành vi được kỳ vọng
     Điều kiện làm mốc mất vai trò
 
+
 ### Quy trình áp dụng
 
-1.  Chỉ giữ các mốc có nguồn gốc rõ.
-2.  Gắn vai trò: biên trên, biên dưới, trung tâm, cực trị hoặc hành lang.
-3.  Xếp theo khung thời gian.
-4.  Loại bớt mốc trùng lặp gây nhiễu.
-5.  Khi giá đến, mở một Episode thay vì vào lệnh ngay.
+1. Chỉ giữ các mốc có nguồn gốc rõ.
+2. Gắn vai trò: biên trên, biên dưới, trung tâm, cực trị hoặc hành lang.
+3. Xếp theo khung thời gian.
+4. Loại bớt mốc trùng lặp gây nhiễu.
+5. Khi giá đến, mở một Episode thay vì vào lệnh ngay.
 
 ### Sai lầm thường gặp
 
-- Vẽ quá nhiều đường.
-- Gọi mọi mốc là hỗ trợ/kháng cự.
-- Đánh đồng sự hội tụ của nhiều mốc với xác suất cao khi chưa có dữ liệu.
+* Vẽ quá nhiều đường.
+* Gọi mọi mốc là hỗ trợ/kháng cự.
+* Đánh đồng sự hội tụ của nhiều mốc với xác suất cao khi chưa có dữ liệu.
 
 ### Ghi nhớ
 
@@ -1092,6 +1124,7 @@ Mỗi vùng mốc phải có:
 ## Chương 13. Composite Profile và cấu trúc nhiều phiên
 
 Composite Profile gom các phiên thuộc cùng một cuộc đấu giá để nhìn vùng thỏa thuận lớn hơn. Chất lượng của composite phụ thuộc vào cách chọn phạm vi, không chỉ vào số ngày.
+
 
 
 ### Nội dung cốt lõi
@@ -1114,17 +1147,17 @@ Composite đang phát triển có thể thay đổi theo phiên mới. Composite
 
 ### Quy trình áp dụng
 
-1.  Xác định phiên bắt đầu của vùng cân bằng.
-2.  Kiểm tra chồng lấn và dịch chuyển.
-3.  Xây Composite từ các phiên có cùng cách tổ chức.
-4.  Đánh dấu biên, trung tâm và LVN.
-5.  Khi giá rời composite, theo dõi chấp nhận hoặc tái nhập.
+1. Xác định phiên bắt đầu của vùng cân bằng.
+2. Kiểm tra chồng lấn và dịch chuyển.
+3. Xây Composite từ các phiên có cùng cách tổ chức.
+4. Đánh dấu biên, trung tâm và LVN.
+5. Khi giá rời composite, theo dõi chấp nhận hoặc tái nhập.
 
 ### Sai lầm thường gặp
 
-- Gộp cố định N ngày bất kể cấu trúc.
-- Loại phiên không thuận ý tưởng.
-- Giữ composite cũ quá lâu sau khi vùng giá trị mới đã hình thành.
+* Gộp cố định N ngày bất kể cấu trúc.
+* Loại phiên không thuận ý tưởng.
+* Giữ composite cũ quá lâu sau khi vùng giá trị mới đã hình thành.
 
 ### Ghi nhớ
 
@@ -1133,6 +1166,7 @@ Composite đang phát triển có thể thay đổi theo phiên mới. Composite
 ## Chương 14. Dịch chuyển giá trị và bối cảnh định hướng
 
 Hướng giá ngắn hạn có thể nhiễu. Dịch chuyển của vùng giá trị, POC và phạm vi cho thấy nơi thị trường thực sự tổ chức hoạt động qua thời gian.
+
 
 
 ### Nội dung cốt lõi
@@ -1155,17 +1189,17 @@ Xung đột là trạng thái hữu ích khi bằng chứng không cùng hướn
 
 ### Quy trình áp dụng
 
-1.  So sánh ba đến năm phiên hoàn tất.
-2.  Xác định hướng vùng giá trị và POC.
-3.  Đánh giá chồng lấn.
-4.  Tách bối cảnh cấu trúc và ngắn hạn.
-5.  Ghi rõ trạng thái đồng thuận, chuyển tiếp hoặc xung đột.
+1. So sánh ba đến năm phiên hoàn tất.
+2. Xác định hướng vùng giá trị và POC.
+3. Đánh giá chồng lấn.
+4. Tách bối cảnh cấu trúc và ngắn hạn.
+5. Ghi rõ trạng thái đồng thuận, chuyển tiếp hoặc xung đột.
 
 ### Sai lầm thường gặp
 
-- Dùng giá đóng cửa thay cho sự dịch chuyển vùng giá trị.
-- Gọi mọi phiên cao hơn là xu hướng tăng.
-- Ép xung đột thành Long hoặc Short.
+* Dùng giá đóng cửa thay cho sự dịch chuyển vùng giá trị.
+* Gọi mọi phiên cao hơn là xu hướng tăng.
+* Ép xung đột thành Long hoặc Short.
 
 ### Ghi nhớ
 
@@ -1176,12 +1210,14 @@ Xung đột là trạng thái hữu ích khi bằng chứng không cùng hướn
 One-Time Framing (OTF) mô tả việc các cực trị của những khoảng thời gian **đã hoàn tất** tiếp tục giữ một nhịp một chiều. OTF là công cụ mô tả tiến triển, không phải tín hiệu đảo chiều hoặc xu hướng dài hạn.
 
 
+
 ### OTF tăng
 
 OTF tăng được duy trì khi **đáy của khoảng hoàn tất hiện tại không thấp hơn đáy của khoảng trước**. Điều này bao gồm cả đáy cao hơn và đáy bằng nhau.
 
-    Đáy hiện tại ≥ Đáy trước
+&#x20;   Đáy hiện tại ≥ Đáy trước
     → OTF tăng còn duy trì
+
 
 OTF tăng chỉ bị phá khi xuất hiện một đáy thấp hơn.
 
@@ -1189,8 +1225,9 @@ OTF tăng chỉ bị phá khi xuất hiện một đáy thấp hơn.
 
 OTF giảm được duy trì khi **đỉnh của khoảng hoàn tất hiện tại không cao hơn đỉnh của khoảng trước**. Điều này bao gồm cả đỉnh thấp hơn và đỉnh bằng nhau.
 
-    Đỉnh hiện tại ≤ Đỉnh trước
+&#x20;   Đỉnh hiện tại ≤ Đỉnh trước
     → OTF giảm còn duy trì
+
 
 OTF giảm chỉ bị phá khi xuất hiện một đỉnh cao hơn.
 
@@ -1204,18 +1241,18 @@ Một lần phá OTF là cảnh báo nhịp ngắn hạn đã thay đổi. Nó k
 
 ### Quy trình áp dụng
 
-1.  Chỉ dùng các khoảng đã hoàn tất.
-2.  Ghi rõ quy tắc xử lý cực trị bằng nhau.
-3.  Đặt OTF trong bối cảnh vùng giá trị, Composite và Episode.
-4.  Kiểm tra POC/vùng giá trị có dịch cùng hướng hay không.
-5.  Không vào lệnh chỉ vì OTF được duy trì hoặc bị phá.
+1. Chỉ dùng các khoảng đã hoàn tất.
+2. Ghi rõ quy tắc xử lý cực trị bằng nhau.
+3. Đặt OTF trong bối cảnh vùng giá trị, Composite và Episode.
+4. Kiểm tra POC/vùng giá trị có dịch cùng hướng hay không.
+5. Không vào lệnh chỉ vì OTF được duy trì hoặc bị phá.
 
 ### Sai lầm thường gặp
 
-- Dùng khoảng đang chạy để xác nhận.
-- Đòi hỏi đáy luôn phải cao hơn hoặc đỉnh luôn phải thấp hơn, làm mất trường hợp bằng nhau.
-- Gọi một lần phá OTF là đảo xu hướng.
-- Bỏ qua việc OTF nằm giữa vùng cân bằng.
+* Dùng khoảng đang chạy để xác nhận.
+* Đòi hỏi đáy luôn phải cao hơn hoặc đỉnh luôn phải thấp hơn, làm mất trường hợp bằng nhau.
+* Gọi một lần phá OTF là đảo xu hướng.
+* Bỏ qua việc OTF nằm giữa vùng cân bằng.
 
 ### Ghi nhớ
 
@@ -1249,17 +1286,17 @@ Episode kết thúc khi cuộc đấu giá được giải quyết, mốc mất 
 
 ### Quy trình áp dụng
 
-1.  Chọn mốc tham chiếu trước khi giá đến.
-2.  Ghi thời điểm tương tác đầu tiên.
-3.  Theo dõi độ lệch, thời gian, khối lượng, số giao dịch và POC cục bộ.
-4.  Đánh dấu tái nhập hoặc sự duy trì ngoài vùng.
-5.  Chưa gán FAR/AAC cho đến khi bằng chứng đủ.
+1. Chọn mốc tham chiếu trước khi giá đến.
+2. Ghi thời điểm tương tác đầu tiên.
+3. Theo dõi độ lệch, thời gian, khối lượng, số giao dịch và POC cục bộ.
+4. Đánh dấu tái nhập hoặc sự duy trì ngoài vùng.
+5. Chưa gán FAR/AAC cho đến khi bằng chứng đủ.
 
 ### Sai lầm thường gặp
 
-- Bắt đầu Episode sau khi nhìn thấy kết quả.
-- Gọi mọi lần xuyên là quét thanh khoản.
-- Tạo Episode mới cho từng cây nến và mất lịch sử thử giá.
+* Bắt đầu Episode sau khi nhìn thấy kết quả.
+* Gọi mọi lần xuyên là quét thanh khoản.
+* Tạo Episode mới cho từng cây nến và mất lịch sử thử giá.
 
 ### Ghi nhớ
 
@@ -1268,6 +1305,7 @@ Episode kết thúc khi cuộc đấu giá được giải quyết, mốc mất 
 ## Chương 17. Sự chấp nhận, từ chối và tái nhập
 
 Đây là trung tâm của phương pháp. Giá đi qua mốc chỉ là hình học; Sự chấp nhận hoặc Tái chấp nhận cần bằng chứng duy trì và tổ chức hoạt động.
+
 
 
 ### Nội dung cốt lõi
@@ -1294,18 +1332,18 @@ Kiểm tra lại là lần quay lại kiểm tra vùng chuyển trạng thái. K
 
 ### Quy trình áp dụng
 
-1.  Đo tỷ lệ thời gian, khối lượng và số giao dịch ngoài vùng.
-2.  Theo dõi POC cục bộ và vùng giá trị.
-3.  Xác định tái nhập về mặt hình học.
-4.  Chờ sự duy trì trong hoặc ngoài.
-5.  Dùng kiểm tra lại để kiểm tra trạng thái.
-6.  Phân loại FAR, AAC hoặc chưa được giải quyết.
+1. Đo tỷ lệ thời gian, khối lượng và số giao dịch ngoài vùng.
+2. Theo dõi POC cục bộ và vùng giá trị.
+3. Xác định tái nhập về mặt hình học.
+4. Chờ sự duy trì trong hoặc ngoài.
+5. Dùng kiểm tra lại để kiểm tra trạng thái.
+6. Phân loại FAR, AAC hoặc chưa được giải quyết.
 
 ### Sai lầm thường gặp
 
-- Dùng một cây nến đóng ngoài làm Sự chấp nhận.
-- Dùng một râu nến quay vào để kết luận tái chấp nhận.
-- Đặt ngưỡng cứng mà không kiểm chứng theo chế độ thị trường.
+* Dùng một cây nến đóng ngoài làm Sự chấp nhận.
+* Dùng một râu nến quay vào để kết luận tái chấp nhận.
+* Đặt ngưỡng cứng mà không kiểm chứng theo chế độ thị trường.
 
 ### Ghi nhớ
 
@@ -1314,6 +1352,7 @@ Kiểm tra lại là lần quay lại kiểm tra vùng chuyển trạng thái. K
 ## Chương 18. Cuộc đấu giá thất bại và cuộc đấu giá tiếp diễn
 
 Một lần thử đấu giá ngoài vùng thường có ba kết quả: thất bại và quay lại, được chấp nhận và tiếp diễn, hoặc chưa được giải quyết. Hai kết quả đầu tạo nền cho FAR và AAC.
+
 
 
 ### Nội dung cốt lõi
@@ -1340,18 +1379,18 @@ Nếu hoạt động phân bổ hai phía, POC không rõ, giá liên tục qua 
 
 ### Quy trình áp dụng
 
-1.  Xác định lần thử đấu giá ngoài vùng.
-2.  Đo sự chấp nhận ngoài vùng.
-3.  Đánh giá tái nhập và vùng giá trị cũ lấy lại.
-4.  So sánh Nỗ lực–Kết quả giữa các lần thử.
-5.  Chọn FAR, AAC hoặc chưa được giải quyết.
-6.  Chỉ sau đó mới chọn phong cách vào.
+1. Xác định lần thử đấu giá ngoài vùng.
+2. Đo sự chấp nhận ngoài vùng.
+3. Đánh giá tái nhập và vùng giá trị cũ lấy lại.
+4. So sánh Nỗ lực–Kết quả giữa các lần thử.
+5. Chọn FAR, AAC hoặc chưa được giải quyết.
+6. Chỉ sau đó mới chọn phong cách vào.
 
 ### Sai lầm thường gặp
 
-- Gọi thất bại ngay khi giá quay đầu.
-- Gọi tiếp diễn ngay khi giá vừa phá vỡ với Delta lớn.
-- Bỏ qua trạng thái chưa được giải quyết vì muốn có giao dịch.
+* Gọi thất bại ngay khi giá quay đầu.
+* Gọi tiếp diễn ngay khi giá vừa phá vỡ với Delta lớn.
+* Bỏ qua trạng thái chưa được giải quyết vì muốn có giao dịch.
 
 ### Ghi nhớ
 
@@ -1367,11 +1406,11 @@ Khi giá được tái chấp nhận vào vùng cân bằng, biên đối diện
 
 Điều kiện cần xem:
 
-- Tái chấp nhận thực sự, không chỉ một bóng nến.
-- Không có vùng giá trị mới phát triển bên ngoài.
-- POC và các rào cản trung gian không tạo phản ứng phủ định.
-- Dòng lệnh sau tái nhập tạo được tiến triển.
-- Đường tới biên đối diện còn đủ khoảng trống.
+* Tái chấp nhận thực sự, không chỉ một bóng nến.
+* Không có vùng giá trị mới phát triển bên ngoài.
+* POC và các rào cản trung gian không tạo phản ứng phủ định.
+* Dòng lệnh sau tái nhập tạo được tiến triển.
+* Đường tới biên đối diện còn đủ khoảng trống.
 
 Biên đối diện là mục tiêu tiềm năng, không phải mục tiêu bắt buộc.
 
@@ -1395,11 +1434,12 @@ Trong một luận điểm luân phiên, POC là rào cản trung gian. Phản �
 
 Thời gian, khối lượng và POC cục bộ xây tại hoặc ngoài biên làm tăng tính hợp lý của giả thuyết chấp nhận và AAC, nhưng chỉ khi giá duy trì ngoài và không lấy lại bền vững vùng giá trị cũ.
 
-    Hoạt động lớn tại biên nhưng không có tiến triển
+&#x20;   Hoạt động lớn tại biên nhưng không có tiến triển
     → có thể là hấp thụ hoặc trạng thái chưa giải quyết
 
     Hoạt động xây ngoài biên + POC/vùng giá trị dịch + duy trì ngoài
     → ứng viên chấp nhận
+
 
 ### Ghi nhớ
 
@@ -1410,6 +1450,7 @@ Thời gian, khối lượng và POC cục bộ xây tại hoặc ngoài biên l
 ## Chương 20. Cơ chế thực thi lệnh
 
 Order Flow bắt đầu từ một sự thật đơn giản: chỉ lệnh đã khớp mới trở thành giao dịch. Sổ lệnh cho thấy ý định đang treo; Tape và Footprint cho thấy phần đã thực sự khớp.
+
 
 
 ### Nội dung cốt lõi
@@ -1436,16 +1477,16 @@ Dữ liệu thường không cho biết danh tính, mục đích, vị thế tr�
 
 ### Quy trình áp dụng
 
-1.  Xác định dữ liệu nào là lệnh treo và dữ liệu nào là giao dịch đã khớp.
-2.  Đọc hành vi chủ động tại đúng vị trí AMT.
-3.  Quan sát kết quả giá sau nỗ lực thực thi.
-4.  Không suy luận ý định vượt quá dữ liệu.
+1. Xác định dữ liệu nào là lệnh treo và dữ liệu nào là giao dịch đã khớp.
+2. Đọc hành vi chủ động tại đúng vị trí AMT.
+3. Quan sát kết quả giá sau nỗ lực thực thi.
+4. Không suy luận ý định vượt quá dữ liệu.
 
 ### Sai lầm thường gặp
 
-- Gọi lệnh giới hạn lớn là hỗ trợ chắc chắn.
-- Coi mọi lực mua chủ động là tín hiệu tăng.
-- Nhầm số hợp đồng khớp với số người tham gia.
+* Gọi lệnh giới hạn lớn là hỗ trợ chắc chắn.
+* Coi mọi lực mua chủ động là tín hiệu tăng.
+* Nhầm số hợp đồng khớp với số người tham gia.
 
 ### Ghi nhớ
 
@@ -1479,16 +1520,16 @@ Một lệnh mua chủ động khớp với một người bán thụ động. O
 
 ### Quy trình áp dụng
 
-1.  Kiểm tra nguồn và quy tắc phân loại.
-2.  Theo dõi tỷ lệ Không xác định.
-3.  Dùng Delta chỉ trong phần dữ liệu đã phân loại.
-4.  So sánh áp lực chủ động với tiến triển.
+1. Kiểm tra nguồn và quy tắc phân loại.
+2. Theo dõi tỷ lệ Không xác định.
+3. Dùng Delta chỉ trong phần dữ liệu đã phân loại.
+4. So sánh áp lực chủ động với tiến triển.
 
 ### Sai lầm thường gặp
 
-- Ép toàn bộ giao dịch thành Bid hoặc Ask.
-- Dùng Delta bằng 0 như bằng chứng cân bằng khi tỷ lệ phân loại thấp.
-- Gọi thụ động phía là tổ chức mà không có bằng chứng.
+* Ép toàn bộ giao dịch thành Bid hoặc Ask.
+* Dùng Delta bằng 0 như bằng chứng cân bằng khi tỷ lệ phân loại thấp.
+* Gọi thụ động phía là tổ chức mà không có bằng chứng.
 
 ### Ghi nhớ
 
@@ -1497,6 +1538,7 @@ Một lệnh mua chủ động khớp với một người bán thụ động. O
 ## Chương 22. Delta
 
 Delta là chênh lệch giữa khối lượng mua chủ động và bán chủ động trong phạm vi đã chọn. Nó đo áp lực chủ động đã khớp, không đo vị thế ròng hay niềm tin của thị trường.
+
 
 
 ### Nội dung cốt lõi
@@ -1523,17 +1565,17 @@ Giá tăng trong khi Delta âm cho thấy áp lực bán chủ động không t�
 
 ### Quy trình áp dụng
 
-1.  Chọn phạm vi tính Delta.
-2.  Kiểm tra tỷ lệ phân loại.
-3.  So sánh dấu Delta với hướng và độ lớn tiến triển giá.
-4.  Đặt kết quả vào đúng vị trí cấu trúc.
-5.  Chỉ gọi ứng viên nếu thiếu xác nhận.
+1. Chọn phạm vi tính Delta.
+2. Kiểm tra tỷ lệ phân loại.
+3. So sánh dấu Delta với hướng và độ lớn tiến triển giá.
+4. Đặt kết quả vào đúng vị trí cấu trúc.
+5. Chỉ gọi ứng viên nếu thiếu xác nhận.
 
 ### Sai lầm thường gặp
 
-- Dùng Delta dương để mua bất kể vị trí.
-- Coi Delta âm là bằng chứng chắc chắn về vị thế bán.
-- So sánh con số giữa phiên khác nhau mà không chuẩn hóa.
+* Dùng Delta dương để mua bất kể vị trí.
+* Coi Delta âm là bằng chứng chắc chắn về vị thế bán.
+* So sánh con số giữa phiên khác nhau mà không chuẩn hóa.
 
 ### Ghi nhớ
 
@@ -1567,16 +1609,16 @@ CVD phải có chính sách đặt lại rõ ràng. Không cộng dồn xuyên h
 
 ### Quy trình áp dụng
 
-1.  Chọn mốc neo có ý nghĩa.
-2.  Kiểm tra tỷ lệ phân loại và tính liên tục của dữ liệu.
-3.  So sánh các điểm xoay của CVD với các điểm xoay của giá.
-4.  Kết hợp vùng giá trị, Episode và kiểm tra lại.
+1. Chọn mốc neo có ý nghĩa.
+2. Kiểm tra tỷ lệ phân loại và tính liên tục của dữ liệu.
+3. So sánh các điểm xoay của CVD với các điểm xoay của giá.
+4. Kết hợp vùng giá trị, Episode và kiểm tra lại.
 
 ### Sai lầm thường gặp
 
-- Dùng CVD như RSI.
-- Bán chỉ vì phân kỳ.
-- So sánh CVD của hai nguồn dữ liệu mà không kiểm tra cách phân loại.
+* Dùng CVD như RSI.
+* Bán chỉ vì phân kỳ.
+* So sánh CVD của hai nguồn dữ liệu mà không kiểm tra cách phân loại.
 
 ### Ghi nhớ
 
@@ -1585,6 +1627,7 @@ CVD phải có chính sách đặt lại rõ ràng. Không cộng dồn xuyên h
 ## Chương 24. Biểu đồ Footprint
 
 Footprint phân rã mỗi thanh thành hoạt động tại từng mức giá. Nó là kính hiển vi, nhưng kính hiển vi chỉ hữu ích khi biết mẫu vật nằm ở đâu trên bản đồ.
+
 
 
 ### Nội dung cốt lõi
@@ -1611,17 +1654,17 @@ Footprint chỉ cho thấy giao dịch đã khớp. Nó không cho thấy toàn 
 
 ### Quy trình áp dụng
 
-1.  Bắt đầu từ Vị trí và Episode.
-2.  Đọc phân bố từ dưới lên hoặc trên xuống.
-3.  Ghi hoạt động tại cực trị, POC, Imbalance và vị trí đóng cửa.
-4.  Quan sát thanh sau hoặc kiểm tra lại.
-5.  Tránh quyết định từ màu đơn lẻ.
+1. Bắt đầu từ Vị trí và Episode.
+2. Đọc phân bố từ dưới lên hoặc trên xuống.
+3. Ghi hoạt động tại cực trị, POC, Imbalance và vị trí đóng cửa.
+4. Quan sát thanh sau hoặc kiểm tra lại.
+5. Tránh quyết định từ màu đơn lẻ.
 
 ### Sai lầm thường gặp
 
-- Phóng biểu đồ quá gần và làm mất bối cảnh.
-- Sưu tầm mẫu nến Footprint mà không xét vị trí.
-- Gọi vùng đỏ/xanh là tổ chức.
+* Phóng biểu đồ quá gần và làm mất bối cảnh.
+* Sưu tầm mẫu nến Footprint mà không xét vị trí.
+* Gọi vùng đỏ/xanh là tổ chức.
 
 ### Ghi nhớ
 
@@ -1630,6 +1673,7 @@ Footprint chỉ cho thấy giao dịch đã khớp. Nó không cho thấy toàn 
 ## Chương 25. Imbalance
 
 Imbalance so sánh khối lượng mua và bán chủ động theo quy tắc xác định. Nó mô tả sự mất cân xứng trong thực thi, không tự chứng minh tiếp diễn.
+
 
 
 ### Nội dung cốt lõi
@@ -1656,16 +1700,16 @@ Mất cân bằng giữa vùng giá trị có thể chỉ là một phần của
 
 ### Quy trình áp dụng
 
-1.  Xác định quy tắc tỷ lệ và tối thiểu khối lượng trước phiên.
-2.  Đánh dấu Imbalance nhưng không vào ngay.
-3.  Kiểm tra tiến triển, vị trí đóng cửa và thanh sau.
-4.  Đặt trong Episode và vùng giá trị Bối cảnh.
+1. Xác định quy tắc tỷ lệ và tối thiểu khối lượng trước phiên.
+2. Đánh dấu Imbalance nhưng không vào ngay.
+3. Kiểm tra tiến triển, vị trí đóng cửa và thanh sau.
+4. Đặt trong Episode và vùng giá trị Bối cảnh.
 
 ### Sai lầm thường gặp
 
-- Thay đổi tỷ lệ chỉ để biểu đồ trông đẹp.
-- Coi mất cân bằng xếp chồng là hỗ trợ hoặc kháng cự vĩnh viễn.
-- Bỏ qua Không xác định khối lượng và dữ liệu chất lượng.
+* Thay đổi tỷ lệ chỉ để biểu đồ trông đẹp.
+* Coi mất cân bằng xếp chồng là hỗ trợ hoặc kháng cự vĩnh viễn.
+* Bỏ qua Không xác định khối lượng và dữ liệu chất lượng.
 
 ### Ghi nhớ
 
@@ -1699,16 +1743,16 @@ Gộp các giao dịch gần nhau có thể hữu ích để nhìn cách lệnh 
 
 ### Quy trình áp dụng
 
-1.  Đọc khối lượng và số giao dịch song song.
-2.  So sánh với phân phối của cùng chế độ.
-3.  Xem tiến triển giá trên mỗi hợp đồng hoặc mỗi giao dịch.
-4.  Đặt giao dịch lớn trong vị trí và chuỗi phản ứng.
+1. Đọc khối lượng và số giao dịch song song.
+2. So sánh với phân phối của cùng chế độ.
+3. Xem tiến triển giá trên mỗi hợp đồng hoặc mỗi giao dịch.
+4. Đặt giao dịch lớn trong vị trí và chuỗi phản ứng.
 
 ### Sai lầm thường gặp
 
-- Gọi một giao dịch lớn là “dòng tiền thông minh”.
-- So sánh khối lượng thô giữa các thời điểm có thanh khoản khác nhau.
-- Bỏ qua cách lệnh được chia nhỏ khi thực thi.
+* Gọi một giao dịch lớn là “dòng tiền thông minh”.
+* So sánh khối lượng thô giữa các thời điểm có thanh khoản khác nhau.
+* Bỏ qua cách lệnh được chia nhỏ khi thực thi.
 
 ### Ghi nhớ
 
@@ -1742,17 +1786,17 @@ Nhiều lần kiểm tra có thể làm mốc yếu, nhưng cũng có thể ch�
 
 ### Quy trình áp dụng
 
-1.  Đánh số lần kiểm tra.
-2.  Ghi nỗ lực và kết quả từng lần.
-3.  Đo thời gian giữa các lần.
-4.  So sánh POC cục bộ và sự duy trì.
-5.  Không dùng riêng số lần kiểm tra để kết luận.
+1. Đánh số lần kiểm tra.
+2. Ghi nỗ lực và kết quả từng lần.
+3. Đo thời gian giữa các lần.
+4. So sánh POC cục bộ và sự duy trì.
+5. Không dùng riêng số lần kiểm tra để kết luận.
 
 ### Sai lầm thường gặp
 
-- Mặc định kiểm tra thứ ba sẽ phá.
-- Mặc định kiểm tra nhiều là mốc mạnh.
-- Không phân biệt kiểm tra trong cùng Episode và kiểm tra sau khi cấu trúc đã đổi.
+* Mặc định kiểm tra thứ ba sẽ phá.
+* Mặc định kiểm tra nhiều là mốc mạnh.
+* Không phân biệt kiểm tra trong cùng Episode và kiểm tra sau khi cấu trúc đã đổi.
 
 ### Ghi nhớ
 
@@ -1786,17 +1830,17 @@ Hấp thụ có nỗ lực lớn nhưng kết quả nhỏ. Cạn kiệt có nỗ
 
 ### Quy trình áp dụng
 
-1.  Bắt đầu tại một vị trí có ý nghĩa.
-2.  Đo áp lực chủ động và tiến triển.
-3.  Tìm các lần kiểm tra lặp lại hoặc dấu hiệu không còn tạo thuận lợi cho chuyển động.
-4.  Chờ tái nhập hoặc điều kiện kích hoạt cấu trúc.
-5.  Đặt mức vô hiệu ngoài vùng thanh khoản thụ động đang cản giá.
+1. Bắt đầu tại một vị trí có ý nghĩa.
+2. Đo áp lực chủ động và tiến triển.
+3. Tìm các lần kiểm tra lặp lại hoặc dấu hiệu không còn tạo thuận lợi cho chuyển động.
+4. Chờ tái nhập hoặc điều kiện kích hoạt cấu trúc.
+5. Đặt mức vô hiệu ngoài vùng thanh khoản thụ động đang cản giá.
 
 ### Sai lầm thường gặp
 
-- Gọi mọi phân kỳ Delta là hấp thụ.
-- Vào ngược ngay khi thấy khối lượng lớn.
-- Không xem liệu vùng giá trị có đang xây theo hướng áp lực chủ động.
+* Gọi mọi phân kỳ Delta là hấp thụ.
+* Vào ngược ngay khi thấy khối lượng lớn.
+* Không xem liệu vùng giá trị có đang xây theo hướng áp lực chủ động.
 
 ### Ghi nhớ
 
@@ -1805,6 +1849,7 @@ Hấp thụ có nỗ lực lớn nhưng kết quả nhỏ. Cạn kiệt có nỗ
 ## Chương 29. Ứng viên cạn kiệt
 
 Cạn kiệt mô tả việc bên đang thúc đẩy giá giảm dần nỗ lực và không còn tạo tiến triển như trước. Nó khác với việc bị một phía thụ động hấp thụ mạnh.
+
 
 
 ### Nội dung cốt lõi
@@ -1827,17 +1872,17 @@ Hấp thụ: nỗ lực lớn, kết quả nhỏ. Cạn kiệt: nỗ lực nhỏ
 
 ### Quy trình áp dụng
 
-1.  So sánh ba nhịp liên tiếp.
-2.  Đo khối lượng, số giao dịch, delta và tiến triển.
-3.  Kiểm tra vị trí cấu trúc.
-4.  Chờ phản ứng phía đối diện hoặc tái nhập.
-5.  Tránh vào lệnh khi thanh khoản mỏng nếu thiếu xác nhận.
+1. So sánh ba nhịp liên tiếp.
+2. Đo khối lượng, số giao dịch, delta và tiến triển.
+3. Kiểm tra vị trí cấu trúc.
+4. Chờ phản ứng phía đối diện hoặc tái nhập.
+5. Tránh vào lệnh khi thanh khoản mỏng nếu thiếu xác nhận.
 
 ### Sai lầm thường gặp
 
-- Gọi khối lượng thấp là cạn kiệt trong mọi chế độ.
-- Bắt đáy chỉ vì Delta giảm.
-- Không xem thời điểm tin tức hoặc thay đổi thanh khoản.
+* Gọi khối lượng thấp là cạn kiệt trong mọi chế độ.
+* Bắt đáy chỉ vì Delta giảm.
+* Không xem thời điểm tin tức hoặc thay đổi thanh khoản.
 
 ### Ghi nhớ
 
@@ -1846,6 +1891,7 @@ Hấp thụ: nỗ lực lớn, kết quả nhỏ. Cạn kiệt: nỗ lực nhỏ
 ## Chương 30. Nỗ lực và Kết quả
 
 Nỗ lực–Kết quả là cầu nối giữa Order Flow và AMT. Không hỏi chỉ “bên nào bấm lệnh nhiều hơn”, mà hỏi “nỗ lực đó đã thay đổi cuộc đấu giá đến mức nào”.
+
 
 
 ### Nội dung cốt lõi
@@ -1876,18 +1922,18 @@ Hoạt động thấp và tiến triển thấp thường phản ánh vùng cân
 
 ### Quy trình áp dụng
 
-1.  Định nghĩa cửa sổ đo.
-2.  Ghi nỗ lực thô.
-3.  Ghi kết quả thô.
-4.  So sánh với dữ liệu lịch sử trong cùng chế độ.
-5.  Đặt trong Vị trí và Episode.
-6.  Không gắn nhãn tốt hoặc xấu khi chưa có đường cơ sở so sánh.
+1. Định nghĩa cửa sổ đo.
+2. Ghi nỗ lực thô.
+3. Ghi kết quả thô.
+4. So sánh với dữ liệu lịch sử trong cùng chế độ.
+5. Đặt trong Vị trí và Episode.
+6. Không gắn nhãn tốt hoặc xấu khi chưa có đường cơ sở so sánh.
 
 ### Sai lầm thường gặp
 
-- Dùng một tỷ lệ duy nhất cho mọi chế độ.
-- Gọi nỗ lực lớn–kết quả nhỏ là đảo chiều chắc chắn.
-- Quên chi phí và mục tiêu khoảng trống.
+* Dùng một tỷ lệ duy nhất cho mọi chế độ.
+* Gọi nỗ lực lớn–kết quả nhỏ là đảo chiều chắc chắn.
+* Quên chi phí và mục tiêu khoảng trống.
 
 ### Ghi nhớ
 
@@ -1921,17 +1967,17 @@ Khả năng tạo thuận lợi phải được đánh giá theo chế độ và
 
 ### Quy trình áp dụng
 
-1.  Xác định cuộc đấu giá đang được thử.
-2.  Đo nỗ lực theo hướng đó.
-3.  Đo kết quả và sự duy trì.
-4.  Kiểm tra vùng giá trị/POC.
-5.  Phân loại khỏe, suy yếu hoặc chưa rõ theo chính sách đã kiểm chứng.
+1. Xác định cuộc đấu giá đang được thử.
+2. Đo nỗ lực theo hướng đó.
+3. Đo kết quả và sự duy trì.
+4. Kiểm tra vùng giá trị/POC.
+5. Phân loại khỏe, suy yếu hoặc chưa rõ theo chính sách đã kiểm chứng.
 
 ### Sai lầm thường gặp
 
-- Đồng nhất khả năng tạo thuận lợi với Delta cùng dấu.
-- Dùng nhãn mà không xác định khung thời gian.
-- Bỏ qua vùng cản và dư địa lợi nhuận còn lại.
+* Đồng nhất khả năng tạo thuận lợi với Delta cùng dấu.
+* Dùng nhãn mà không xác định khung thời gian.
+* Bỏ qua vùng cản và dư địa lợi nhuận còn lại.
 
 ### Ghi nhớ
 
@@ -1965,17 +2011,17 @@ Một nhóm chỉ có thể được gọi là ứng viên mắc kẹt khi họ 
 
 ### Quy trình áp dụng
 
-1.  Gọi sự kiện trung tính là độ lệch trước.
-2.  Kiểm tra dữ liệu tốc độ và sổ lệnh trước khi gọi là quét thanh khoản.
-3.  Theo dõi tái nhập và sự duy trì.
-4.  Chỉ gọi ứng viên mắc kẹt khi có thất bại và không lấy lại được vùng vào.
-5.  Ưu tiên FAR/AAC hơn câu chuyện săn dừng lỗ.
+1. Gọi sự kiện trung tính là độ lệch trước.
+2. Kiểm tra dữ liệu tốc độ và sổ lệnh trước khi gọi là quét thanh khoản.
+3. Theo dõi tái nhập và sự duy trì.
+4. Chỉ gọi ứng viên mắc kẹt khi có thất bại và không lấy lại được vùng vào.
+5. Ưu tiên FAR/AAC hơn câu chuyện săn dừng lỗ.
 
 ### Sai lầm thường gặp
 
-- Gọi mọi cú phá đỉnh là quét thanh khoản.
-- Vào ngược vì tin rằng “dừng lỗ đã quét xong”.
-- Dùng câu chuyện người giao dịch mắc kẹt như một nguyên nhân chắc chắn.
+* Gọi mọi cú phá đỉnh là quét thanh khoản.
+* Vào ngược vì tin rằng “dừng lỗ đã quét xong”.
+* Dùng câu chuyện người giao dịch mắc kẹt như một nguyên nhân chắc chắn.
 
 ### Ghi nhớ
 
@@ -1986,12 +2032,13 @@ Một nhóm chỉ có thể được gọi là ứng viên mắc kẹt khi họ 
 **DOM** (*Depth of Market*) là sổ lệnh theo mức giá. Nó cho biết lượng mua và bán giới hạn đang hiển thị quanh giá hiện tại.
 
 
+
 ### DOM cho biết gì?
 
-- Khối lượng Bid và Ask đang hiển thị.
-- Khoảng cách giữa giá mua tốt nhất và giá bán tốt nhất.
-- Mức tập trung thanh khoản gần hoặc xa giá.
-- Thanh khoản được thêm, bị rút hoặc bị khớp theo thời gian nếu công cụ lưu chuỗi cập nhật.
+* Khối lượng Bid và Ask đang hiển thị.
+* Khoảng cách giữa giá mua tốt nhất và giá bán tốt nhất.
+* Mức tập trung thanh khoản gần hoặc xa giá.
+* Thanh khoản được thêm, bị rút hoặc bị khớp theo thời gian nếu công cụ lưu chuỗi cập nhật.
 
 ### DOM không cho biết gì?
 
@@ -2003,7 +2050,7 @@ Lệnh giới hạn có thể bị hủy, di chuyển, chia nhỏ hoặc che gi�
 
 Các trường đáng quan sát:
 
-    Thời gian sống của lệnh
+&#x20;   Thời gian sống của lệnh
     Vị trí trong hàng đợi
     Số lần sửa đổi
     Phần đã khớp
@@ -2011,6 +2058,7 @@ Các trường đáng quan sát:
     Hành vi tái nạp
     Khoảng cách tới giá
     Kết quả khi giá tiếp cận
+
 
 MBO là kính hiển vi của vòng đời lệnh, không phải máy đọc ý định.
 
@@ -2023,19 +2071,21 @@ DOM/MBO chỉ được đọc tại vùng mốc đã xác định. Điều quan 
 **Stacking** là hiện tượng thanh khoản hiển thị được thêm vào một phía của sổ lệnh. **Pulling** là hiện tượng thanh khoản hiển thị bị rút khỏi một phía.
 
 
+
 ### Câu hỏi đúng
 
-    Thanh khoản được thêm có tồn tại hay biến mất nhanh?
+&#x20;   Thanh khoản được thêm có tồn tại hay biến mất nhanh?
     Giá có tiến tới phía đó không?
     Lệnh được khớp hay bị rút trước khi giá tới?
     Pulling xảy ra trước, cùng lúc hay sau chuyển động giá?
     Hiện tượng có lặp lại qua nhiều cập nhật không?
 
+
 ### Diễn giải có điều kiện
 
-- Stacking bền ở Bid và được khớp mà giá không giảm có thể phù hợp với giả thuyết hỗ trợ thụ động.
-- Pulling ở Ask trước một nhịp tăng có thể cho thấy cản trở hiển thị giảm, nhưng cũng có thể chỉ là điều chỉnh báo giá.
-- Pulling/Stacking xảy ra sau khi giá đã chạy có thể là phản ứng, không phải nguyên nhân.
+* Stacking bền ở Bid và được khớp mà giá không giảm có thể phù hợp với giả thuyết hỗ trợ thụ động.
+* Pulling ở Ask trước một nhịp tăng có thể cho thấy cản trở hiển thị giảm, nhưng cũng có thể chỉ là điều chỉnh báo giá.
+* Pulling/Stacking xảy ra sau khi giá đã chạy có thể là phản ứng, không phải nguyên nhân.
 
 ### Hàng rào
 
@@ -2055,19 +2105,20 @@ Mỗi công cụ phát hiện lệnh ẩn có thuật toán và yêu cầu dữ 
 
 ### Dùng để làm gì?
 
-- Xác định nơi khối lượng chủ động liên tục gặp thanh khoản ẩn.
-- Đo lượng đã khớp và khả năng giữ giá.
-- Bổ sung bằng chứng cho Nỗ lực–Kết quả tại mốc.
-- Theo dõi iceberg còn tồn tại, bị tiêu thụ hay bị hủy.
+* Xác định nơi khối lượng chủ động liên tục gặp thanh khoản ẩn.
+* Đo lượng đã khớp và khả năng giữ giá.
+* Bổ sung bằng chứng cho Nỗ lực–Kết quả tại mốc.
+* Theo dõi iceberg còn tồn tại, bị tiêu thụ hay bị hủy.
 
 ### Không được kết luận
 
-- Iceberg Bid không tự tạo lệnh mua.
-- Iceberg Ask không tự tạo lệnh bán.
-- Iceberg có thể bị tiêu thụ hoàn toàn và giá vẫn xuyên qua.
-- Không gán danh tính “tổ chức” hoặc mục đích mở/đóng vị thế.
+* Iceberg Bid không tự tạo lệnh mua.
+* Iceberg Ask không tự tạo lệnh bán.
+* Iceberg có thể bị tiêu thụ hoàn toàn và giá vẫn xuyên qua.
+* Không gán danh tính “tổ chức” hoặc mục đích mở/đóng vị thế.
 
 ## Chương 36. Nhận diện dừng lỗ và lệnh quét
+
 
 
 ### Nhận diện dừng lỗ
@@ -2082,14 +2133,14 @@ Công cụ nhận diện lệnh quét tìm dòng lệnh chủ động lấy than
 
 Cú quét cho thấy xung lực lấy thanh khoản. Nó không đồng nghĩa:
 
-- Cuộc đấu giá thất bại.
-- Khẳng định chắc chắn có săn dừng lỗ.
-- Giá phải tiếp tục.
-- Giá phải đảo chiều.
+* Cuộc đấu giá thất bại.
+* Khẳng định chắc chắn có săn dừng lỗ.
+* Giá phải tiếp tục.
+* Giá phải đảo chiều.
 
 ### Cách đọc trong FAR và AAC
 
-    Quét ra ngoài biên
+&#x20;   Quét ra ngoài biên
     + không xây được tiến triển
     + tái nhập và duy trì vùng cũ
     → hỗ trợ câu chuyện FAR
@@ -2099,6 +2150,7 @@ Cú quét cho thấy xung lực lấy thanh khoản. Nó không đồng nghĩa:
     + POC/vùng giá trị xây ngoài
     + không lấy lại vùng cũ
     → hỗ trợ câu chuyện AAC
+
 
 Cùng một cú quét có ý nghĩa khác nhau tùy kết quả giá.
 
@@ -2110,9 +2162,9 @@ Chỉ báo áp lực thị trường tổng hợp áp lực mua và bán từ c�
 
 Dùng để:
 
-- Nhìn xung lực ngắn hạn.
-- So sánh áp lực mua và bán.
-- Phát hiện khi nhịp khớp tăng đột ngột.
+* Nhìn xung lực ngắn hạn.
+* So sánh áp lực mua và bán.
+* Phát hiện khi nhịp khớp tăng đột ngột.
 
 Không dùng để thay thế Episode hoặc sự chấp nhận.
 
@@ -2128,12 +2180,13 @@ Chỉ báo áp lực sổ lệnh tổng hợp thanh khoản Bid/Ask đang hiển
 
 Các công cụ mức động tạo mốc theo thuật toán riêng. Một mức chỉ được đưa vào bản đồ khi biết:
 
-    Nguồn dữ liệu dùng để tính
+&#x20;   Nguồn dữ liệu dùng để tính
     Mức dựa trên giao dịch đã khớp hay thanh khoản hiển thị
     Tuổi của mức
     Số lần kiểm tra
     Phản ứng khi giá xuyên qua
     Mức có vẽ lại hay không
+
 
 Các mức động chỉ là nguồn tạo mốc tham chiếu ứng viên, không phải hệ thống mua bán.
 
@@ -2141,21 +2194,22 @@ Các mức động chỉ là nguồn tạo mốc tham chiếu ứng viên, khôn
 
 Limit Tracing là giả thuyết rằng thanh khoản giới hạn bị rút, thêm hoặc di chuyển theo chuỗi khi giá tiến qua các mức. Mẫu ứng viên có thể gồm:
 
-    Rút báo giá tuần tự
+&#x20;   Rút báo giá tuần tự
     + dòng chủ động bám theo
     + giá tiến nhanh qua từng mức
     + sổ lệnh đối diện mỏng
+
 
 ### Vì sao khó xác nhận?
 
 Ảnh DOM hoặc quan sát bằng mắt không đủ để phân biệt:
 
-- Rút lệnh có chủ ý.
-- Nhà tạo lập điều chỉnh báo giá bình thường.
-- Thay đổi do giá cơ sở khác.
-- Độ trễ dữ liệu.
-- Gộp báo giá.
-- Thị trường đơn giản mất thanh khoản.
+* Rút lệnh có chủ ý.
+* Nhà tạo lập điều chỉnh báo giá bình thường.
+* Thay đổi do giá cơ sở khác.
+* Độ trễ dữ liệu.
+* Gộp báo giá.
+* Thị trường đơn giản mất thanh khoản.
 
 Limit Tracing chỉ là biến nghiên cứu khi có MBO, mã lệnh, dấu thời gian và phương án giải thích thay thế. Không dùng như thiết lập vào lệnh.
 
@@ -2163,32 +2217,34 @@ Limit Tracing chỉ là biến nghiên cứu khi có MBO, mã lệnh, dấu th�
 
 Khái niệm **cực trị thanh chưa hoàn tất**\* được quan sát trên Footprint Bid × Ask:
 
-    Tại đỉnh thanh vẫn có Bid khối lượng > 0
-    → ứng viên đỉnh thanh chưa hoàn tất*
+&#x20;   Tại đỉnh thanh vẫn có Bid khối lượng > 0
+    → ứng viên đỉnh thanh chưa hoàn tất\*
 
     Tại đáy thanh vẫn có Ask khối lượng > 0
-    → ứng viên đáy thanh chưa hoàn tất*
+    → ứng viên đáy thanh chưa hoàn tất\*
+
 
 Khái niệm này phụ thuộc cách phân loại Bid/Ask, loại thanh, cách gom tick, luồng dữ liệu, giao dịch bị thiếu, mẫu phiên và cấu hình nền tảng.
+
 
 
 ### Quyền sử dụng
 
 Có thể dùng như:
 
-- Mốc vi mô phụ.
-- Mức cần quan sát khi giá quay lại.
-- Bằng chứng phụ cho cực trị thiếu kết thúc gọn.
-- Biến nghiên cứu trong nhật ký.
-- Rào cản hoặc mục tiêu phụ khi có hội tụ.
+* Mốc vi mô phụ.
+* Mức cần quan sát khi giá quay lại.
+* Bằng chứng phụ cho cực trị thiếu kết thúc gọn.
+* Biến nghiên cứu trong nhật ký.
+* Rào cản hoặc mục tiêu phụ khi có hội tụ.
 
 Không dùng như:
 
-- Nam châm bắt buộc.
-- Điểm vào độc lập.
-- Bằng chứng chắc chắn đảo chiều.
-- Bằng chứng chắc chắn có người mắc kẹt.
-- Lý do giữ một lệnh sai vì “giá phải quay lại”.
+* Nam châm bắt buộc.
+* Điểm vào độc lập.
+* Bằng chứng chắc chắn đảo chiều.
+* Bằng chứng chắc chắn có người mắc kẹt.
+* Lý do giữ một lệnh sai vì “giá phải quay lại”.
 
 Đỉnh/đáy kém hoàn thiện của Market Profile và cực trị thanh chưa hoàn tất của Footprint là hai khái niệm khác nhau, dù cả hai đều gợi ý một dạng kết thúc chưa rõ.
 
@@ -2199,11 +2255,12 @@ Không dùng như:
 GC là một cuộc đấu giá gần như liên tục, nhưng chất lượng tham gia thay đổi theo thời điểm. Phiên châu Á, phiên châu Âu, giai đoạn trước mở cửa Mỹ, thời điểm mở cửa Mỹ và sau cao điểm nên được xem như các **chế độ tham gia**, không phải những thị trường hoàn toàn tách biệt.
 
 
+
 ### Kiểm tra hợp đồng
 
 Trước phiên cần ghi:
 
-    Hợp đồng hiện tại
+&#x20;   Hợp đồng hiện tại
     Hợp đồng kế tiếp
     Ngày đáo hạn
     Khối lượng của hai hợp đồng
@@ -2211,16 +2268,17 @@ Trước phiên cần ghi:
     Mẫu phiên
     Chính sách nối hoặc đặt lại Composite/CVD
 
+
 Trong giai đoạn chuyển tháng:
 
-- Không so sánh khối lượng thô giữa hai hợp đồng như thể cùng một phân phối.
-- Ngưỡng giao dịch lớn và Tape phải được xác định riêng theo từng hợp đồng.
-- Composite nhiều ngày cần quy tắc nối hoặc đặt lại.
-- OI và basis với CFD phải được xem lại.
+* Không so sánh khối lượng thô giữa hai hợp đồng như thể cùng một phân phối.
+* Ngưỡng giao dịch lớn và Tape phải được xác định riêng theo từng hợp đồng.
+* Composite nhiều ngày cần quy tắc nối hoặc đặt lại.
+* OI và basis với CFD phải được xem lại.
 
 ### Chế độ tham gia
 
-    Qua đêm mỏng
+&#x20;   Qua đêm mỏng
     Phiên Á hoạt động
     Chuyển tiếp châu Âu
     Phiên châu Âu hoạt động
@@ -2230,6 +2288,7 @@ Trong giai đoạn chuyển tháng:
     Sau phiên Mỹ
     Chế độ sự kiện
 
+
 Mỗi chế độ có phân phối riêng về khối lượng, số giao dịch, Delta, tốc độ Tape, chênh lệch mua bán, độ sâu và kích thước giao dịch lớn. Không dùng cùng một ngưỡng cho mọi thời điểm.
 
 ## Chương 41. Sự kiện, vĩ mô và thị trường bên ngoài
@@ -2237,21 +2296,23 @@ Mỗi chế độ có phân phối riêng về khối lượng, số giao dịch
 Bối cảnh vĩ mô không tạo điểm vào trong ngày. Nó thay đổi kỳ vọng, rủi ro và cách đọc thanh khoản.
 
 
+
 ### Các nhóm sự kiện quan trọng với vàng
 
-- Lạm phát: CPI, PCE và các thước đo liên quan.
-- Việc làm: NFP, thất nghiệp, tiền lương và đơn xin trợ cấp.
-- Chính sách tiền tệ: quyết định lãi suất, biên bản và phát biểu ngân hàng trung ương.
-- Tăng trưởng và thanh khoản: GDP, PMI, điều kiện tài chính.
-- Địa chính trị và rủi ro hệ thống.
+* Lạm phát: CPI, PCE và các thước đo liên quan.
+* Việc làm: NFP, thất nghiệp, tiền lương và đơn xin trợ cấp.
+* Chính sách tiền tệ: quyết định lãi suất, biên bản và phát biểu ngân hàng trung ương.
+* Tăng trưởng và thanh khoản: GDP, PMI, điều kiện tài chính.
+* Địa chính trị và rủi ro hệ thống.
 
 ### Chế độ sự kiện
 
-    Bình thường
+&#x20;   Bình thường
     Trước sự kiện
     Xung lực sự kiện
     Khám phá giá sau sự kiện
     Ổn định sau sự kiện
+
 
 Trước sự kiện, chênh lệch mua bán có thể mở rộng, độ sâu bị rút và ảnh chụp DOM kém đáng tin. Không đuổi theo xung lực đầu chỉ vì Tape mạnh. Sau xung lực, chờ nhịp hồi, Episode, sự chấp nhận hoặc tái nhập và sự hình thành vùng giá trị.
 
@@ -2263,18 +2324,20 @@ Lợi suất, đồng USD, bạc, cổ phiếu hoặc năng lượng chỉ là b
 
 **Open Interest (OI)** là số hợp đồng còn mở. Nó khác với khối lượng giao dịch:
 
-    Khối lượng
+&#x20;   Khối lượng
     → đếm hoạt động đã giao dịch
 
     OI
     → đếm số hợp đồng còn mở sau quá trình bù trừ
 
+
 Mỗi hợp đồng tương lai luôn có một phía mua và một phía bán. OI tăng không trực tiếp cho biết bên nào “thông minh hơn”. Delta cho biết phía chủ động khớp lệnh, không cho biết chắc giao dịch đó mở hay đóng vị thế.
+
 
 
 ### Ma trận diễn giải thận trọng
 
-    OI tăng + Delta dương
+&#x20;   OI tăng + Delta dương
     → người mua chủ động hoạt động trong lúc số hợp đồng mở tăng
     → phù hợp với ứng viên mua khởi xướng
     ≠ chứng minh Long mới đang kiểm soát
@@ -2283,6 +2346,7 @@ Mỗi hợp đồng tương lai luôn có một phía mua và một phía bán. 
     → người bán chủ động hoạt động trong lúc số hợp đồng mở tăng
     → phù hợp với ứng viên bán khởi xướng
     ≠ chứng minh Short mới đang kiểm soát
+
 
 Với GC, dữ liệu OI chính thức cuối ngày thường phù hợp hơn cho bối cảnh nhiều ngày. OI trong ngày chỉ được dùng khi nguồn, nhịp cập nhật và độ chính xác đã được xác minh.
 
@@ -2294,9 +2358,9 @@ OI không phải điểm vào và không phải bằng chứng về sự chấp 
 
 **COT** (*Commitments of Traders*) là báo cáo vị thế tần suất thấp theo nhóm tham gia. Nó phù hợp để nghiên cứu:
 
-- Bối cảnh tuần và nhiều tuần.
-- Vị thế cực đoan theo lịch sử.
-- Thay đổi chế độ dài hơn.
+* Bối cảnh tuần và nhiều tuần.
+* Vị thế cực đoan theo lịch sử.
+* Thay đổi chế độ dài hơn.
 
 COT không dùng cho điểm vào trong ngày và không có quyền phủ quyết hành vi giá hiện tại.
 
@@ -2306,11 +2370,12 @@ Nhà tạo lập cung cấp thanh khoản, thu chênh lệch Bid/Ask và quản 
 
 Không kể câu chuyện “nhà tạo lập luôn lái giá”. Các dấu hiệu hợp lý để quan sát gồm:
 
-    Độ sâu giảm
+&#x20;   Độ sâu giảm
     Chênh lệch mua bán mở rộng
     Độ bền báo giá giảm
     Tỷ lệ hủy lệnh tăng
     Tape và DOM mất đồng bộ
+
 
 Đây là bối cảnh rủi ro thanh khoản, không phải tín hiệu hướng.
 
@@ -2326,23 +2391,23 @@ Trụ Options không phải một nhóm đường hỗ trợ/kháng cự và cũ
 
 Trụ Options có quyền trả lời:
 
-- IV đang cao, thấp hay thay đổi so với chính phân phối lịch sử phù hợp?
-- Kỳ hạn nào đang mang premium biến động lớn nhất?
-- Skew đang nghiêng về rủi ro tăng, giảm hay cân bằng?
-- Volume, Open Interest và thay đổi OI đang tập trung ở đâu?
-- Dòng giao dịch nào nổi bật theo premium, size, strike, expiry và phía chủ động?
-- Delta, Gamma, Vega, Theta và các độ nhạy khác tập trung ở vùng nào?
-- Nếu áp dụng một giả định vị thế cụ thể, các kịch bản hedging có thể thay đổi ra sao?
-- Expected move của từng horizon là bao nhiêu theo phương pháp đã chọn?
+* IV đang cao, thấp hay thay đổi so với chính phân phối lịch sử phù hợp?
+* Kỳ hạn nào đang mang premium biến động lớn nhất?
+* Skew đang nghiêng về rủi ro tăng, giảm hay cân bằng?
+* Volume, Open Interest và thay đổi OI đang tập trung ở đâu?
+* Dòng giao dịch nào nổi bật theo premium, size, strike, expiry và phía chủ động?
+* Delta, Gamma, Vega, Theta và các độ nhạy khác tập trung ở vùng nào?
+* Nếu áp dụng một giả định vị thế cụ thể, các kịch bản hedging có thể thay đổi ra sao?
+* Expected move của từng horizon là bao nhiêu theo phương pháp đã chọn?
 
 Trụ Options không có quyền tự trả lời:
 
-- Giá chắc chắn sẽ tăng hay giảm.
-- Nhà tạo lập đang chắc chắn Long hay Short Gamma.
-- Call volume lớn đồng nghĩa mua tăng giá.
-- Put volume lớn đồng nghĩa phòng hộ giảm giá.
-- Một strike OI lớn bắt buộc phải ghim giá.
-- Một vùng exposure Options bắt buộc phải chặn hoặc hút giá.
+* Giá chắc chắn sẽ tăng hay giảm.
+* Nhà tạo lập đang chắc chắn Long hay Short Gamma.
+* Call volume lớn đồng nghĩa mua tăng giá.
+* Put volume lớn đồng nghĩa phòng hộ giảm giá.
+* Một strike OI lớn bắt buộc phải ghim giá.
+* Một vùng exposure Options bắt buộc phải chặn hoặc hút giá.
 
 ### Bốn lớp của trụ Options
 
@@ -2364,7 +2429,7 @@ Gồm dealer hedging, pinning, acceleration, vanna flow, charm flow, event premi
 
 ### Quan hệ với AMT và Order Flow
 
-    AMT
+&#x20;   AMT
     → cho biết giá đang ở đâu, cuộc đấu giá đang làm gì và mức giá mới có được chấp nhận hay không
 
     OPTIONS
@@ -2376,17 +2441,20 @@ Gồm dealer hedging, pinning, acceleration, vanna flow, charm flow, event premi
     QUẢN TRỊ
     → quyết định liệu lợi thế, thanh khoản và rủi ro có đủ để tham gia
 
+
 Options được đọc trước phiên để xây kịch bản, được cập nhật trong phiên để phát hiện thay đổi chế độ, và được kiểm chứng bằng AMT cùng Order Flow khi giá đến vùng có ý nghĩa.
+
+Trong giai đoạn chuẩn bị, AMT và Options có thể được đọc song song vì chúng trả lời hai nhóm câu hỏi khác nhau. Sự song song trong vận hành không có nghĩa hai trụ cùng sở hữu quyền phán quyết acceptance. Khi giá đã tương tác, trạng thái hiện tại phải được xác định từ Episode, kết quả giá và bằng chứng chấp nhận; Options chuyển sang vai trò hỗ trợ kịch bản và quản trị.
 
 ### Ma trận quyền hạn theo câu hỏi
 
-| Câu hỏi | Trụ có quyền chính | Trụ hỗ trợ | Điều không được làm |
-|---|---|---|---|
-| Giá đang ở đâu và có được chấp nhận không? | AMT | Order Flow | Options phủ quyết sự chấp nhận rõ |
-| Áp lực chủ động có hiệu quả không? | Order Flow | AMT | Dùng flow tách khỏi vị trí |
-| Thị trường định giá biến động ra sao? | Options | Sự kiện, realized volatility | Dùng IV như dự báo chắc chắn |
-| Rủi ro tập trung ở strike/expiry nào? | Options | AMT | Gọi concentration là tường giá |
-| Có nên thực thi không? | Quản trị rủi ro | Cả ba trụ | Cộng điểm tùy ý rồi vào lệnh |
+|Câu hỏi|Trụ có quyền chính|Trụ hỗ trợ|Điều không được làm|
+|-|-|-|-|
+|Giá đang ở đâu và có được chấp nhận không?|AMT|Order Flow|Options phủ quyết sự chấp nhận rõ|
+|Áp lực chủ động có hiệu quả không?|Order Flow|AMT|Dùng flow tách khỏi vị trí|
+|Thị trường định giá biến động ra sao?|Options|Sự kiện, realized volatility|Dùng IV như dự báo chắc chắn|
+|Rủi ro tập trung ở strike/expiry nào?|Options|AMT|Gọi concentration là tường giá|
+|Có nên thực thi không?|Quản trị rủi ro|Cả ba trụ|Cộng điểm tùy ý rồi vào lệnh|
 
 ### Quy trình áp dụng
 
@@ -2400,12 +2468,12 @@ Options được đọc trước phiên để xây kịch bản, được cập 
 
 ### Sai lầm thường gặp
 
-- Đổi tên GEX thành Options nhưng vẫn chỉ dùng vài đường ngang.
-- Coi toàn bộ chain là một kỳ hạn duy nhất.
-- Gộp volume, OI và OI change thành cùng một khái niệm.
-- Gán Call là bullish và Put là bearish.
-- Gọi mô hình dealer exposure là vị thế quan sát được.
-- Không lưu snapshot theo thời điểm nên backtest có look-ahead.
+* Đổi tên GEX thành Options nhưng vẫn chỉ dùng vài đường ngang.
+* Coi toàn bộ chain là một kỳ hạn duy nhất.
+* Gộp volume, OI và OI change thành cùng một khái niệm.
+* Gán Call là bullish và Put là bearish.
+* Gọi mô hình dealer exposure là vị thế quan sát được.
+* Không lưu snapshot theo thời điểm nên backtest có look-ahead.
 
 ### Ghi nhớ
 
@@ -2419,50 +2487,51 @@ Một hệ thống Options mạnh bắt đầu bằng dữ liệu đúng. Chain 
 
 #### Định danh hợp đồng
 
-- product và exchange;
-- option symbol;
-- underlying futures symbol và contract month;
-- Call/Put;
-- strike;
-- expiration date và expiration time;
-- DTE theo quy ước nhất quán;
-- contract multiplier;
-- exercise/settlement style nếu có ảnh hưởng tới mô hình.
+* product và exchange;
+* option symbol;
+* underlying futures symbol và contract month;
+* Call/Put;
+* strike;
+* expiration date và expiration time;
+* DTE theo quy ước nhất quán;
+* contract multiplier;
+* exercise/settlement style nếu có ảnh hưởng tới mô hình.
 
 #### Báo giá
 
-- Bid, Ask, Bid size, Ask size;
-- last trade và timestamp;
-- quote timestamp;
-- spread tuyệt đối và spread theo phần trăm premium;
-- trạng thái two-sided, one-sided, crossed hoặc locked.
+* Bid, Ask, Bid size, Ask size;
+* last trade và timestamp;
+* quote timestamp;
+* spread tuyệt đối và spread theo phần trăm premium;
+* trạng thái two-sided, one-sided, crossed hoặc locked.
 
 #### Hoạt động
 
-- volume hiện tại;
-- trade size;
-- premium hoặc notional;
-- Open Interest;
-- thay đổi Open Interest;
-- nguồn và thời điểm công bố OI.
+* volume hiện tại;
+* trade size;
+* premium hoặc notional;
+* Open Interest;
+* thay đổi Open Interest;
+* nguồn và thời điểm công bố OI.
 
 #### Phân tích
 
-- IV;
-- Delta, Gamma, Vega, Theta, Rho;
-- moneyness;
-- forward/underlying dùng trong mô hình;
-- lãi suất và giả định mô hình nếu tự tính.
+* IV;
+* Delta, Gamma, Vega, Theta, Rho;
+* moneyness;
+* forward/underlying dùng trong mô hình;
+* lãi suất và giả định mô hình nếu tự tính.
 
 ### Ánh xạ quyền chọn vào futures vàng
 
 Options vàng là quyền trên một hợp đồng futures cụ thể. Vì vậy phải ghi rõ:
 
-    option expiry
+&#x20;   option expiry
     → underlying futures contract
     → giá futures dùng để tính moneyness và Greeks
     → hợp đồng GC đang dùng cho AMT/Order Flow
     → basis nếu thực thi trên CFD
+
 
 Không được dùng Spot XAUUSD thay cho futures underlying trong mô hình mà không có quy tắc basis. Không được gộp options của nhiều underlying month như thể chúng cùng một tài sản tức thời.
 
@@ -2472,12 +2541,12 @@ Ngày đáo hạn không đủ. Hệ thống phải biết thời điểm đáo 
 
 Các bucket nghiên cứu gợi ý:
 
-- 0DTE;
-- 1–3 DTE;
-- 4–10 DTE;
-- 11–30 DTE;
-- 31–90 DTE;
-- trên 90 DTE.
+* 0DTE;
+* 1–3 DTE;
+* 4–10 DTE;
+* 11–30 DTE;
+* 31–90 DTE;
+* trên 90 DTE.
 
 Bucket chỉ là cấu hình nghiên cứu, không phải quy luật phổ quát.
 
@@ -2485,13 +2554,13 @@ Bucket chỉ là cấu hình nghiên cứu, không phải quy luật phổ quát
 
 Một option chỉ được dùng để tính IV/Greeks khi đáp ứng chính sách dữ liệu, ví dụ:
 
-- có Bid và Ask hợp lệ;
-- spread không vượt giới hạn theo moneyness và DTE;
-- quote age không quá cũ;
-- premium không âm hoặc phi lý;
-- không crossed market chưa xử lý;
-- underlying timestamp đủ gần option timestamp;
-- không dùng last trade cũ thay cho mid hiện tại.
+* có Bid và Ask hợp lệ;
+* spread không vượt giới hạn theo moneyness và DTE;
+* quote age không quá cũ;
+* premium không âm hoặc phi lý;
+* không crossed market chưa xử lý;
+* underlying timestamp đủ gần option timestamp;
+* không dùng last trade cũ thay cho mid hiện tại.
 
 Khi không có two-sided market, hệ thống phải hạ độ tin cậy hoặc loại khỏi surface. Không điền IV bằng 0 cho dữ liệu thiếu.
 
@@ -2503,27 +2572,28 @@ Open Interest thường không phải dữ liệu thời gian thực. Khi nghiê
 
 Mỗi snapshot Options phải lưu:
 
-    observed_at
-    trade_date
+&#x20;   observed\_at
+    trade\_date
     source
-    source_version
-    underlying_contract
-    underlying_price
-    chain_hash hoặc snapshot_id
-    quote_quality_policy
-    model_version
+    source\_version
+    underlying\_contract
+    underlying\_price
+    chain\_hash hoặc snapshot\_id
+    quote\_quality\_policy
+    model\_version
     rate/input assumptions
+
 
 Không có point-in-time snapshot thì không thể replay trung thực.
 
 ### Trạng thái dữ liệu
 
-| Trạng thái | Ý nghĩa | Quyền sử dụng |
-|---|---|---|
-| Tốt | Đủ trường, timestamp đồng bộ, quote hợp lệ | Dùng toàn bộ module phù hợp |
-| Hạn chế | Thiếu flow hoặc OI change, surface còn đủ | Dùng cấu trúc biến động, hạ quyền suy luận |
-| Thận trọng | Spread rộng, quote cũ, underlying lệch | Chỉ dùng concentration lớn và bối cảnh |
-| Không dùng | Sai mapping, dữ liệu hỏng hoặc look-ahead | Loại trụ Options khỏi quyết định |
+|Trạng thái|Ý nghĩa|Quyền sử dụng|
+|-|-|-|
+|Tốt|Đủ trường, timestamp đồng bộ, quote hợp lệ|Dùng toàn bộ module phù hợp|
+|Hạn chế|Thiếu flow hoặc OI change, surface còn đủ|Dùng cấu trúc biến động, hạ quyền suy luận|
+|Thận trọng|Spread rộng, quote cũ, underlying lệch|Chỉ dùng concentration lớn và bối cảnh|
+|Không dùng|Sai mapping, dữ liệu hỏng hoặc look-ahead|Loại trụ Options khỏi quyết định|
 
 ### Quy trình áp dụng
 
@@ -2537,11 +2607,11 @@ Không có point-in-time snapshot thì không thể replay trung thực.
 
 ### Sai lầm thường gặp
 
-- Tính IV từ last trade cũ.
-- Dùng OI cuối ngày cho backtest trong ngày.
-- Gộp các expiry hoặc underlying month không tương thích.
-- Điền 0 cho dữ liệu thiếu.
-- Không lưu version của mô hình Greeks.
+* Tính IV từ last trade cũ.
+* Dùng OI cuối ngày cho backtest trong ngày.
+* Gộp các expiry hoặc underlying month không tương thích.
+* Điền 0 cho dữ liệu thiếu.
+* Không lưu version của mô hình Greeks.
 
 ### Ghi nhớ
 
@@ -2555,10 +2625,10 @@ Biến động hàm ý là mức biến động làm giá mô hình khớp với
 
 Moneyness mô tả vị trí strike so với underlying hoặc forward:
 
-- ITM;
-- ATM;
-- OTM;
-- hoặc theo Delta/moneyness chuẩn hóa.
+* ITM;
+* ATM;
+* OTM;
+* hoặc theo Delta/moneyness chuẩn hóa.
 
 Mọi so sánh skew phải dùng cùng quy ước. So sánh strike tuyệt đối giữa các ngày khi giá vàng đã dịch xa có thể gây sai.
 
@@ -2566,10 +2636,10 @@ Mọi so sánh skew phải dùng cùng quy ước. So sánh strike tuyệt đố
 
 ATM IV là mốc nền để so sánh biến động giữa expiry. Phải ghi rõ cách chọn ATM:
 
-- strike gần futures nhất;
-- delta gần 50;
-- nội suy tại forward;
-- hoặc phương pháp của nguồn.
+* strike gần futures nhất;
+* delta gần 50;
+* nội suy tại forward;
+* hoặc phương pháp của nguồn.
 
 Không trộn các phương pháp trong cùng nghiên cứu.
 
@@ -2577,10 +2647,10 @@ Không trộn các phương pháp trong cùng nghiên cứu.
 
 **Term structure** so sánh IV giữa các expiry. Nó giúp nhận diện:
 
-- premium sự kiện ở kỳ hạn gần;
-- kỳ vọng bất định kéo dài;
-- front-end căng hơn back-end;
-- hoặc trạng thái kỳ hạn gần rẻ tương đối.
+* premium sự kiện ở kỳ hạn gần;
+* kỳ vọng bất định kéo dài;
+* front-end căng hơn back-end;
+* hoặc trạng thái kỳ hạn gần rẻ tương đối.
 
 Không suy rằng front IV cao chắc chắn giá sẽ chạy mạnh. IV có thể cao vì bảo hiểm đắt, sự kiện đã được định giá hoặc thanh khoản kém.
 
@@ -2588,10 +2658,10 @@ Không suy rằng front IV cao chắc chắn giá sẽ chạy mạnh. IV có th�
 
 Skew mô tả IV khác nhau theo moneyness. Các cách đo có thể gồm:
 
-- IV của put/call cùng Delta;
-- risk reversal;
-- chênh IV giữa wing và ATM;
-- slope nội suy của surface.
+* IV của put/call cùng Delta;
+* risk reversal;
+* chênh IV giữa wing và ATM;
+* slope nội suy của surface.
 
 Skew cho biết phía nào của phân phối được trả premium tương đối cao hơn. Nó không tự nói người mua hay người bán đang đúng.
 
@@ -2603,39 +2673,40 @@ Butterfly/convexity mô tả mức đắt tương đối của hai cánh so vớ
 
 Surface là hàm của:
 
-    IV = f(strike hoặc moneyness, expiry, thời điểm)
+&#x20;   IV = f(strike hoặc moneyness, expiry, thời điểm)
+
 
 Một surface hữu ích cần:
 
-- quote filtering;
-- nội suy có kiểm soát;
-- cờ ngoại suy;
-- kiểm tra tính hợp lý;
-- lưu model version;
-- không tạo độ chính xác giả ở vùng không có thanh khoản.
+* quote filtering;
+* nội suy có kiểm soát;
+* cờ ngoại suy;
+* kiểm tra tính hợp lý;
+* lưu model version;
+* không tạo độ chính xác giả ở vùng không có thanh khoản.
 
 ### Thay đổi surface
 
 Không chỉ đọc mức tuyệt đối. Theo dõi:
 
-- ΔATM IV;
-- Δterm slope;
-- Δskew;
-- Δwing convexity;
-- dịch chuyển theo sự kiện;
-- tốc độ thay đổi trong phiên.
+* ΔATM IV;
+* Δterm slope;
+* Δskew;
+* Δwing convexity;
+* dịch chuyển theo sự kiện;
+* tốc độ thay đổi trong phiên.
 
 Thay đổi đồng thời của price, IV và skew có giá trị hơn một snapshot đơn lẻ.
 
 ### Regime biến động gợi ý
 
-| Regime | Dấu hiệu ứng viên | Cách sử dụng |
-|---|---|---|
-| IV thấp và ổn định | ATM IV thấp tương đối, surface ít đổi | Không tự bán biến động; chỉ kỳ vọng biên hẹp khi AMT đồng thuận |
-| IV tăng front-end | Kỳ hạn gần tăng nhanh | Tăng cảnh giác sự kiện/đột biến và trượt giá |
-| Upside skew bid | Call wing đắt tương đối | Ghi rủi ro phía tăng được trả premium, không tự Long |
-| Downside skew bid | Put wing đắt tương đối | Ghi rủi ro phía giảm được trả premium, không tự Short |
-| Surface hỗn hợp | expiry/skew không đồng thuận | Hạ độ chắc chắn, phân tách horizon |
+|Regime|Dấu hiệu ứng viên|Cách sử dụng|
+|-|-|-|
+|IV thấp và ổn định|ATM IV thấp tương đối, surface ít đổi|Không tự bán biến động; chỉ kỳ vọng biên hẹp khi AMT đồng thuận|
+|IV tăng front-end|Kỳ hạn gần tăng nhanh|Tăng cảnh giác sự kiện/đột biến và trượt giá|
+|Upside skew bid|Call wing đắt tương đối|Ghi rủi ro phía tăng được trả premium, không tự Long|
+|Downside skew bid|Put wing đắt tương đối|Ghi rủi ro phía giảm được trả premium, không tự Short|
+|Surface hỗn hợp|expiry/skew không đồng thuận|Hạ độ chắc chắn, phân tách horizon|
 
 ### Quy trình áp dụng
 
@@ -2649,11 +2720,11 @@ Thay đổi đồng thời của price, IV và skew có giá trị hơn một sn
 
 ### Sai lầm thường gặp
 
-- Gọi IV là dự báo chính xác.
-- So skew bằng strike tuyệt đối khi underlying đã đổi lớn.
-- Dùng wing không thanh khoản để kết luận tail demand.
-- Gộp mọi expiry thành một IV duy nhất.
-- Chọn lookback sau khi nhìn kết quả.
+* Gọi IV là dự báo chính xác.
+* So skew bằng strike tuyệt đối khi underlying đã đổi lớn.
+* Dùng wing không thanh khoản để kết luận tail demand.
+* Gộp mọi expiry thành một IV duy nhất.
+* Chọn lookback sau khi nhìn kết quả.
 
 ### Ghi nhớ
 
@@ -2667,12 +2738,12 @@ Volume đo hoạt động trong khoảng thời gian. Open Interest đo số h�
 
 Volume cho biết mức hoạt động, không cho biết vị thế còn tồn tại sau phiên. Volume lớn có thể là:
 
-- mở vị thế mới;
-- đóng vị thế cũ;
-- chuyển kỳ hạn;
-- một chân của spread;
-- hedge của vị thế khác;
-- giao dịch hai chiều lặp lại.
+* mở vị thế mới;
+* đóng vị thế cũ;
+* chuyển kỳ hạn;
+* một chân của spread;
+* hedge của vị thế khác;
+* giao dịch hai chiều lặp lại.
 
 ### Open Interest
 
@@ -2684,12 +2755,12 @@ OI là số hợp đồng còn mở của một series. OI lớn cho biết conc
 
 Ma trận thận trọng:
 
-| Volume | ΔOI sau bù trừ | Diễn giải hợp lệ |
-|---|---:|---|
-| Cao | Tăng | Hoạt động mới có thể đã làm tăng số hợp đồng mở |
-| Cao | Gần 0 | Có thể chủ yếu chuyển tay, mở/đóng bù nhau hoặc spread |
-| Cao | Giảm | Hoạt động có thể liên quan đóng vị thế |
-| Thấp | OI lớn | Tồn kho lịch sử còn tập trung, flow mới hạn chế |
+|Volume|ΔOI sau bù trừ|Diễn giải hợp lệ|
+|-|-:|-|
+|Cao|Tăng|Hoạt động mới có thể đã làm tăng số hợp đồng mở|
+|Cao|Gần 0|Có thể chủ yếu chuyển tay, mở/đóng bù nhau hoặc spread|
+|Cao|Giảm|Hoạt động có thể liên quan đóng vị thế|
+|Thấp|OI lớn|Tồn kho lịch sử còn tập trung, flow mới hạn chế|
 
 Không suy hướng chỉ từ bảng này.
 
@@ -2697,17 +2768,17 @@ Không suy hướng chỉ từ bảng này.
 
 Nếu có dữ liệu giao dịch chi tiết, mỗi trade nên gồm:
 
-- timestamp;
-- Call/Put;
-- strike;
-- expiry/DTE;
-- price, Bid, Ask và mid tại thời điểm khớp;
-- size;
-- premium/notional;
-- underlying price;
-- IV và Greeks tại thời điểm trade;
-- aggressor classification;
-- block/spread/strategy flags nếu có.
+* timestamp;
+* Call/Put;
+* strike;
+* expiry/DTE;
+* price, Bid, Ask và mid tại thời điểm khớp;
+* size;
+* premium/notional;
+* underlying price;
+* IV và Greeks tại thời điểm trade;
+* aggressor classification;
+* block/spread/strategy flags nếu có.
 
 ### Phân loại phía chủ động
 
@@ -2715,10 +2786,10 @@ Trade gần Ask có thể phù hợp mua chủ động; gần Bid có thể phù
 
 ### Không đồng nhất Call/Put với hướng
 
-- Mua Call có thể là bullish, hedge short, một chân spread hoặc volatility trade.
-- Bán Call có thể là covered, spread, closing hoặc short-vol.
-- Mua Put có thể là bearish, hedge long hoặc tail insurance.
-- Bán Put có thể là bullish, spread hoặc đóng hedge.
+* Mua Call có thể là bullish, hedge short, một chân spread hoặc volatility trade.
+* Bán Call có thể là covered, spread, closing hoặc short-vol.
+* Mua Put có thể là bearish, hedge long hoặc tail insurance.
+* Bán Put có thể là bullish, spread hoặc đóng hedge.
 
 Vì vậy hệ thống phải mô tả **giao dịch quan sát được**, không nhảy thẳng sang ý định.
 
@@ -2728,14 +2799,14 @@ Nếu nguồn có strategy/complex-order identifiers, phải nhóm các chân. N
 
 ### Thước đo Options Flow gợi ý
 
-- premium mua/bán chủ động theo expiry;
-- delta-adjusted notional;
-- gamma hoặc vega traded theo strike/expiry;
-- call/put flow theo moneyness;
-- flow anomaly so với phân phối cùng giờ và DTE;
-- repeat flow;
-- concentration migration;
-- response của IV và underlying sau trade.
+* premium mua/bán chủ động theo expiry;
+* delta-adjusted notional;
+* gamma hoặc vega traded theo strike/expiry;
+* call/put flow theo moneyness;
+* flow anomaly so với phân phối cùng giờ và DTE;
+* repeat flow;
+* concentration migration;
+* response của IV và underlying sau trade.
 
 Mọi thước đo phải ghi công thức và giới hạn.
 
@@ -2743,10 +2814,11 @@ Mọi thước đo phải ghi công thức và giới hạn.
 
 Tương tự Auction Episode, một **Options Flow Episode** theo dõi:
 
-    cụm giao dịch bắt đầu
+&#x20;   cụm giao dịch bắt đầu
     → lặp lại theo strike/expiry
     → IV/OI/underlying phản ứng
     → flow tiếp diễn, đảo chiều hoặc hết hiệu lực
+
 
 Một trade lớn đơn lẻ không đủ để gọi thay đổi chế độ.
 
@@ -2762,11 +2834,11 @@ Một trade lớn đơn lẻ không đủ để gọi thay đổi chế độ.
 
 ### Sai lầm thường gặp
 
-- Call volume cao đồng nghĩa bullish.
-- Volume/OI cao đồng nghĩa vị thế mới.
-- Gọi mọi trade tại Ask là mua sạch.
-- Bỏ qua spread và roll.
-- Dùng OI công bố sau phiên cho quyết định trước đó.
+* Call volume cao đồng nghĩa bullish.
+* Volume/OI cao đồng nghĩa vị thế mới.
+* Gọi mọi trade tại Ask là mua sạch.
+* Bỏ qua spread và roll.
+* Dùng OI công bố sau phiên cho quyết định trước đó.
 
 ### Ghi nhớ
 
@@ -2794,8 +2866,8 @@ Theta mô tả độ nhạy theo thời gian khi các yếu tố khác được 
 
 ### Vanna và Charm
 
-- **Vanna**: thay đổi Delta khi IV thay đổi, hoặc thay đổi Vega khi underlying thay đổi tùy quy ước.
-- **Charm**: thay đổi Delta khi thời gian trôi qua.
+* **Vanna**: thay đổi Delta khi IV thay đổi, hoặc thay đổi Vega khi underlying thay đổi tùy quy ước.
+* **Charm**: thay đổi Delta khi thời gian trôi qua.
 
 Đây là công cụ nâng cao. Chỉ dùng khi công thức, dấu, đơn vị và horizon được xác minh.
 
@@ -2803,10 +2875,10 @@ Theta mô tả độ nhạy theo thời gian khi các yếu tố khác được 
 
 Khi không biết phía vị thế, hệ thống vẫn có thể tính:
 
-- absolute Gamma concentration;
-- absolute Delta/Vega concentration;
-- OI-weighted sensitivity;
-- strike/expiry sensitivity density.
+* absolute Gamma concentration;
+* absolute Delta/Vega concentration;
+* OI-weighted sensitivity;
+* strike/expiry sensitivity density.
 
 Các thước đo này cho biết **nơi nhạy cảm**, không cho biết hướng hedging.
 
@@ -2814,38 +2886,39 @@ Các thước đo này cho biết **nơi nhạy cảm**, không cho biết hư�
 
 Signed GEX/DEX/VEX chỉ được sử dụng khi có một trong các điều kiện:
 
-- nguồn cung cấp vị thế theo phía đáng tin cậy;
-- dữ liệu giao dịch và open/close đủ để xây inventory có kiểm chứng;
-- hoặc hệ thống công bố rõ giả định dealer/customer và chạy nhiều scenario.
+* nguồn cung cấp vị thế theo phía đáng tin cậy;
+* dữ liệu giao dịch và open/close đủ để xây inventory có kiểm chứng;
+* hoặc hệ thống công bố rõ giả định dealer/customer và chạy nhiều scenario.
 
 Mỗi kết quả phải chứa:
 
-    exposure_name
-    formula_version
-    position_side_assumption
-    included_expiries
-    underlying_price
-    contract_multiplier
+&#x20;   exposure\_name
+    formula\_version
+    position\_side\_assumption
+    included\_expiries
+    underlying\_price
+    contract\_multiplier
     timestamp
     confidence
+
 
 ### GEX là mô-đun, không phải trụ
 
 GEX có thể được tính theo strike và expiry, rồi tổng hợp thành profile hoặc zero-gamma estimate. Nhưng:
 
-- không mặc định Call GEX dương và Put GEX âm mà không nêu quy ước;
-- không mặc định dealer đối diện toàn bộ OI;
-- không gọi GEX Flip là ranh giới vật lý;
-- không gọi Call Resistance/Put Support là khái niệm chuẩn nếu đó chỉ là nhãn vendor;
-- không gộp mọi expiry mà không xem contribution.
+* không mặc định Call GEX dương và Put GEX âm mà không nêu quy ước;
+* không mặc định dealer đối diện toàn bộ OI;
+* không gọi GEX Flip là ranh giới vật lý;
+* không gọi Call Resistance/Put Support là khái niệm chuẩn nếu đó chỉ là nhãn vendor;
+* không gộp mọi expiry mà không xem contribution.
 
 ### Ba scenario vị thế tối thiểu
 
-| Scenario | Giả định | Cách dùng |
-|---|---|---|
-| Dealer đối diện customer flow | Dealer giữ phía ngược flow/inventory ước tính | Nghiên cứu hedging candidate |
-| Dealer cùng dấu với exposure quan sát | Kịch bản thay thế | Kiểm tra độ nhạy của kết luận |
-| Không biết phía | Chỉ dùng absolute concentration | Mặc định an toàn khi dữ liệu thiếu |
+|Scenario|Giả định|Cách dùng|
+|-|-|-|
+|Dealer đối diện customer flow|Dealer giữ phía ngược flow/inventory ước tính|Nghiên cứu hedging candidate|
+|Dealer cùng dấu với exposure quan sát|Kịch bản thay thế|Kiểm tra độ nhạy của kết luận|
+|Không biết phía|Chỉ dùng absolute concentration|Mặc định an toàn khi dữ liệu thiếu|
 
 Nếu kết luận đảo hoàn toàn khi đổi scenario, trạng thái đúng là **model-sensitive**, không phải bullish/bearish.
 
@@ -2853,11 +2926,11 @@ Nếu kết luận đảo hoàn toàn khi đổi scenario, trạng thái đúng 
 
 Exposure phải được tính lại khi:
 
-- underlying thay đổi đáng kể;
-- IV surface thay đổi;
-- thời gian trôi qua, đặc biệt gần expiry;
-- OI/flow snapshot cập nhật;
-- contract mapping đổi.
+* underlying thay đổi đáng kể;
+* IV surface thay đổi;
+* thời gian trôi qua, đặc biệt gần expiry;
+* OI/flow snapshot cập nhật;
+* contract mapping đổi.
 
 Một file GEX tĩnh không đại diện cho dynamic exposure nếu các đầu vào đã thay đổi.
 
@@ -2874,12 +2947,12 @@ Một file GEX tĩnh không đại diện cho dynamic exposure nếu các đầu
 
 ### Sai lầm thường gặp
 
-- Coi GEX là dữ liệu trực tiếp của sàn.
-- Dùng một công thức bí mật như sự thật.
-- Không ghi multiplier hoặc đơn vị.
-- Bỏ qua expiry contribution.
-- Gọi dealer Short Gamma chắc chắn từ Put/Call OI.
-- Dùng zero gamma như điểm đảo chiều bắt buộc.
+* Coi GEX là dữ liệu trực tiếp của sàn.
+* Dùng một công thức bí mật như sự thật.
+* Không ghi multiplier hoặc đơn vị.
+* Bỏ qua expiry contribution.
+* Gọi dealer Short Gamma chắc chắn từ Put/Call OI.
+* Dùng zero gamma như điểm đảo chiều bắt buộc.
 
 ### Ghi nhớ
 
@@ -2893,10 +2966,10 @@ Trụ Options cần một đầu ra có cấu trúc, không phải một rừng 
 
 Expected move phải ghi phương pháp, horizon và timestamp. Các phương pháp có thể gồm:
 
-- ATM straddle quy đổi;
-- IV × căn bậc hai thời gian × underlying;
-- phân phối nội suy từ surface;
-- mô hình riêng đã kiểm chứng.
+* ATM straddle quy đổi;
+* IV × căn bậc hai thời gian × underlying;
+* phân phối nội suy từ surface;
+* mô hình riêng đã kiểm chứng.
 
 Không trộn các phương pháp và không gọi expected move là biên bắt buộc. Giá có thể vượt ngoài; xác suất thực tế phụ thuộc phân phối, jumps, skew và regime.
 
@@ -2904,11 +2977,11 @@ Không trộn các phương pháp và không gọi expected move là biên bắt
 
 Tối thiểu nên có:
 
-- đến cuối phiên;
-- đến expiry gần nhất;
-- đến sự kiện kế tiếp;
-- 1 tuần;
-- 30 ngày hoặc horizon phù hợp.
+* đến cuối phiên;
+* đến expiry gần nhất;
+* đến sự kiện kế tiếp;
+* 1 tuần;
+* 30 ngày hoặc horizon phù hợp.
 
 Mỗi horizon phải dùng expiry hoặc nội suy hợp lý.
 
@@ -2916,73 +2989,73 @@ Mỗi horizon phải dùng expiry hoặc nội suy hợp lý.
 
 Vùng nhạy cảm có thể sinh từ:
 
-- concentration OI/volume;
-- absolute Gamma/Vega/Delta;
-- signed exposure scenario;
-- strike gần expected move boundary;
-- nơi skew hoặc surface thay đổi nhanh;
-- expiry magnet candidate gần thời điểm đáo hạn;
-- flow concentration mới.
+* concentration OI/volume;
+* absolute Gamma/Vega/Delta;
+* signed exposure scenario;
+* strike gần expected move boundary;
+* nơi skew hoặc surface thay đổi nhanh;
+* expiry magnet candidate gần thời điểm đáo hạn;
+* flow concentration mới.
 
-Mỗi vùng phải có `source`, `horizon`, `strength`, `age`, `assumption` và `invalid_when`.
+Mỗi vùng phải có `source`, `horizon`, `strength`, `age`, `assumption` và `invalid\_when`.
 
 ### Options Regime
 
 Bộ trạng thái gợi ý:
 
-1. **DATA_UNUSABLE**: dữ liệu không đủ hoặc sai mapping.
+1. **DATA\_UNUSABLE**: dữ liệu không đủ hoặc sai mapping.
 2. **NEUTRAL**: không có cấu trúc nổi bật hoặc tín hiệu hỗn hợp.
-3. **STABILITY_CANDIDATE**: surface ổn định, concentration gần cân bằng và scenario hedging có thể chống chuyển động.
-4. **EXPANSION_CANDIDATE**: front IV tăng, concentration nhạy, scenario hedging có thể đi cùng chuyển động hoặc liquidity risk tăng.
-5. **EVENT_PREMIUM**: kỳ hạn chứa sự kiện được định giá nổi bật.
-6. **EXPIRY_DOMINANT**: Gamma/Theta và concentration kỳ hạn gần chi phối.
-7. **FLOW_SHIFT**: flow mới làm thay đổi IV, skew hoặc concentration.
+3. **STABILITY\_CANDIDATE**: surface ổn định, concentration gần cân bằng và scenario hedging có thể chống chuyển động.
+4. **EXPANSION\_CANDIDATE**: front IV tăng, concentration nhạy, scenario hedging có thể đi cùng chuyển động hoặc liquidity risk tăng.
+5. **EVENT\_PREMIUM**: kỳ hạn chứa sự kiện được định giá nổi bật.
+6. **EXPIRY\_DOMINANT**: Gamma/Theta và concentration kỳ hạn gần chi phối.
+7. **FLOW\_SHIFT**: flow mới làm thay đổi IV, skew hoặc concentration.
 8. **MIXED**: các expiry hoặc thước đo xung đột.
 
 Tên trạng thái mô tả **ứng viên môi trường**, không mô tả hướng giá.
 
 ### Confluence với AMT
 
-| AMT | Options Regime | Kỳ vọng hợp lệ |
-|---|---|---|
-| Cân bằng | Stability candidate | Luân phiên có thể được ưu tiên nếu Episode xác nhận |
-| Cân bằng | Expansion candidate | Cảnh giác phá biên; không fade tự động |
-| Khám phá giá | Expansion candidate | AAC có thể có đường đi rộng hơn nếu Order Flow xác nhận |
-| Khám phá giá | Stability candidate | Có rào cản/giảm tốc ứng viên, nhưng không phủ quyết acceptance |
-| Chuyển tiếp | Mixed/Event | Hạ độ chắc chắn, chờ bằng chứng |
+|AMT|Options Regime|Kỳ vọng hợp lệ|
+|-|-|-|
+|Cân bằng|Stability candidate|Luân phiên có thể được ưu tiên nếu Episode xác nhận|
+|Cân bằng|Expansion candidate|Cảnh giác phá biên; không fade tự động|
+|Khám phá giá|Expansion candidate|AAC có thể có đường đi rộng hơn nếu Order Flow xác nhận|
+|Khám phá giá|Stability candidate|Có rào cản/giảm tốc ứng viên, nhưng không phủ quyết acceptance|
+|Chuyển tiếp|Mixed/Event|Hạ độ chắc chắn, chờ bằng chứng|
 
 ### Thay đổi regime
 
 Regime chỉ thay đổi khi có tiêu chí định trước, ví dụ:
 
-- ATM IV hoặc term slope vượt ngưỡng phân phối;
-- skew đổi đáng kể;
-- flow anomaly lặp lại;
-- expected move reset;
-- expiry contribution đổi;
-- exposure scenario đổi dấu ổn định;
-- dữ liệu mất chất lượng.
+* ATM IV hoặc term slope vượt ngưỡng phân phối;
+* skew đổi đáng kể;
+* flow anomaly lặp lại;
+* expected move reset;
+* expiry contribution đổi;
+* exposure scenario đổi dấu ổn định;
+* dữ liệu mất chất lượng.
 
 Không đổi regime chỉ vì một trade hoặc một tick.
 
 ### Output chuẩn
 
 ```yaml
-options_regime: EXPANSION_CANDIDATE
-as_of: 2026-01-01T12:00:00Z
-data_quality: GOOD
+options\_regime: EXPANSION\_CANDIDATE
+as\_of: 2026-01-01T12:00:00Z
+data\_quality: GOOD
 horizon: INTRADAY
-atm_iv_state: ELEVATED
-term_structure: FRONT_PREMIUM
-skew_state: UPSIDE_BID
-expected_move:
+atm\_iv\_state: ELEVATED
+term\_structure: FRONT\_PREMIUM
+skew\_state: UPSIDE\_BID
+expected\_move:
   session: null
-  nearest_expiry: null
-sensitive_zones: []
-flow_state: DEVELOPING
-exposure_scenarios: []
-known_unknowns: []
-prohibited_conclusions: []
+  nearest\_expiry: null
+sensitive\_zones: \[]
+flow\_state: DEVELOPING
+exposure\_scenarios: \[]
+known\_unknowns: \[]
+prohibited\_conclusions: \[]
 ```
 
 ### Quy trình áp dụng
@@ -2997,11 +3070,11 @@ prohibited_conclusions: []
 
 ### Sai lầm thường gặp
 
-- Gọi expected move là support/resistance.
-- Gọi stability candidate là chắc chắn đi ngang.
-- Gọi expansion candidate là tín hiệu breakout.
-- Trộn horizon 0DTE với 30D.
-- Không lưu regime as-of-time.
+* Gọi expected move là support/resistance.
+* Gọi stability candidate là chắc chắn đi ngang.
+* Gọi expansion candidate là tín hiệu breakout.
+* Trộn horizon 0DTE với 30D.
+* Không lưu regime as-of-time.
 
 ### Ghi nhớ
 
@@ -3013,7 +3086,7 @@ Options không được đặt cuối quy trình như con dấu xác nhận. Nó
 
 ### Trình tự đúng
 
-    1. Tính toàn vẹn dữ liệu
+&#x20;   1. Tính toàn vẹn dữ liệu
     2. AMT: bản đồ, trạng thái và vị trí
     3. Options: regime, expected move, kỳ hạn và vùng nhạy cảm
     4. Episode tại mốc AMT hoặc vùng hội tụ
@@ -3021,16 +3094,17 @@ Options không được đặt cuối quy trình như con dấu xác nhận. Nó
     6. Sự chấp nhận/tái chấp nhận
     7. Luận điểm, vô hiệu, mục tiêu và risk
 
+
 ### Options trong FAR
 
 Options có thể hỗ trợ FAR khi:
 
-- AMT đang kiểm tra biên cân bằng;
-- Options regime là stability candidate hoặc expiry-dominant quanh vùng hội tụ;
-- flow mới không làm IV/skew mở rộng theo hướng phá;
-- giá thử ngoài expected/concentration zone nhưng không xây acceptance;
-- Order Flow cho nỗ lực lớn nhưng kết quả hạn chế;
-- giá tái nhập và tái chấp nhận vùng cũ.
+* AMT đang kiểm tra biên cân bằng;
+* Options regime là stability candidate hoặc expiry-dominant quanh vùng hội tụ;
+* flow mới không làm IV/skew mở rộng theo hướng phá;
+* giá thử ngoài expected/concentration zone nhưng không xây acceptance;
+* Order Flow cho nỗ lực lớn nhưng kết quả hạn chế;
+* giá tái nhập và tái chấp nhận vùng cũ.
 
 Options không đủ để gọi FAR nếu tái chấp nhận chưa xuất hiện.
 
@@ -3038,11 +3112,11 @@ Options không đủ để gọi FAR nếu tái chấp nhận chưa xuất hiệ
 
 Options có thể hỗ trợ AAC khi:
 
-- AMT có acceptance ngoài vùng;
-- Options regime là expansion candidate, event repricing hoặc flow shift phù hợp horizon;
-- IV/term/skew thay đổi đồng thời với price discovery;
-- vùng phía trước ít concentration hoặc concentration đang dịch theo giá;
-- Order Flow tạo tiến triển và nhịp hồi giữ phía mới.
+* AMT có acceptance ngoài vùng;
+* Options regime là expansion candidate, event repricing hoặc flow shift phù hợp horizon;
+* IV/term/skew thay đổi đồng thời với price discovery;
+* vùng phía trước ít concentration hoặc concentration đang dịch theo giá;
+* Order Flow tạo tiến triển và nhịp hồi giữ phía mới.
 
 Options không đủ để gọi AAC chỉ vì GEX scenario đổi dấu hoặc giá vượt expected move.
 
@@ -3054,26 +3128,99 @@ Khi AMT cân bằng, surface ổn định, expected move chưa bị tái định
 
 Trước sự kiện:
 
-- front IV có thể tăng;
-- spread Options và futures có thể mở rộng;
-- expected move có thể thay đổi;
-- flow có thể là hedge chứ không phải hướng.
+* front IV có thể tăng;
+* spread Options và futures có thể mở rộng;
+* expected move có thể thay đổi;
+* flow có thể là hedge chứ không phải hướng.
 
 Sau sự kiện:
 
-- theo dõi IV crush hoặc repricing;
-- kiểm tra surface và skew có tái cấu trúc;
-- không dùng snapshot trước tin như bản đồ tĩnh nếu underlying đã dịch xa;
-- chờ AMT hình thành vùng giá trị và Order Flow ổn định.
+* theo dõi IV crush hoặc repricing;
+* kiểm tra surface và skew có tái cấu trúc;
+* không dùng snapshot trước tin như bản đồ tĩnh nếu underlying đã dịch xa;
+* chờ AMT hình thành vùng giá trị và Order Flow ổn định.
+
+### Giao dịch phản ứng tại vùng Options
+
+Nhiều người giao dịch sử dụng strike tập trung, expected move, gamma
+concentration, vùng exposure hoặc các mốc Options khác để chuẩn bị giao dịch
+phản ứng. Cách làm này phù hợp với Tam Trụ nếu "phản ứng" được hiểu là hành vi
+thực sự xuất hiện trên futures, không phải giả định rằng một đường Options bắt
+buộc phải giữ giá.
+
+Chuỗi đúng là:
+
+    Options xác định vùng nhạy cảm
+    → Đặt vùng đó lên bản đồ AMT
+    → Chờ giá tương tác
+    → Mở Episode
+    → Quan sát Order Flow và kết quả giá
+    → Đánh giá acceptance, tái nhập hoặc thất bại
+    → Chỉ sau đó mới chọn thực thi
+
+Một vùng Options có thể trở thành:
+
+- vùng chuẩn bị quan sát phản ứng;
+- rào cản tiềm năng trên đường đi;
+- nơi cần tăng yêu cầu xác nhận;
+- ứng viên cho luân phiên hoặc khuếch đại;
+- vùng điều chỉnh target và quản trị.
+
+Nó không tự trở thành hỗ trợ, kháng cự hoặc điểm đảo chiều.
+
+#### Phản ứng hợp lệ
+
+Một ứng viên phản ứng có thêm giá trị khi:
+
+- vùng Options được ánh xạ đúng underlying, expiry và horizon;
+- vùng nằm tại hoặc gần một vị trí AMT có ý nghĩa;
+- giá tương tác nhưng nỗ lực theo hướng xuyên vùng không tạo kết quả tương xứng;
+- xuất hiện tái nhập, từ chối hoặc bảo vệ vùng có khả năng duy trì;
+- Order Flow phù hợp với kết quả giá;
+- điều kiện vô hiệu và không gian mục tiêu được xác định trước.
+
+#### Phản ứng chưa đủ bằng chứng
+
+Trạng thái vẫn là chưa được giải quyết khi:
+
+- giá chỉ chạm vùng rồi bật trong thời gian rất ngắn;
+- Order Flow mạnh nhưng kết quả giá chưa rõ;
+- giá giằng co quanh vùng mà chưa xây acceptance theo phía nào;
+- snapshot Options đã cũ hoặc regime đang thay đổi;
+- vùng Options không có vị trí AMT hỗ trợ;
+- basis hoặc dữ liệu giữa các thị trường không đáng tin cậy.
+
+#### Khi vùng Options thất bại
+
+Nếu giá xuyên qua vùng Options, duy trì giao dịch phía bên kia, POC hoặc vùng giá
+trị bắt đầu dịch theo và Order Flow tiếp tục tạo tiến triển, không được tiếp tục
+giao dịch ngược chỉ vì vùng đó từng được gọi là wall, flip hoặc concentration.
+
+Sự thất bại của một vùng Options là thông tin. Nó có thể cho thấy:
+
+- kịch bản exposure đã sai;
+- giả định dealer positioning không phù hợp;
+- regime đang chuyển;
+- horizon đang dùng không đúng;
+- dòng thực thi hiện tại mạnh hơn cơ chế ổn định được giả định.
+
+Không được di chuyển vùng hoặc đổi câu chuyện sau khi giá đã xuyên qua chỉ để bảo
+vệ mô hình.
+
+### Ghi nhớ
+
+> Giao dịch phản ứng của Options không phải giao dịch một đường Options. Đó là
+> giao dịch phản ứng đã được giá, Episode và Order Flow chứng minh tại một vùng
+> mà Options giúp ta chuẩn bị trước.
 
 ### Khi Options xung đột với giá
 
 Nếu Options gợi ý ổn định nhưng giá xây acceptance và Order Flow tạo tiến triển, **giá thắng đối với trạng thái hiện tại**. Options được dùng để:
 
-- kiểm tra rào cản;
-- hạ kỳ vọng follow-through nếu quy tắc thống kê ủng hộ;
-- điều chỉnh kiểu vào hoặc mục tiêu theo policy;
-- không đổi hướng tùy ý.
+* kiểm tra rào cản;
+* hạ kỳ vọng follow-through nếu quy tắc thống kê ủng hộ;
+* điều chỉnh kiểu vào hoặc mục tiêu theo policy;
+* không đổi hướng tùy ý.
 
 Nếu Options gợi ý khuếch đại nhưng giá thất bại và tái chấp nhận vùng cũ, không được đuổi breakout.
 
@@ -3081,25 +3228,25 @@ Nếu Options gợi ý khuếch đại nhưng giá thất bại và tái chấp 
 
 Trụ Options được phép điều chỉnh:
 
-- yêu cầu xác nhận;
-- loại setup được ưu tiên;
-- thời gian giữ;
-- target corridor;
-- risk budget;
-- điều kiện không giao dịch;
+* yêu cầu xác nhận;
+* loại setup được ưu tiên;
+* thời gian giữ;
+* target corridor;
+* risk budget;
+* điều kiện không giao dịch;
 
 chỉ khi quy tắc đã được kiểm chứng, ghi trước và cùng horizon. Nó không được tự nới dừng lỗ hoặc tăng rủi ro vì một narrative dealer hedging.
 
 ### Ma trận xử lý
 
-| AMT | Order Flow | Options | Cách xử lý |
-|---|---|---|---|
-| FAR rõ | Tái nhập được bảo vệ | Stability/neutral | Triển khai FAR theo policy |
-| FAR rõ | Tái nhập được bảo vệ | Expansion conflict | Giữ phán quyết giá, giảm kỳ vọng hoặc chờ xác nhận thêm theo policy |
-| AAC rõ | Tiến triển tốt | Expansion/flow shift | Bối cảnh hỗ trợ follow-through |
-| AAC rõ | Tiến triển tốt | Stability/concentration trước mặt | Không hủy AAC; đánh giá đường đi, target và kiểu vào |
-| AMT chưa rõ | Order Flow mâu thuẫn | Bất kỳ | Không giao dịch |
-| AMT và Order Flow rõ | Options không dùng được | Không bịa; vận hành bằng hai trụ còn lại và hạ confidence nếu policy yêu cầu |
+|AMT|Order Flow|Options|Cách xử lý|
+|-|-|-|-|
+|FAR rõ|Tái nhập được bảo vệ|Stability/neutral|Triển khai FAR theo policy|
+|FAR rõ|Tái nhập được bảo vệ|Expansion conflict|Giữ phán quyết giá, giảm kỳ vọng hoặc chờ xác nhận thêm theo policy|
+|AAC rõ|Tiến triển tốt|Expansion/flow shift|Bối cảnh hỗ trợ follow-through|
+|AAC rõ|Tiến triển tốt|Stability/concentration trước mặt|Không hủy AAC; đánh giá đường đi, target và kiểu vào|
+|AMT chưa rõ|Order Flow mâu thuẫn|Bất kỳ|Không giao dịch|
+|AMT và Order Flow rõ|Options không dùng được|Không bịa; vận hành bằng hai trụ còn lại và hạ confidence nếu policy yêu cầu||
 
 ### Quy trình áp dụng
 
@@ -3114,11 +3261,11 @@ chỉ khi quy tắc đã được kiểm chứng, ghi trước và cùng horizon
 
 ### Sai lầm thường gặp
 
-- Bắt Options “xác nhận hướng”.
-- Dùng dealer story để phủ nhận giá.
-- Dùng dữ liệu Options cuối ngày cho quyết định intraday trước đó.
-- Đổi risk tùy cảm xúc dưới danh nghĩa regime.
-- Tối ưu quá nhiều feature Options trên mẫu nhỏ.
+* Bắt Options “xác nhận hướng”.
+* Dùng dealer story để phủ nhận giá.
+* Dùng dữ liệu Options cuối ngày cho quyết định intraday trước đó.
+* Đổi risk tùy cảm xúc dưới danh nghĩa regime.
+* Tối ưu quá nhiều feature Options trên mẫu nhỏ.
 
 ### Ghi nhớ
 
@@ -3147,21 +3294,195 @@ Order Flow đo giao dịch đã khớp, phía chủ động, nhịp, cụm và k
 #### Quản trị sở hữu quyền tham gia
 
 Một luận điểm đúng về thị trường vẫn có thể không được giao dịch nếu dữ liệu, spread, basis, sự kiện hoặc risk không đạt chuẩn.
+### Quyền hạn thay đổi theo giai đoạn, không phải thứ bậc cố định
+
+
+
+Không nên hiểu Tam Trụ bằng một công thức cố định như:
+
+
+
+&#x20;   AMT > Options > Order Flow
+
+
+
+trong mọi thời điểm và đối với mọi câu hỏi.
+
+
+
+Ba trụ không tranh cùng một quyền phán quyết. Quyền chính thay đổi theo giai đoạn của quá trình phân tích, nhưng mỗi trụ vẫn chỉ được kết luận trong phạm vi dữ liệu mà nó sở hữu.
+
+
+
+#### Trước phiên: AMT và Options được đọc song song nhưng khác quyền
+
+
+
+Trong giai đoạn chuẩn bị, AMT và Options có thể được xem là hai lớp bối cảnh song song:
+
+
+
+- **AMT** xây bản đồ cuộc đấu giá, xác định vùng giá trị, cấu trúc, trạng thái và các mốc cần quan sát.
+
+- **Options** xác định horizon, định giá biến động, expected move, term structure, skew, concentration, flow state và các vùng nhạy cảm theo kịch bản.
+
+
+
+AMT không được dùng để suy ra cấu trúc biến động hàm ý hoặc exposure Options. Options cũng không được tự tạo vị trí giao dịch khi chưa đặt lên bản đồ AMT.
+
+
+
+Một vùng Options có thể là nơi đáng chuẩn bị quan sát, nhưng chưa phải điểm vào và chưa phải bằng chứng rằng giá sẽ bị chặn, bị hút hoặc đảo chiều.
+
+
+
+#### Khi giá tương tác: Episode trở thành cầu nối
+
+
+
+Khi giá đến một mốc AMT, một vùng Options nhạy cảm hoặc một vùng hội tụ giữa hai lớp, phải mở Episode để theo dõi toàn bộ lần tương tác.
+
+
+
+Chuỗi kiểm chứng đúng là:
+
+
+
+&#x20;   Vùng nhạy cảm từ Options hoặc mốc AMT
+
+&#x20;   → Giá tiếp cận
+
+&#x20;   → Episode bắt đầu
+
+&#x20;   → Order Flow cho biết nỗ lực thực thi
+
+&#x20;   → Kết quả giá cho biết nỗ lực có hiệu quả hay không
+
+&#x20;   → Acceptance hoặc tái chấp nhận quyết định trạng thái cuộc đấu giá
+
+
+
+Nguồn gốc của vùng có thể đến từ Options, nhưng phản ứng chỉ có giá trị giao dịch khi nó được biểu hiện trên futures qua giá, thời gian, khối lượng, Order Flow và khả năng duy trì.
+
+
+
+#### Tại vị trí: Episode, Order Flow và Acceptance giữ quyền phán quyết
+
+
+
+Khi giá đã đến vùng cần quan sát:
+
+
+
+- Episode cho biết lần thử đang phát triển như thế nào;
+
+- Order Flow cho biết bên nào đang chủ động và nỗ lực có tạo tiến triển hay không;
+
+- Acceptance cho biết giá mới đã được duy trì, bị từ chối hay vẫn chưa được giải quyết.
+
+
+
+Một phản ứng nhanh tại strike hoặc vùng exposure mới chỉ là quan sát ban đầu. Nó chưa đủ để gọi FAR, AAC hoặc đảo chiều nếu thị trường chưa chứng minh khả năng duy trì.
+
+
+
+#### Khi ra quyết định: Options có thể chặn hoặc điều chỉnh giao dịch
+
+
+
+Một luận điểm AMT có thể hợp lệ nhưng vẫn không được phép giao dịch nếu trụ Options hoặc quản trị cho thấy:
+
+
+
+- rủi ro sự kiện quá gần;
+
+- biến động đang được tái định giá mạnh;
+
+- expected move hoặc target corridor không còn đủ không gian;
+
+- concentration lớn nằm ngay trên đường đi;
+
+- spread, thanh khoản hoặc basis không phù hợp;
+
+- horizon của luận điểm không khớp horizon Options.
+
+
+
+Trong trường hợp này cần phân biệt hai kết luận:
+
+
+
+&#x20;   Luận điểm thị trường vẫn hợp lệ
+
+&#x20;   ≠
+
+&#x20;   Giao dịch hiện tại được phép thực hiện
+
+
+
+Options có thể làm tăng yêu cầu xác nhận, giảm khối lượng, rút ngắn thời gian giữ, thay đổi target corridor hoặc chuyển quyết định thành Chờ/Không giao dịch. Điều đó không có nghĩa Options đã phủ nhận trạng thái AMT.
+
+
+
+#### Phán quyết cuối về trạng thái đã hiện thực hóa
+
+
+
+Nếu Options gợi ý ổn định nhưng giá xây acceptance ngoài vùng và Order Flow tạo tiến triển, acceptance của giá giữ quyền phán quyết đối với trạng thái hiện tại.
+
+
+
+Nếu Options gợi ý khuếch đại nhưng giá thất bại, tái nhập và tái chấp nhận vùng cũ, không được tiếp tục đuổi theo kịch bản phá vỡ.
+
+
+
+Options có thể thay đổi kỳ vọng về đường đi và quản trị, nhưng không được viết lại điều giá đã chứng minh.
+
+
+
+### Ma trận quyền hạn theo giai đoạn
+
+
+
+| Giai đoạn | Quyền chính | Vai trò của các lớp còn lại |
+
+|---|---|---|
+
+| Chuẩn bị trước phiên | AMT và Options song song, khác miền | AMT xây bản đồ; Options xây regime, horizon và vùng nhạy cảm |
+
+| Giá tiếp cận vùng | Episode | Ghi nhận lần thử, độ lệch, thời gian và hoạt động |
+
+| Kiểm tra phản ứng | Order Flow và kết quả giá | Đánh giá nỗ lực thực thi có tạo tiến triển hay không |
+
+| Phán quyết trạng thái | Acceptance thuộc miền AMT | Chọn FAR, AAC, Luân phiên hoặc Chưa giải quyết |
+
+| Quyết định tham gia | Quản trị rủi ro | Options có thể hỗ trợ, điều chỉnh hoặc chặn giao dịch |
+
+| Thực thi | Kỹ thuật vào lệnh | Không được đảo ngược phán quyết của các lớp cao hơn |
+
+
+
+### Ghi nhớ
+
+
+
+> Options có thể dẫn đường đến nơi cần quan sát. AMT xác nhận thị trường đã thực sự đi đến đâu. Order Flow cho biết bước đi đó được thực thi bằng nỗ lực nào. Quản trị quyết định liệu câu chuyện ấy có đáng để tham gia hay không.
 
 ### Thứ tự vận hành
 
-    AMT tạo bản đồ và trạng thái
+&#x20;   AMT tạo bản đồ và trạng thái
     → Options tạo regime, horizon và vùng nhạy cảm
     → Episode mở khi giá tương tác
     → Order Flow kiểm tra nỗ lực–kết quả
     → Acceptance quyết định câu chuyện
     → Quản trị quyết định tham gia
 
+
 ### Khi thiếu một trụ
 
-- Thiếu Options: vẫn có thể vận hành AMT + Order Flow, nhưng không được bịa expected move, dealer exposure hoặc Options regime.
-- Thiếu Order Flow: có thể xây bối cảnh AMT + Options, nhưng điểm vào cần hạ quyền hoặc chờ bằng chứng giá khác theo policy.
-- Thiếu AMT: không được dùng Options/Order Flow để tự tạo vị trí.
+* Thiếu Options: vẫn có thể vận hành AMT + Order Flow, nhưng không được bịa expected move, dealer exposure hoặc Options regime.
+* Thiếu Order Flow: có thể xây bối cảnh AMT + Options, nhưng điểm vào cần hạ quyền hoặc chờ bằng chứng giá khác theo policy.
+* Thiếu AMT: không được dùng Options/Order Flow để tự tạo vị trí.
 
 ### Quy trình áp dụng
 
@@ -3175,11 +3496,11 @@ Một luận điểm đúng về thị trường vẫn có thể không được
 
 ### Sai lầm thường gặp
 
-- Cộng điểm ba trụ rồi gọi là xác suất.
-- Đòi ba trụ cùng một “hướng”.
-- Dùng Options để đo acceptance.
-- Dùng Order Flow để suy volatility term structure.
-- Từ chối mọi giao dịch khi một trụ không khả dụng dù policy cho phép.
+* Cộng điểm ba trụ rồi gọi là xác suất.
+* Đòi ba trụ cùng một “hướng”.
+* Dùng Options để đo acceptance.
+* Dùng Order Flow để suy volatility term structure.
+* Từ chối mọi giao dịch khi một trụ không khả dụng dù policy cho phép.
 
 ### Ghi nhớ
 
@@ -3233,10 +3554,10 @@ Chọn FAR, AAC, Luân phiên, Chờ hoặc không giao dịch; xác định vô
 
 ### Sai lầm thường gặp
 
-- Bắt đầu từ một trade Options lớn.
-- Nhìn GEX/expected move trước vùng giá trị.
-- Trộn horizon 0DTE và nhiều tuần.
-- Chuyển từ dashboard sang lệnh mà thiếu Episode.
+* Bắt đầu từ một trade Options lớn.
+* Nhìn GEX/expected move trước vùng giá trị.
+* Trộn horizon 0DTE và nhiều tuần.
+* Chuyển từ dashboard sang lệnh mà thiếu Episode.
 
 ### Ghi nhớ
 
@@ -3264,11 +3585,11 @@ Order Flow ngoài vùng phải được đánh giá theo khả năng xây hoạt
 
 Concentration, expected-move boundary, expiry cluster hoặc exposure zone chỉ đáng chú ý khi:
 
-- horizon phù hợp;
-- dữ liệu còn tươi;
-- phương pháp tính rõ;
-- vùng gần hoặc hội tụ với mốc AMT;
-- có hành vi giá để mở Episode.
+* horizon phù hợp;
+* dữ liệu còn tươi;
+* phương pháp tính rõ;
+* vùng gần hoặc hội tụ với mốc AMT;
+* có hành vi giá để mở Episode.
 
 #### Không gian mục tiêu
 
@@ -3284,10 +3605,10 @@ Một điểm vào tốt vẫn có thể là giao dịch xấu nếu mốc AMT, 
 
 ### Sai lầm thường gặp
 
-- Mua bán Delta giữa vùng giá trị.
-- Dùng strike OI lớn như lệnh chờ.
-- Dùng expected move như tường giá.
-- Gộp vùng Options xa horizon vào intraday.
+* Mua bán Delta giữa vùng giá trị.
+* Dùng strike OI lớn như lệnh chờ.
+* Dùng expected move như tường giá.
+* Gộp vùng Options xa horizon vào intraday.
 
 ### Ghi nhớ
 
@@ -3334,10 +3655,10 @@ Khi nhiều phiên, trong ngày, Options và Order Flow không đồng thuận, 
 
 ### Sai lầm thường gặp
 
-- Vào lệnh trước rồi mới viết bối cảnh.
-- Dùng Options để thay hướng AMT.
-- Bỏ qua event premium và liquidity.
-- Gọi xung đột là “xác nhận ngược”.
+* Vào lệnh trước rồi mới viết bối cảnh.
+* Dùng Options để thay hướng AMT.
+* Bỏ qua event premium và liquidity.
+* Gọi xung đột là “xác nhận ngược”.
 
 ### Ghi nhớ
 
@@ -3375,18 +3696,18 @@ FAR, AAC, luân phiên hoặc chưa được giải quyết. Kết quả không 
 
 ### Quy trình áp dụng
 
-1.  Chọn vai trò của mốc.
-2.  Ghi dấu thời gian tương tác.
-3.  Đo các thước đo ngoài vùng.
-4.  Đánh dấu tái nhập.
-5.  Theo dõi POC cục bộ.
-6.  Chờ kết quả.
+1. Chọn vai trò của mốc.
+2. Ghi dấu thời gian tương tác.
+3. Đo các thước đo ngoài vùng.
+4. Đánh dấu tái nhập.
+5. Theo dõi POC cục bộ.
+6. Chờ kết quả.
 
 ### Sai lầm thường gặp
 
-- Vẽ mốc tham chiếu sau khi giá phản ứng.
-- Không phân biệt biên với đường trung tâm.
-- Bỏ lịch sử lần thử.
+* Vẽ mốc tham chiếu sau khi giá phản ứng.
+* Không phân biệt biên với đường trung tâm.
+* Bỏ lịch sử lần thử.
 
 ### Ghi nhớ
 
@@ -3424,17 +3745,17 @@ Bằng chứng cân bằng hoặc thay đổi liên tục thì chưa giải quy�
 
 ### Quy trình áp dụng
 
-1.  Thu các thước đo thô.
-2.  Không gắn đỉnh/đáy cảm tính.
-3.  So các nhóm bằng chứng.
-4.  Ghi rõ những trường dữ liệu còn thiếu.
-5.  Chỉ kết luận khi chính sách phân loại đã đủ điều kiện.
+1. Thu các thước đo thô.
+2. Không gắn đỉnh/đáy cảm tính.
+3. So các nhóm bằng chứng.
+4. Ghi rõ những trường dữ liệu còn thiếu.
+5. Chỉ kết luận khi chính sách phân loại đã đủ điều kiện.
 
 ### Sai lầm thường gặp
 
-- Dùng một tỷ lệ làm phán quyết.
-- Gán giá trị 0 cho dữ liệu không khả dụng.
-- Gọi tái nhập về mặt hình học là tái chấp nhận ổn định.
+* Dùng một tỷ lệ làm phán quyết.
+* Gán giá trị 0 cho dữ liệu không khả dụng.
+* Gọi tái nhập về mặt hình học là tái chấp nhận ổn định.
 
 ### Ghi nhớ
 
@@ -3472,18 +3793,18 @@ Dòng lệnh mạnh nhưng sự chấp nhận phát triển theo hướng ngư�
 
 ### Quy trình áp dụng
 
-1.  Xác định hướng của lần thử đấu giá.
-2.  Đo nỗ lực theo hướng của lần thử.
-3.  Đo kết quả.
-4.  Kiểm tra phản ứng phía đối diện.
-5.  Kết hợp sự duy trì.
-6.  Ghi kết luận hoặc trạng thái chưa được giải quyết.
+1. Xác định hướng của lần thử đấu giá.
+2. Đo nỗ lực theo hướng của lần thử.
+3. Đo kết quả.
+4. Kiểm tra phản ứng phía đối diện.
+5. Kết hợp sự duy trì.
+6. Ghi kết luận hoặc trạng thái chưa được giải quyết.
 
 ### Sai lầm thường gặp
 
-- Đọc Delta trước khi biết hướng của lần thử đấu giá.
-- Dùng Imbalance thay sự chấp nhận.
-- Bịa phía khi không xác định.
+* Đọc Delta trước khi biết hướng của lần thử đấu giá.
+* Dùng Imbalance thay sự chấp nhận.
+* Bịa phía khi không xác định.
 
 ### Ghi nhớ
 
@@ -3515,12 +3836,12 @@ Ghi absolute concentration trước, signed scenarios sau. Mọi scenario phải
 
 Một vùng Options được nâng quyền quan sát khi trùng hoặc gần:
 
-- biên vùng giá trị;
-- Composite edge;
-- LVN/HVN phù hợp;
-- mốc sự kiện;
-- expected-move boundary;
-- strike/expiry concentration đáng kể.
+* biên vùng giá trị;
+* Composite edge;
+* LVN/HVN phù hợp;
+* mốc sự kiện;
+* expected-move boundary;
+* strike/expiry concentration đáng kể.
 
 Vùng hội tụ mở Episode, không tự tạo lệnh.
 
@@ -3549,11 +3870,11 @@ Options neutral, mixed hoặc data unusable không tự làm luận điểm AMT 
 
 ### Sai lầm thường gặp
 
-- Chỉ nhìn GEX mà bỏ surface và expiry.
-- Dùng snapshot không point-in-time.
-- Gọi concentration là hỗ trợ/kháng cự.
-- Không phân tách horizon.
-- Dùng vendor label mà không biết công thức.
+* Chỉ nhìn GEX mà bỏ surface và expiry.
+* Dùng snapshot không point-in-time.
+* Gọi concentration là hỗ trợ/kháng cự.
+* Không phân tách horizon.
+* Dùng vendor label mà không biết công thức.
 
 ### Ghi nhớ
 
@@ -3562,6 +3883,7 @@ Options neutral, mixed hoặc data unusable không tự làm luận điểm AMT 
 ## Chương 59. Xây dựng luận điểm thị trường
 
 Luận điểm thị trường là hợp đồng giữa kỳ vọng và bằng chứng. Nó phải nêu hành vi mong đợi, điều kiện vào, điều kiện sai và thời hạn.
+
 
 
 ### Nội dung cốt lõi
@@ -3598,11 +3920,12 @@ Luận điểm sống bao lâu? Nếu hành vi kỳ vọng không xảy ra trong
 
 Mỗi luận điểm phải ghi năm khung:
 
-    Khung bối cảnh
+&#x20;   Khung bối cảnh
     Khung luận điểm
     Khung điều kiện kích hoạt
     Khung quản lý
     Khung mục tiêu
+
 
 Không vào bằng điều kiện vài phút rồi biến lệnh thua thành vị thế nhiều ngày. Không dùng một lần Delta đổi dấu để vô hiệu luận điểm nhiều phiên. Mục tiêu và thời hạn vô hiệu phải phù hợp với khung của luận điểm.
 
@@ -3612,20 +3935,20 @@ Mọi hành động sau điểm vào phải liên hệ được với hành vi �
 
 ### Quy trình áp dụng
 
-1.  Viết một câu luận điểm.
-2.  Liệt kê bằng chứng.
-3.  Liệt kê bằng chứng còn thiếu.
-4.  Viết hành vi kỳ vọng.
-5.  Viết vô hiệu.
-6.  Viết đường mục tiêu.
-7.  Viết thời hạn luận điểm.
-8.  Chọn phong cách vào.
+1. Viết một câu luận điểm.
+2. Liệt kê bằng chứng.
+3. Liệt kê bằng chứng còn thiếu.
+4. Viết hành vi kỳ vọng.
+5. Viết vô hiệu.
+6. Viết đường mục tiêu.
+7. Viết thời hạn luận điểm.
+8. Chọn phong cách vào.
 
 ### Sai lầm thường gặp
 
-- Luận điểm chỉ là “tôi nghĩ tăng”.
-- Không có hành vi kỳ vọng.
-- Dời vô hiệu khi giá đi ngược.
+* Luận điểm chỉ là “tôi nghĩ tăng”.
+* Không có hành vi kỳ vọng.
+* Dời vô hiệu khi giá đi ngược.
 
 ### Ghi nhớ
 
@@ -3634,6 +3957,7 @@ Mọi hành động sau điểm vào phải liên hệ được với hành vi �
 ## Chương 60. Vô hiệu đa chiều
 
 Dừng lỗ là lệnh bảo vệ; vô hiệu là lý do luận điểm không còn đúng. Hai thứ liên quan nhưng không đồng nhất.
+
 
 
 ### Nội dung cốt lõi
@@ -3664,18 +3988,18 @@ Dừng lỗ phải nằm tại nơi luận điểm sai và phù hợp với ngâ
 
 ### Quy trình áp dụng
 
-1.  Xác định đấu giá vô hiệu.
-2.  Chuyển thành vùng giá.
-3.  Thêm khoảng đệm thực thi.
-4.  Tính rủi ro.
-5.  Nếu rủi ro không thể chịu được, bỏ giao dịch.
-6.  Ghi thời gian/bối cảnh vô hiệu.
+1. Xác định đấu giá vô hiệu.
+2. Chuyển thành vùng giá.
+3. Thêm khoảng đệm thực thi.
+4. Tính rủi ro.
+5. Nếu rủi ro không thể chịu được, bỏ giao dịch.
+6. Ghi thời gian/bối cảnh vô hiệu.
 
 ### Sai lầm thường gặp
 
-- Dừng lỗ theo số tiền ngẫu nhiên.
-- Dời dừng lỗ xa chỉ để tránh bị chạm.
-- Giữ lệnh sau khi luận điểm sai vì dừng lỗ chưa chạm.
+* Dừng lỗ theo số tiền ngẫu nhiên.
+* Dời dừng lỗ xa chỉ để tránh bị chạm.
+* Giữ lệnh sau khi luận điểm sai vì dừng lỗ chưa chạm.
 
 ### Ghi nhớ
 
@@ -3684,6 +4008,7 @@ Dừng lỗ phải nằm tại nơi luận điểm sai và phù hợp với ngâ
 ## Chương 61. Mục tiêu và đường đi ít cản trở
 
 Mục tiêu không phải con số mong muốn. Nó là điểm hoặc hành lang mà cuộc đấu giá có khả năng hướng tới nếu luận điểm tiếp tục sống.
+
 
 
 ### Nội dung cốt lõi
@@ -3714,18 +4039,18 @@ Nếu rào cản gần hơn mức vô hiệu hoặc tỷ lệ lợi nhuận/rủ
 
 ### Quy trình áp dụng
 
-1.  Đánh dấu mục tiêu cấu trúc.
-2.  Liệt kê rào cản trung gian.
-3.  Thêm các vùng Options đáng chú ý nếu dữ liệu, horizon và phương pháp hợp lệ.
-4.  Tính khoảng cách tới vô hiệu.
-5.  Chỉ vào khi hành lang mục tiêu còn đủ không gian.
+1. Đánh dấu mục tiêu cấu trúc.
+2. Liệt kê rào cản trung gian.
+3. Thêm các vùng Options đáng chú ý nếu dữ liệu, horizon và phương pháp hợp lệ.
+4. Tính khoảng cách tới vô hiệu.
+5. Chỉ vào khi hành lang mục tiêu còn đủ không gian.
 
 ### Sai lầm thường gặp
 
-- Chọn mục tiêu theo số tiền muốn kiếm.
-- Dùng expected move, strike OI hoặc vendor level như mục tiêu bắt buộc.
-- Bỏ qua POC hoặc vùng giá trị nằm giữa.
-- Vào lệnh không có không gian.
+* Chọn mục tiêu theo số tiền muốn kiếm.
+* Dùng expected move, strike OI hoặc vendor level như mục tiêu bắt buộc.
+* Bỏ qua POC hoặc vùng giá trị nằm giữa.
+* Vào lệnh không có không gian.
 
 ### Ghi nhớ
 
@@ -3734,6 +4059,7 @@ Nếu rào cản gần hơn mức vô hiệu hoặc tỷ lệ lợi nhuận/rủ
 ## Chương 62. Quản trị rủi ro
 
 Một phương pháp tốt vẫn có chuỗi thua. Quản trị rủi ro biến sự bất định thành mức chi phí có thể chịu được và giúp người giao dịch tồn tại đủ lâu để lợi thế bộc lộ.
+
 
 
 ### Nội dung cốt lõi
@@ -3772,10 +4098,10 @@ Một phương pháp có kỳ vọng dương vẫn có thể tạo chuỗi thua 
 
 Cần theo dõi:
 
-- Sụt giảm lớn nhất theo đơn vị R và theo phần trăm tài khoản.
-- Chuỗi thua dài nhất trong mẫu và trong mô phỏng.
-- Mức tập trung rủi ro khi nhiều giao dịch có cùng yếu tố USD, lãi suất hoặc kim loại.
-- Khả năng tiếp tục tuân thủ khi tài khoản đang sụt giảm.
+* Sụt giảm lớn nhất theo đơn vị R và theo phần trăm tài khoản.
+* Chuỗi thua dài nhất trong mẫu và trong mô phỏng.
+* Mức tập trung rủi ro khi nhiều giao dịch có cùng yếu tố USD, lãi suất hoặc kim loại.
+* Khả năng tiếp tục tuân thủ khi tài khoản đang sụt giảm.
 
 Không tăng rủi ro để gỡ lại sụt giảm. Việc giảm rủi ro phải dựa trên chính sách viết trước, chẳng hạn sau khi vượt một mức sụt giảm hoặc khi chất lượng thực thi giảm rõ rệt.
 
@@ -3783,26 +4109,26 @@ Không tăng rủi ro để gỡ lại sụt giảm. Việc giảm rủi ro ph�
 
 Rủi ro phá sản không chỉ là tài khoản về không. Nó còn gồm việc sụt giảm đến mức người giao dịch không còn đủ vốn, khả năng chịu đựng hoặc niềm tin để tiếp tục thực hiện phương pháp. Rủi ro này tăng khi:
 
-- Rủi ro mỗi lệnh quá lớn.
-- Các giao dịch có tương quan cao.
-- Chi phí và trượt giá bị đánh giá thấp.
-- Kỳ vọng được ước lượng từ mẫu nhỏ hoặc đã chọn lọc.
-- Người giao dịch thay đổi quy tắc giữa chuỗi thua.
+* Rủi ro mỗi lệnh quá lớn.
+* Các giao dịch có tương quan cao.
+* Chi phí và trượt giá bị đánh giá thấp.
+* Kỳ vọng được ước lượng từ mẫu nhỏ hoặc đã chọn lọc.
+* Người giao dịch thay đổi quy tắc giữa chuỗi thua.
 
 ### Quy trình áp dụng
 
-1.  Tính dừng lỗ theo vô hiệu.
-2.  Tính khối lượng vị thế.
-3.  Tính đầy đủ chi phí.
-4.  Kiểm tra mức phơi nhiễm trong ngày.
-5.  Kiểm tra sự kiện.
-6.  Chỉ giao dịch khi mức rủi ro có thể chịu được.
+1. Tính dừng lỗ theo vô hiệu.
+2. Tính khối lượng vị thế.
+3. Tính đầy đủ chi phí.
+4. Kiểm tra mức phơi nhiễm trong ngày.
+5. Kiểm tra sự kiện.
+6. Chỉ giao dịch khi mức rủi ro có thể chịu được.
 
 ### Sai lầm thường gặp
 
-- Khối lượng vị thế trước dừng lỗ.
-- Bỏ qua trượt giá.
-- Tăng rủi ro sau thắng/thua cảm tính.
+* Khối lượng vị thế trước dừng lỗ.
+* Bỏ qua trượt giá.
+* Tăng rủi ro sau thắng/thua cảm tính.
 
 ### Ghi nhớ
 
@@ -3813,6 +4139,7 @@ Rủi ro phá sản không chỉ là tài khoản về không. Nó còn gồm vi
 ## Chương 63. Ba kết quả của một lần thử đấu giá ngoài vùng
 
 Một lần thử đấu giá ngoài vùng có ba kết quả hợp lệ: thất bại và tái nhập, được chấp nhận và tiếp diễn, hoặc chưa được giải quyết.
+
 
 
 ### FAR
@@ -3829,40 +4156,41 @@ Giá qua lại, hoạt động phân tán, POC chưa rõ và khả năng duy tr�
 
 ### Ba mức trưởng thành của điểm vào
 
-| Mức        | Đặc điểm                                                                               |
-|------------|----------------------------------------------------------------------------------------|
-| Sớm        | Vào khi bằng chứng mới phát triển, giá tốt hơn nhưng nguy cơ phân loại sai cao         |
-| Tiêu chuẩn | Có tái nhập hoặc chấp nhận rõ và một lần kiểm tra hành vi                              |
-| Xác nhận   | Có vùng giá trị/POC duy trì, kiểm tra lại hoặc lần thử thứ hai và bằng chứng tiếp diễn |
+|Mức|Đặc điểm|
+|-|-|
+|Sớm|Vào khi bằng chứng mới phát triển, giá tốt hơn nhưng nguy cơ phân loại sai cao|
+|Tiêu chuẩn|Có tái nhập hoặc chấp nhận rõ và một lần kiểm tra hành vi|
+|Xác nhận|Có vùng giá trị/POC duy trì, kiểm tra lại hoặc lần thử thứ hai và bằng chứng tiếp diễn|
 
 ### Hàng rào kiểm chứng cho phong cách Sớm
 
 Phong cách Sớm mặc định là **phong cách nghiên cứu**, không phải lựa chọn mặc định cho người mới.
 
-    Phát lại dữ liệu
+&#x20;   Phát lại dữ liệu
     → quan sát và ghi nhật ký không thực thi
     → giao dịch mô phỏng hoặc quy mô rất nhỏ
     → đánh giá ngoài mẫu
     → chỉ sau đó mới dùng mức rủi ro chuẩn
 
+
 Yêu cầu:
 
-- Tiêu chuẩn mẫu phải được xác định trước, không chọn lại sau khi xem kết quả.
-- Kết quả phải tính chênh lệch mua bán, hoa hồng, trượt giá và lệnh không khớp.
-- Phân tầng theo phiên, chế độ biến động và loại mốc.
-- Chưa vượt qua cổng bằng chứng cá nhân thì chỉ dùng phong cách Tiêu chuẩn hoặc Xác nhận.
-- Không tăng khối lượng chỉ vì vài giao dịch Sớm thắng đẹp.
+* Tiêu chuẩn mẫu phải được xác định trước, không chọn lại sau khi xem kết quả.
+* Kết quả phải tính chênh lệch mua bán, hoa hồng, trượt giá và lệnh không khớp.
+* Phân tầng theo phiên, chế độ biến động và loại mốc.
+* Chưa vượt qua cổng bằng chứng cá nhân thì chỉ dùng phong cách Tiêu chuẩn hoặc Xác nhận.
+* Không tăng khối lượng chỉ vì vài giao dịch Sớm thắng đẹp.
 
 ### Hành vi được kỳ vọng
 
-| Kịch bản                   | Hành vi phải xuất hiện nếu luận điểm đúng                                      |
-|----------------------------|--------------------------------------------------------------------------------|
-| FAR tái nhập               | Giá tiến vào vùng giá trị cũ và không nhanh chóng khôi phục vùng ngoài         |
-| FAR kiểm tra lại           | Lần kiểm tra không xây được sự chấp nhận ngoài; dòng lệnh đối diện tạo kết quả |
-| AAC sớm                    | Giá giữ ngoài mốc; POC/vùng giá trị cục bộ không quay vào                      |
-| AAC kiểm tra lại           | Nỗ lực lấy lại vùng giá trị cũ thất bại; giá khôi phục vùng đã được chấp nhận  |
-| Tiếp diễn vùng giá trị mới | Vùng giá trị mới giữ được và POC tiếp tục dịch                                 |
-| Luân phiên                 | Giá không xây vùng giá trị ngoài biên và quay lại trung tâm                    |
+|Kịch bản|Hành vi phải xuất hiện nếu luận điểm đúng|
+|-|-|
+|FAR tái nhập|Giá tiến vào vùng giá trị cũ và không nhanh chóng khôi phục vùng ngoài|
+|FAR kiểm tra lại|Lần kiểm tra không xây được sự chấp nhận ngoài; dòng lệnh đối diện tạo kết quả|
+|AAC sớm|Giá giữ ngoài mốc; POC/vùng giá trị cục bộ không quay vào|
+|AAC kiểm tra lại|Nỗ lực lấy lại vùng giá trị cũ thất bại; giá khôi phục vùng đã được chấp nhận|
+|Tiếp diễn vùng giá trị mới|Vùng giá trị mới giữ được và POC tiếp tục dịch|
+|Luân phiên|Giá không xây vùng giá trị ngoài biên và quay lại trung tâm|
 
 ### Ghi nhớ
 
@@ -3873,14 +4201,16 @@ Yêu cầu:
 FAR là họ chiến lược giao dịch theo hướng quay về cuộc đấu giá cũ sau khi một lần thử giá ngoài mốc không xây được sự chấp nhận và việc tái nhập được duy trì.
 
 
+
 ### FAR mua
 
-    Giá thử dưới biên dưới
+&#x20;   Giá thử dưới biên dưới
     → không xây vùng giá trị bền vững bên dưới
     → áp lực bán chủ động không tạo tiến triển giảm tương xứng
     → giá tái nhập lên trên hoặc vào trong
     → duy trì trong vùng cũ
     → luận điểm mua FAR
+
 
 ### FAR bán
 
@@ -3888,13 +4218,13 @@ Cấu trúc đối xứng phía trên: giá thử trên biên trên, không xây
 
 ### Điều kiện cần
 
-- Vùng mốc rõ ràng.
-- Episode hợp lệ.
-- Không có sự chấp nhận đã hình thành theo hướng chống luận điểm.
-- Tái nhập và duy trì.
-- Hình học từ điểm vào đến vô hiệu rõ.
-- Đường tới mục tiêu còn khoảng trống.
-- Dữ liệu và thị trường thực thi hợp lệ.
+* Vùng mốc rõ ràng.
+* Episode hợp lệ.
+* Không có sự chấp nhận đã hình thành theo hướng chống luận điểm.
+* Tái nhập và duy trì.
+* Hình học từ điểm vào đến vô hiệu rõ.
+* Đường tới mục tiêu còn khoảng trống.
+* Dữ liệu và thị trường thực thi hợp lệ.
 
 ### Phong cách Sớm: vào sau tái nhập
 
@@ -3933,13 +4263,15 @@ Options bổ sung regime, horizon và vùng nhạy cảm. DOM/MBO, iceberg, đ�
 AAC là họ chiến lược tiếp diễn sau khi thị trường rời mốc, xây sự chấp nhận ở vùng mới và không tái chấp nhận bền vững vùng cũ.
 
 
+
 ### AAC mua
 
-    Giá thử trên biên trên
+&#x20;   Giá thử trên biên trên
     → thời gian, khối lượng và số giao dịch phát triển ngoài
     → POC hoặc vùng giá trị cục bộ dịch lên
     → nhịp hồi không lấy lại bền vững vùng giá trị cũ
     → luận điểm tiếp diễn mua AAC
+
 
 ### AAC bán
 
@@ -3947,12 +4279,12 @@ Cấu trúc đối xứng phía dưới: hoạt động xây dưới, POC/vùng 
 
 ### Điều kiện cần
 
-- Lần thử đấu giá ngoài vùng.
-- Sự chấp nhận đang phát triển hoặc đã được thiết lập.
-- Tiến triển tương xứng với nỗ lực.
-- Nỗ lực lấy lại vùng giá trị cũ thất bại.
-- Đường tới mục tiêu còn khoảng trống.
-- Vô hiệu rõ ràng.
+* Lần thử đấu giá ngoài vùng.
+* Sự chấp nhận đang phát triển hoặc đã được thiết lập.
+* Tiến triển tương xứng với nỗ lực.
+* Nỗ lực lấy lại vùng giá trị cũ thất bại.
+* Đường tới mục tiêu còn khoảng trống.
+* Vô hiệu rõ ràng.
 
 ### Phong cách Sớm: chấp nhận ban đầu
 
@@ -3983,6 +4315,7 @@ Mốc cấu trúc có ý nghĩa tiếp theo, hành lang LVN, biên Composite ho�
 Kịch bản giao dịch này chuyển lý thuyết Tam Trụ thành một kế hoạch có thể quan sát, kiểm tra và từ chối. Nó không phải mẫu hình bảo đảm; mọi lệnh phải đi qua Vị trí, Episode, Bằng chứng, Nỗ lực–Kết quả, vô hiệu và rủi ro.
 
 
+
 ### Nội dung cốt lõi
 
 #### Bản chất
@@ -3999,10 +4332,10 @@ Giá kiểm tra VAH/VAL và không có sự chấp nhận ngoài; phản ứng �
 
 #### Điều kiện kích hoạt
 
-- Tái nhập vào vùng giá trị hoặc không rời được vùng giá trị.
-- Dòng lệnh đối diện tạo tiến triển.
-- POC vẫn ở trong vùng giá trị.
-- Không có sự chấp nhận khởi xướng chống lệnh.
+* Tái nhập vào vùng giá trị hoặc không rời được vùng giá trị.
+* Dòng lệnh đối diện tạo tiến triển.
+* POC vẫn ở trong vùng giá trị.
+* Không có sự chấp nhận khởi xướng chống lệnh.
 
 #### Vô hiệu
 
@@ -4018,17 +4351,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Giao dịch ngược tại biên khi khám phá giá đã bắt đầu.
-- Nhắm biên đối diện dù POC giữ giá.
-- Gọi luân phiên là FAR không có ngoài vùng episode.
+* Giao dịch ngược tại biên khi khám phá giá đã bắt đầu.
+* Nhắm biên đối diện dù POC giữ giá.
+* Gọi luân phiên là FAR không có ngoài vùng episode.
 
 ### Ghi nhớ
 
@@ -4037,6 +4370,7 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 ## Chương 67. Luân phiên quanh đường trung tâm
 
 Kịch bản giao dịch này chuyển lý thuyết Tam Trụ thành một kế hoạch có thể quan sát, kiểm tra và từ chối. Nó không phải mẫu hình bảo đảm; mọi lệnh phải đi qua Vị trí, Episode, Bằng chứng, Nỗ lực–Kết quả, vô hiệu và rủi ro.
+
 
 
 ### Nội dung cốt lõi
@@ -4055,9 +4389,9 @@ Giá rời đường trung tâm nhưng thiếu tiến triển rồi quay lại; 
 
 #### Điều kiện kích hoạt
 
-- Không duy trì được khoảng cách khỏi đường trung tâm.
-- Giá cắt lại đường trung tâm kèm hoạt động.
-- Mục tiêu phía rõ và không rào cản quá gần.
+* Không duy trì được khoảng cách khỏi đường trung tâm.
+* Giá cắt lại đường trung tâm kèm hoạt động.
+* Mục tiêu phía rõ và không rào cản quá gần.
 
 #### Vô hiệu
 
@@ -4073,17 +4407,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Dùng POC như hỗ trợ/kháng cự.
-- Áp dụng cách lập luận FAR/AAC máy móc quanh đường trung tâm.
-- Giao dịch quá mức mỗi lần giá cắt qua đường trung tâm.
+* Dùng POC như hỗ trợ/kháng cự.
+* Áp dụng cách lập luận FAR/AAC máy móc quanh đường trung tâm.
+* Giao dịch quá mức mỗi lần giá cắt qua đường trung tâm.
 
 ### Ghi nhớ
 
@@ -4109,10 +4443,10 @@ Giá kiểm tra biên nhưng không duy trì ngoài; vi cấu trúc đối diệ
 
 #### Điều kiện kích hoạt
 
-- Đóng cửa hoặc tái nhập vào vùng nhỏ.
-- Áp lực chủ động phía đối diện tạo tiến triển ngay.
-- No sự chấp nhận bằng chứng ngoài.
-- Rủi ro nhỏ và mục tiêu khoảng trống đủ.
+* Đóng cửa hoặc tái nhập vào vùng nhỏ.
+* Áp lực chủ động phía đối diện tạo tiến triển ngay.
+* No sự chấp nhận bằng chứng ngoài.
+* Rủi ro nhỏ và mục tiêu khoảng trống đủ.
 
 #### Vô hiệu
 
@@ -4128,17 +4462,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Gọi một giao dịch đáp ứng là FAR đã xác nhận.
-- Giữ khi AAC bằng chứng xuất hiện.
-- Vào lệnh giữa vùng nhiễu.
+* Gọi một giao dịch đáp ứng là FAR đã xác nhận.
+* Giữ khi AAC bằng chứng xuất hiện.
+* Vào lệnh giữa vùng nhiễu.
 
 ### Ghi nhớ
 
@@ -4164,10 +4498,10 @@ Giá phá biên với tốc độ, khối lượng và số giao dịch tăng; �
 
 #### Điều kiện kích hoạt
 
-- Cú phá vỡ tạo ra kết quả có ý nghĩa.
-- Không tái nhập ngay.
-- Áp lực chủ động tiếp tục tạo tiến triển.
-- Hành lang mục tiêu đủ rộng.
+* Cú phá vỡ tạo ra kết quả có ý nghĩa.
+* Không tái nhập ngay.
+* Áp lực chủ động tiếp tục tạo tiến triển.
+* Hành lang mục tiêu đủ rộng.
 
 #### Vô hiệu
 
@@ -4183,17 +4517,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Mua phá vỡ trong một chuyển động giả với thanh khoản mỏng.
-- Đặt dừng lỗ đúng tại biên mà không có khoảng đệm.
-- Không thoát khi tái nhập xảy ra.
+* Mua phá vỡ trong một chuyển động giả với thanh khoản mỏng.
+* Đặt dừng lỗ đúng tại biên mà không có khoảng đệm.
+* Không thoát khi tái nhập xảy ra.
 
 ### Ghi nhớ
 
@@ -4219,10 +4553,10 @@ Nhịp hồi về VAL, VAH, POC mới hoặc điểm khởi phát của đợt m
 
 #### Điều kiện kích hoạt
 
-- Vùng giá trị mới vẫn còn nguyên.
-- Nhịp hồi không tái chấp nhận vùng giá trị cũ.
-- Dòng lệnh khôi phục hướng đi ban đầu.
-- Mục tiêu tiếp theo còn mở.
+* Vùng giá trị mới vẫn còn nguyên.
+* Nhịp hồi không tái chấp nhận vùng giá trị cũ.
+* Dòng lệnh khôi phục hướng đi ban đầu.
+* Mục tiêu tiếp theo còn mở.
 
 #### Vô hiệu
 
@@ -4238,17 +4572,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Gọi mọi vùng tích lũy là vùng giá trị mới.
-- Vào khi vùng cân bằng mới chưa đủ hoạt động.
-- Bỏ qua vùng giá trị cũ lấy lại.
+* Gọi mọi vùng tích lũy là vùng giá trị mới.
+* Vào khi vùng cân bằng mới chưa đủ hoạt động.
+* Bỏ qua vùng giá trị cũ lấy lại.
 
 ### Ghi nhớ
 
@@ -4257,6 +4591,7 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 ## Chương 71. FAR hai lần thử
 
 Kịch bản giao dịch này chuyển lý thuyết Tam Trụ thành một kế hoạch có thể quan sát, kiểm tra và từ chối. Nó không phải mẫu hình bảo đảm; mọi lệnh phải đi qua Vị trí, Episode, Bằng chứng, Nỗ lực–Kết quả, vô hiệu và rủi ro.
+
 
 
 ### Nội dung cốt lõi
@@ -4275,11 +4610,11 @@ Lần thử thứ hai có nỗ lực lặp lại hoặc lớn hơn nhưng độ 
 
 #### Điều kiện kích hoạt
 
-- Đặc điểm của lần thử được xác định rõ.
-- Nỗ lực và kết quả giữa hai lần thử có thể so sánh.
-- Lần thử thứ hai không xây được sự chấp nhận.
-- Tái nhập được duy trì.
-- Mục tiêu khoảng trống còn lại.
+* Đặc điểm của lần thử được xác định rõ.
+* Nỗ lực và kết quả giữa hai lần thử có thể so sánh.
+* Lần thử thứ hai không xây được sự chấp nhận.
+* Tái nhập được duy trì.
+* Mục tiêu khoảng trống còn lại.
 
 #### Vô hiệu
 
@@ -4295,17 +4630,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Coi lần thử thứ hai là đảo chiều tự động.
-- Không đo nỗ lực.
-- Gộp hai lần thử thuộc hai đấu giá khác.
+* Coi lần thử thứ hai là đảo chiều tự động.
+* Không đo nỗ lực.
+* Gộp hai lần thử thuộc hai đấu giá khác.
 
 ### Ghi nhớ
 
@@ -4331,10 +4666,10 @@ Phân kỳ thô xuất hiện; sau đó tái nhập, phá OTF hoặc hoạt đ�
 
 #### Điều kiện kích hoạt
 
-- Nỗ lực cao tương đối so với bối cảnh.
-- Tiến triển bị hạn chế.
-- Vị trí có ý nghĩa.
-- Cấu trúc điều kiện kích hoạt xuất hiện.
+* Nỗ lực cao tương đối so với bối cảnh.
+* Tiến triển bị hạn chế.
+* Vị trí có ý nghĩa.
+* Cấu trúc điều kiện kích hoạt xuất hiện.
 
 #### Vô hiệu
 
@@ -4350,17 +4685,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Gọi hấp thụ là kết luận chắc chắn.
-- Giao dịch ngược giữa xu hướng.
-- Không chờ cấu trúc điều kiện kích hoạt.
+* Gọi hấp thụ là kết luận chắc chắn.
+* Giao dịch ngược giữa xu hướng.
+* Không chờ cấu trúc điều kiện kích hoạt.
 
 ### Ghi nhớ
 
@@ -4386,10 +4721,10 @@ tiến triển giá lớn, khối lượng/giao dịch không tương xứng, nh
 
 #### Điều kiện kích hoạt
 
-- Tiến triển được duy trì.
-- No vùng giá trị cũ lấy lại.
-- Điều kiện thanh khoản đã được xác định.
-- Điểm vào không đuổi theo đoạn mở rộng cuối.
+* Tiến triển được duy trì.
+* No vùng giá trị cũ lấy lại.
+* Điều kiện thanh khoản đã được xác định.
+* Điểm vào không đuổi theo đoạn mở rộng cuối.
 
 #### Vô hiệu
 
@@ -4405,17 +4740,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Đuổi theo phần cuối của chuyển động.
-- Dùng khối lượng thấp gọi cạn kiệt.
-- Không tính trượt giá.
+* Đuổi theo phần cuối của chuyển động.
+* Dùng khối lượng thấp gọi cạn kiệt.
+* Không tính trượt giá.
 
 ### Ghi nhớ
 
@@ -4424,6 +4759,7 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 ## Chương 74. Từ chối tại biên Composite
 
 Kịch bản giao dịch này chuyển lý thuyết Tam Trụ thành một kế hoạch có thể quan sát, kiểm tra và từ chối. Nó không phải mẫu hình bảo đảm; mọi lệnh phải đi qua Vị trí, Episode, Bằng chứng, Nỗ lực–Kết quả, vô hiệu và rủi ro.
+
 
 
 ### Nội dung cốt lõi
@@ -4442,10 +4778,10 @@ Lần thử đấu giá ngoài vùng thất bại, giá tái nhập Composite, P
 
 #### Điều kiện kích hoạt
 
-- Biên Composite còn hiệu lực.
-- Tái nhập được duy trì.
-- Order Flow hỗ trợ tiến triển hướng vào trong vùng.
-- Đường tới mục tiêu trung tâm còn khoảng trống.
+* Biên Composite còn hiệu lực.
+* Tái nhập được duy trì.
+* Order Flow hỗ trợ tiến triển hướng vào trong vùng.
+* Đường tới mục tiêu trung tâm còn khoảng trống.
 
 #### Vô hiệu
 
@@ -4461,17 +4797,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Dùng composite chọn tùy ý.
-- Giao dịch ngược tại biên sau khi vùng giá trị nhiều ngày đã tách rõ.
-- Dừng lỗ quá gần.
+* Dùng composite chọn tùy ý.
+* Giao dịch ngược tại biên sau khi vùng giá trị nhiều ngày đã tách rõ.
+* Dừng lỗ quá gần.
 
 ### Ghi nhớ
 
@@ -4497,10 +4833,10 @@ Giá phá biên, duy trì ngoài vùng qua nhiều khoảng thời gian, POC và
 
 #### Điều kiện kích hoạt
 
-- Thời gian và khối lượng ngoài vùng tiếp tục phát triển.
-- Composite cũ không được lấy lại.
-- Vùng giá trị mới hình thành.
-- Order Flow tiếp tục tạo thuận lợi cho chuyển động.
+* Thời gian và khối lượng ngoài vùng tiếp tục phát triển.
+* Composite cũ không được lấy lại.
+* Vùng giá trị mới hình thành.
+* Order Flow tiếp tục tạo thuận lợi cho chuyển động.
 
 #### Vô hiệu
 
@@ -4516,17 +4852,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Gọi nhịp đột biến đầu tiên là cấu trúc phá vỡ.
-- Giữ lệnh khi composite lấy lại.
-- Mục tiêu quá gần.
+* Gọi nhịp đột biến đầu tiên là cấu trúc phá vỡ.
+* Giữ lệnh khi composite lấy lại.
+* Mục tiêu quá gần.
 
 ### Ghi nhớ
 
@@ -4544,12 +4880,12 @@ Options ổn định có thể xuất hiện khi surface ít tái định giá, 
 
 #### Bối cảnh phù hợp
 
-- AMT đang cân bằng.
-- POC/vùng giá trị chưa dịch khỏi trung tâm.
-- Options regime là STABILITY_CANDIDATE hoặc EXPIRY_DOMINANT.
-- ATM IV, term structure và skew không mở rộng đáng kể theo hướng phá.
-- Concentration phù hợp horizon nằm gần vùng thỏa thuận.
-- Order Flow tạo nỗ lực nhưng tiến triển hạn chế.
+* AMT đang cân bằng.
+* POC/vùng giá trị chưa dịch khỏi trung tâm.
+* Options regime là STABILITY\_CANDIDATE hoặc EXPIRY\_DOMINANT.
+* ATM IV, term structure và skew không mở rộng đáng kể theo hướng phá.
+* Concentration phù hợp horizon nằm gần vùng thỏa thuận.
+* Order Flow tạo nỗ lực nhưng tiến triển hạn chế.
 
 #### Cấu trúc thiết lập
 
@@ -4557,19 +4893,19 @@ Giá thử khỏi biên AMT hoặc vùng hội tụ, không duy trì, tái nhậ
 
 #### Điều kiện kích hoạt
 
-- FAR hoặc hoạt động đáp ứng tại biên.
-- Không có value/POC migration theo hướng phá.
-- Flow Options không tái định giá mạnh theo hướng mới.
-- Mục tiêu POC hoặc biên đối diện còn đủ không gian.
-- Không ở ngay trước sự kiện có thể reset regime.
+* FAR hoặc hoạt động đáp ứng tại biên.
+* Không có value/POC migration theo hướng phá.
+* Flow Options không tái định giá mạnh theo hướng mới.
+* Mục tiêu POC hoặc biên đối diện còn đủ không gian.
+* Không ở ngay trước sự kiện có thể reset regime.
 
 #### Vô hiệu
 
-- Acceptance ngoài vùng.
-- POC/vùng giá trị tách khỏi cân bằng.
-- IV/term/skew repricing bền theo hướng phá.
-- Options regime đổi sang expansion candidate.
-- Dữ liệu Options mất chất lượng.
+* Acceptance ngoài vùng.
+* POC/vùng giá trị tách khỏi cân bằng.
+* IV/term/skew repricing bền theo hướng phá.
+* Options regime đổi sang expansion candidate.
+* Dữ liệu Options mất chất lượng.
 
 #### Mục tiêu và quản lý
 
@@ -4581,10 +4917,10 @@ Options cung cấp bằng chứng môi trường cho luân phiên và thời h�
 
 ### Sai lầm thường gặp
 
-- Strike OI lớn đồng nghĩa giá phải quay lại.
-- Stability candidate đồng nghĩa chắc chắn đi ngang.
-- Fade breakout không cần Episode.
-- Dùng snapshot trước sự kiện sau khi regime đã reset.
+* Strike OI lớn đồng nghĩa giá phải quay lại.
+* Stability candidate đồng nghĩa chắc chắn đi ngang.
+* Fade breakout không cần Episode.
+* Dùng snapshot trước sự kiện sau khi regime đã reset.
 
 ### Ghi nhớ
 
@@ -4602,12 +4938,12 @@ Khuếch đại có thể liên quan front IV tăng, term structure căng, skew 
 
 #### Bối cảnh phù hợp
 
-- Giá ở biên cân bằng hoặc Composite.
-- AMT bắt đầu khám phá giá.
-- Options regime là EXPANSION_CANDIDATE, EVENT_PREMIUM hoặc FLOW_SHIFT.
-- IV/skew/term thay đổi cùng horizon với chuyển động.
-- Vùng phía trước ít thỏa thuận AMT hoặc concentration đang dịch.
-- Order Flow tạo tiến triển tương xứng.
+* Giá ở biên cân bằng hoặc Composite.
+* AMT bắt đầu khám phá giá.
+* Options regime là EXPANSION\_CANDIDATE, EVENT\_PREMIUM hoặc FLOW\_SHIFT.
+* IV/skew/term thay đổi cùng horizon với chuyển động.
+* Vùng phía trước ít thỏa thuận AMT hoặc concentration đang dịch.
+* Order Flow tạo tiến triển tương xứng.
 
 #### Cấu trúc thiết lập
 
@@ -4615,11 +4951,11 @@ Phá vỡ có acceptance, nhịp hồi giữ phía ngoài, vùng giá trị cũ 
 
 #### Điều kiện kích hoạt
 
-- AAC bằng chứng.
-- Không có tái chấp nhận bền vững vào vùng cũ.
-- Order Flow thuận lợi cho giao dịch.
-- Options repricing còn sống và dữ liệu đủ tươi.
-- Thanh khoản thực thi chấp nhận được.
+* AAC bằng chứng.
+* Không có tái chấp nhận bền vững vào vùng cũ.
+* Order Flow thuận lợi cho giao dịch.
+* Options repricing còn sống và dữ liệu đủ tươi.
+* Thanh khoản thực thi chấp nhận được.
 
 #### Vô hiệu
 
@@ -4635,10 +4971,10 @@ Options cho biết môi trường có thể dễ mở rộng hơn và horizon n�
 
 ### Sai lầm thường gặp
 
-- Mua vì price vượt Gamma Flip mà chưa có acceptance.
-- Gọi front IV tăng là hướng tăng.
-- Bỏ qua concentration/expiry khác đang xung đột.
-- Tăng risk vì nghĩ “short gamma chắc chạy”.
+* Mua vì price vượt Gamma Flip mà chưa có acceptance.
+* Gọi front IV tăng là hướng tăng.
+* Bỏ qua concentration/expiry khác đang xung đột.
+* Tăng risk vì nghĩ “short gamma chắc chạy”.
 
 ### Ghi nhớ
 
@@ -4656,10 +4992,10 @@ Options là trụ độc lập, không phải con dấu bắt buộc. Nếu vị
 
 #### Bối cảnh phù hợp
 
-- AMT rõ.
-- Order Flow tạo kết quả phù hợp.
-- Options không có xung đột material với horizon giao dịch, hoặc dữ liệu không dùng được.
-- Risk và liquidity đạt chuẩn.
+* AMT rõ.
+* Order Flow tạo kết quả phù hợp.
+* Options không có xung đột material với horizon giao dịch, hoặc dữ liệu không dùng được.
+* Risk và liquidity đạt chuẩn.
 
 #### Cấu trúc thiết lập
 
@@ -4683,10 +5019,10 @@ Trung tính cũng là thông tin. Nó cho biết không có bằng chứng Optio
 
 ### Sai lầm thường gặp
 
-- Thiếu Options đồng nghĩa không giao dịch mặc định.
-- Tự tìm một strike để xác nhận thiên kiến.
-- Gọi mixed là bullish hoặc bearish.
-- Hạ quyền AMT vì dashboard không “đẹp”.
+* Thiếu Options đồng nghĩa không giao dịch mặc định.
+* Tự tìm một strike để xác nhận thiên kiến.
+* Gọi mixed là bullish hoặc bearish.
+* Hạ quyền AMT vì dashboard không “đẹp”.
 
 ### Ghi nhớ
 
@@ -4704,12 +5040,12 @@ Ví dụ, AMT và Order Flow cho AAC Long nhưng Options regime là stability ca
 
 #### Phân loại xung đột
 
-- **Horizon conflict:** Options dài hạn khác intraday.
-- **Volatility conflict:** giá khám phá nhưng IV không repricing.
-- **Concentration conflict:** vùng nhạy cảm gần target.
-- **Flow conflict:** Options flow nổi bật phía khác nhưng ý định chưa rõ.
-- **Model conflict:** signed exposure khác nhau theo scenario.
-- **Data conflict:** timestamp hoặc underlying mapping không phù hợp.
+* **Horizon conflict:** Options dài hạn khác intraday.
+* **Volatility conflict:** giá khám phá nhưng IV không repricing.
+* **Concentration conflict:** vùng nhạy cảm gần target.
+* **Flow conflict:** Options flow nổi bật phía khác nhưng ý định chưa rõ.
+* **Model conflict:** signed exposure khác nhau theo scenario.
+* **Data conflict:** timestamp hoặc underlying mapping không phù hợp.
 
 #### Cấu trúc thiết lập
 
@@ -4719,11 +5055,11 @@ Giữ luận điểm AMT + Order Flow, nhưng ghi câu hỏi Options cụ thể 
 
 Có thể yêu cầu:
 
-- kiểm tra lại sâu hơn;
-- acceptance lâu hơn;
-- target ngắn hơn;
-- không vào nếu RR thực thi không đủ;
-- hoặc risk thấp hơn theo policy đã kiểm chứng.
+* kiểm tra lại sâu hơn;
+* acceptance lâu hơn;
+* target ngắn hơn;
+* không vào nếu RR thực thi không đủ;
+* hoặc risk thấp hơn theo policy đã kiểm chứng.
 
 #### Vô hiệu
 
@@ -4735,10 +5071,10 @@ Options tạo cờ xem xét và giúp phân biệt xung đột material với xu
 
 ### Sai lầm thường gặp
 
-- Thấy concentration rồi đảo chiều luận điểm.
-- Trộn 30D skew với 5 phút entry.
-- Nới dừng lỗ để “đi qua vùng Options”.
-- Gọi model-sensitive exposure là chắc chắn.
+* Thấy concentration rồi đảo chiều luận điểm.
+* Trộn 30D skew với 5 phút entry.
+* Nới dừng lỗ để “đi qua vùng Options”.
+* Gọi model-sensitive exposure là chắc chắn.
 
 ### Ghi nhớ
 
@@ -4747,6 +5083,7 @@ Options tạo cờ xem xét và giúp phân biệt xung đột material với xu
 ## Chương 80. Order Flow mạnh tại vị trí sai
 
 Kịch bản giao dịch này chuyển lý thuyết Tam Trụ thành một kế hoạch có thể quan sát, kiểm tra và từ chối. Nó không phải mẫu hình bảo đảm; mọi lệnh phải đi qua Vị trí, Episode, Bằng chứng, Nỗ lực–Kết quả, vô hiệu và rủi ro.
+
 
 
 ### Nội dung cốt lõi
@@ -4765,9 +5102,9 @@ Không thiết lập; chờ giá đến mốc tham chiếu hoặc xây vùng gi�
 
 #### Điều kiện kích hoạt
 
-- Xuất hiện vị trí có ý nghĩa.
-- Khoảng trống tới mục tiêu được mở ra.
-- Episode hình thành.
+* Xuất hiện vị trí có ý nghĩa.
+* Khoảng trống tới mục tiêu được mở ra.
+* Episode hình thành.
 
 #### Vô hiệu
 
@@ -4783,17 +5120,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- FOMO vì màu Footprint.
-- Tự tạo mốc tham chiếu quanh một tín hiệu.
-- Đuổi theo chuyển động cuối.
+* FOMO vì màu Footprint.
+* Tự tạo mốc tham chiếu quanh một tín hiệu.
+* Đuổi theo chuyển động cuối.
 
 ### Ghi nhớ
 
@@ -4802,6 +5139,7 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 ## Chương 81. Không giao dịch
 
 Kịch bản giao dịch này chuyển lý thuyết Tam Trụ thành một kế hoạch có thể quan sát, kiểm tra và từ chối. Nó không phải mẫu hình bảo đảm; mọi lệnh phải đi qua Vị trí, Episode, Bằng chứng, Nỗ lực–Kết quả, vô hiệu và rủi ro.
+
 
 
 ### Nội dung cốt lõi
@@ -4820,11 +5158,11 @@ Quyết định không vào được ghi cùng lý do và điều kiện sẽ l�
 
 #### Điều kiện kích hoạt
 
-- Điều kiện bắt buộc không giao dịch: dữ liệu sai, hợp đồng sai hoặc đã chạm giới hạn rủi ro.
-- Cần đánh giá lại khi trạng thái chưa được giải quyết, thanh khoản mỏng hoặc bằng chứng xung đột.
-- Không có khoảng trống hợp lý tới mục tiêu.
-- Không có điểm vô hiệu rõ ràng.
-- Cảm xúc hoặc mệt mỏi.
+* Điều kiện bắt buộc không giao dịch: dữ liệu sai, hợp đồng sai hoặc đã chạm giới hạn rủi ro.
+* Cần đánh giá lại khi trạng thái chưa được giải quyết, thanh khoản mỏng hoặc bằng chứng xung đột.
+* Không có khoảng trống hợp lý tới mục tiêu.
+* Không có điểm vô hiệu rõ ràng.
+* Cảm xúc hoặc mệt mỏi.
 
 #### Vô hiệu
 
@@ -4840,17 +5178,17 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 ### Quy trình áp dụng
 
-1.  Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
-2.  Theo dõi Episode mà không dự đoán kết quả.
-3.  Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
-4.  Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
-5.  Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
+1. Xác định bối cảnh và mốc tham chiếu trước khi giá đến.
+2. Theo dõi Episode mà không dự đoán kết quả.
+3. Chờ điều kiện kích hoạt thuộc đúng phong cách vào.
+4. Tính điểm vô hiệu, khoảng trống tới mục tiêu và rủi ro.
+5. Bỏ lệnh nếu thiếu điều kiện hoặc xuất hiện xung đột lớn.
 
 ### Sai lầm thường gặp
 
-- Coi quyết định không giao dịch là thất bại.
-- Chờ quá lâu rồi lại đuổi giá.
-- Không ghi lý do.
+* Coi quyết định không giao dịch là thất bại.
+* Chờ quá lâu rồi lại đuổi giá.
+* Không ghi lý do.
 
 ### Ghi nhớ
 
@@ -4862,7 +5200,7 @@ Trụ Options có thể cho biết volatility regime, horizon, vùng concentrati
 
 Trong quy trình này, **hợp đồng tương lai vàng (GC)** là thị trường AMT và Order Flow. **Options trên futures vàng** là thị trường định giá rủi ro. **XAUUSD CFD** hoặc sản phẩm CFD tương ứng là thị trường thực thi.
 
-    GC futures
+&#x20;   GC futures
     → AMT, Profile, Footprint, Tape, Delta, DOM và MBO
 
     Gold options on futures
@@ -4871,18 +5209,19 @@ Trong quy trình này, **hợp đồng tương lai vàng (GC)** là thị trư�
     CFD
     → điểm vào, dừng lỗ, mục tiêu và quản lý vị thế
 
+
 ### Quy tắc bắt buộc
 
-- Không dùng sổ lệnh CFD để đại diện cho GC.
-- Mọi mốc, Episode, acceptance và Order Flow được quyết định trên GC.
-- Options phải ánh xạ đúng underlying futures contract.
-- Không dùng XAUUSD Spot làm underlying của Options model nếu chưa có quy tắc basis.
-- Không sao chép số giá GC hoặc strike Options trực tiếp sang CFD.
-- Mức thực thi phải chuyển theo basis đo tại thời điểm đối chiếu.
+* Không dùng sổ lệnh CFD để đại diện cho GC.
+* Mọi mốc, Episode, acceptance và Order Flow được quyết định trên GC.
+* Options phải ánh xạ đúng underlying futures contract.
+* Không dùng XAUUSD Spot làm underlying của Options model nếu chưa có quy tắc basis.
+* Không sao chép số giá GC hoặc strike Options trực tiếp sang CFD.
+* Mức thực thi phải chuyển theo basis đo tại thời điểm đối chiếu.
 
 ### Trước phiên phải ghi
 
-    Hợp đồng GC đang phân tích
+&#x20;   Hợp đồng GC đang phân tích
     Underlying futures của từng expiry Options
     Giá futures tại snapshot Options
     Giá GC tại thời điểm đối chiếu
@@ -4892,22 +5231,23 @@ Trong quy trình này, **hợp đồng tương lai vàng (GC)** là thị trư�
     Độ trễ giữa các nguồn
     Trạng thái chuyển tháng
 
+
 ### Điều kiện chặn tuyệt đối
 
 Không thực thi khi:
 
-- spread CFD mở rộng bất thường;
-- basis thay đổi nhanh hoặc mất ổn định;
-- luồng GC/CFD bị trễ;
-- Options mapping sai underlying hoặc expiry;
-- Options snapshot có look-ahead hoặc timestamp không xác định;
-- nền tảng mất kết nối;
-- sai hợp đồng/chuyển tháng chưa hiệu chỉnh;
-- CFD không phản ánh GC đủ ổn định.
+* spread CFD mở rộng bất thường;
+* basis thay đổi nhanh hoặc mất ổn định;
+* luồng GC/CFD bị trễ;
+* Options mapping sai underlying hoặc expiry;
+* Options snapshot có look-ahead hoặc timestamp không xác định;
+* nền tảng mất kết nối;
+* sai hợp đồng/chuyển tháng chưa hiệu chỉnh;
+* CFD không phản ánh GC đủ ổn định.
 
 ### Nhật ký ba lớp giá
 
-    Giá kích hoạt trên GC
+&#x20;   Giá kích hoạt trên GC
     Giá futures underlying dùng cho Options snapshot
     Strike/vùng Options liên quan
     Giá thực thi trên CFD
@@ -4915,6 +5255,7 @@ Không thực thi khi:
     Dừng lỗ trên CFD
     Basis tại điểm vào/thoát
     Spread và trượt giá
+
 
 ### Ghi nhớ
 
@@ -4946,7 +5287,7 @@ Phân loại Cân bằng, Khám phá giá hoặc Chuyển tiếp; ghi bối cả
 
 Ghi:
 
-    snapshot time và data quality
+&#x20;   snapshot time và data quality
     underlying/expiry buckets
     ATM IV và term structure
     skew/convexity
@@ -4955,6 +5296,7 @@ Ghi:
     Options Flow state
     exposure scenarios và vùng nhạy cảm
     Options regime
+
 
 #### Kịch bản
 
@@ -4966,7 +5308,7 @@ Ghi giới hạn lỗ, số giao dịch, event policy, regime policy và trạng
 
 ### Giao thức GC trước phiên
 
-    Hợp đồng GC đang hoạt động
+&#x20;   Hợp đồng GC đang hoạt động
     Trạng thái chuyển tháng
     Mẫu phiên và lịch tin
     Kết nối dữ liệu
@@ -4975,6 +5317,7 @@ Ghi giới hạn lỗ, số giao dịch, event policy, regime policy và trạng
     OI availability date
     Options regime và horizon
     Basis GC–CFD
+
 
 ### Quy trình áp dụng
 
@@ -4988,11 +5331,11 @@ Ghi giới hạn lỗ, số giao dịch, event policy, regime policy và trạng
 
 ### Sai lầm thường gặp
 
-- Vẽ quá nhiều vùng Options.
-- Dùng OI chưa được biết tại thời điểm chuẩn bị.
-- Không kiểm tra underlying/expiry.
-- Chỉ nhìn GEX mà bỏ term/skew/flow.
-- Chuẩn bị khi giá đã chạy.
+* Vẽ quá nhiều vùng Options.
+* Dùng OI chưa được biết tại thời điểm chuẩn bị.
+* Không kiểm tra underlying/expiry.
+* Chỉ nhìn GEX mà bỏ term/skew/flow.
+* Chuẩn bị khi giá đã chạy.
 
 ### Ghi nhớ
 
@@ -5004,43 +5347,43 @@ Khi giá đến vùng quan trọng, người giao dịch cần một lượt qu�
 
 ### Nội dung cốt lõi
 
-#### 1. Trạng thái AMT
+#### 1\. Trạng thái AMT
 
 Cân bằng, Khám phá giá hay Chuyển tiếp?
 
-#### 2. Vị trí
+#### 2\. Vị trí
 
 Trong vùng giá trị, tại biên, ngoài vùng hay tại trung tâm?
 
-#### 3. Mốc và Episode
+#### 3\. Mốc và Episode
 
 Mốc nào, khung nào, lần thử thứ mấy, độ lệch và tái nhập ra sao?
 
-#### 4. Acceptance
+#### 4\. Acceptance
 
 Hoạt động đang xây trong hay ngoài vùng cũ?
 
-#### 5. Options
+#### 5\. Options
 
-- Horizon nào liên quan?
-- Data quality còn tốt không?
-- Regime là stability, expansion, event, expiry, mixed hay neutral?
-- Expected move/concentration nào ở gần?
-- Flow/IV/skew có đang đổi không?
+* Horizon nào liên quan?
+* Data quality còn tốt không?
+* Regime là stability, expansion, event, expiry, mixed hay neutral?
+* Expected move/concentration nào ở gần?
+* Flow/IV/skew có đang đổi không?
 
-#### 6. Order Flow
+#### 6\. Order Flow
 
 Nỗ lực bên nào, kết quả và khả năng duy trì thế nào?
 
-#### 7. Bằng chứng còn thiếu
+#### 7\. Bằng chứng còn thiếu
 
 Cần kiểm tra lại, thêm thời gian, acceptance hay repricing?
 
-#### 8. Quyết định
+#### 8\. Quyết định
 
 FAR, AAC, Luân phiên, Chờ hoặc không giao dịch?
 
-#### 9. Rủi ro
+#### 9\. Rủi ro
 
 Vô hiệu, target corridor, RR, event và basis?
 
@@ -5053,10 +5396,10 @@ Vô hiệu, target corridor, RR, event và basis?
 
 ### Sai lầm thường gặp
 
-- Bắt đầu từ Delta hoặc một trade Options lớn.
-- Không kiểm tra horizon/timestamp.
-- Vội giao dịch để kịp giá.
-- Biến lượt quét thành danh sách không có quyết định.
+* Bắt đầu từ Delta hoặc một trade Options lớn.
+* Không kiểm tra horizon/timestamp.
+* Vội giao dịch để kịp giá.
+* Biến lượt quét thành danh sách không có quyết định.
 
 ### Ghi nhớ
 
@@ -5065,6 +5408,7 @@ Vô hiệu, target corridor, RR, event và basis?
 ## Chương 85. Quy trình ra quyết định
 
 Một giao dịch đi qua chín bước: quan sát, đóng khung, giả thuyết, kiểm tra, chờ, thực thi, quản lý, thoát và đánh giá lại.
+
 
 
 ### Nội dung cốt lõi
@@ -5103,20 +5447,20 @@ Mục tiêu, vô hiệu luận điểm, dừng lỗ theo thời gian hoặc tìn
 
 #### Đánh giá lại
 
-Quy trình trước P&L.
+Quy trình trước P\&L.
 
 ### Quy trình áp dụng
 
-1.  Không bỏ bước.
-2.  Dùng bảng kiểm.
-3.  Ghi dấu thời gian.
-4.  Khi luận điểm đổi, đóng lệnh trước khi viết luận điểm mới.
+1. Không bỏ bước.
+2. Dùng bảng kiểm.
+3. Ghi dấu thời gian.
+4. Khi luận điểm đổi, đóng lệnh trước khi viết luận điểm mới.
 
 ### Sai lầm thường gặp
 
-- Nhảy từ quan sát sang lệnh.
-- Đổi giả thuyết chỉ để tiếp tục giữ vị thế.
-- Đánh giá lại chỉ P&L.
+* Nhảy từ quan sát sang lệnh.
+* Đổi giả thuyết chỉ để tiếp tục giữ vị thế.
+* Đánh giá lại chỉ P\&L.
 
 ### Ghi nhớ
 
@@ -5125,6 +5469,7 @@ Quy trình trước P&L.
 ## Chương 86. Quản lý giao dịch
 
 Sau điểm vào, người giao dịch không cần giải thích mọi tick. Quản lý dựa trên hành vi kỳ vọng, cấu trúc và rủi ro đã viết trước.
+
 
 
 ### Nội dung cốt lõi
@@ -5159,17 +5504,17 @@ Mất kết nối dữ liệu, chênh lệch mua bán bất thường hoặc s�
 
 ### Quy trình áp dụng
 
-1.  Theo dõi hành vi kỳ vọng.
-2.  Không đổi mục tiêu/dừng lỗ tùy tick.
-3.  Ghi lý do cho mỗi hành động.
-4.  Thoát khi luận điểm mất hiệu lực.
-5.  Không đảo chiều vị thế ngay trừ khi có luận điểm mới.
+1. Theo dõi hành vi kỳ vọng.
+2. Không đổi mục tiêu/dừng lỗ tùy tick.
+3. Ghi lý do cho mỗi hành động.
+4. Thoát khi luận điểm mất hiệu lực.
+5. Không đảo chiều vị thế ngay trừ khi có luận điểm mới.
 
 ### Sai lầm thường gặp
 
-- Quản lý vi mô quá mức.
-- Dời dừng lỗ hòa vốn quá sớm.
-- Giữ vì “chắc quay lại”.
+* Quản lý vi mô quá mức.
+* Dời dừng lỗ hòa vốn quá sớm.
+* Giữ vì “chắc quay lại”.
 
 ### Ghi nhớ
 
@@ -5193,16 +5538,16 @@ Trạng thái, vị trí, mốc, Episode, acceptance, bằng chứng, FAR/AAC/Lu
 
 Ghi:
 
-- underlying contract;
-- snapshot time và data quality;
-- expiry/horizon;
-- ATM IV, term structure, skew;
-- expected move;
-- concentration gần nhất;
-- flow state;
-- exposure scenario và giả định;
-- Options regime;
-- hỗ trợ/xung đột/trung tính/không dùng.
+* underlying contract;
+* snapshot time và data quality;
+* expiry/horizon;
+* ATM IV, term structure, skew;
+* expected move;
+* concentration gần nhất;
+* flow state;
+* exposure scenario và giả định;
+* Options regime;
+* hỗ trợ/xung đột/trung tính/không dùng.
 
 #### Trường rủi ro
 
@@ -5210,7 +5555,7 @@ Ghi:
 
 #### Kết quả
 
-Thoát, P&L theo R, MFE, MAE, thời gian giữ, realized move, IV/skew change và regime transition.
+Thoát, P\&L theo R, MFE, MAE, thời gian giữ, realized move, IV/skew change và regime transition.
 
 #### Điểm quy trình
 
@@ -5222,13 +5567,13 @@ Ghi điều gì thay đổi nếu không dùng Options, dùng horizon khác ho�
 
 ### Trường bắt buộc khi phân tích GC và thực thi CFD
 
-- Giá kích hoạt trên GC.
-- Giá futures dùng trong Options snapshot.
-- Giá thực thi trên CFD.
-- Vô hiệu trên GC và dừng CFD.
-- Basis vào/thoát.
-- Spread và trượt giá.
-- GC contract, Options underlying, expiry và độ trễ.
+* Giá kích hoạt trên GC.
+* Giá futures dùng trong Options snapshot.
+* Giá thực thi trên CFD.
+* Vô hiệu trên GC và dừng CFD.
+* Basis vào/thoát.
+* Spread và trượt giá.
+* GC contract, Options underlying, expiry và độ trễ.
 
 ### Quy trình áp dụng
 
@@ -5240,11 +5585,11 @@ Ghi điều gì thay đổi nếu không dùng Options, dùng horizon khác ho�
 
 ### Sai lầm thường gặp
 
-- Chỉ lưu ảnh đã cập nhật sau kết quả.
-- Không ghi OI availability date.
-- Không lưu model version/assumption.
-- Sửa regime sau giao dịch.
-- Không ghi không giao dịch.
+* Chỉ lưu ảnh đã cập nhật sau kết quả.
+* Không ghi OI availability date.
+* Không lưu model version/assumption.
+* Sửa regime sau giao dịch.
+* Không ghi không giao dịch.
 
 ### Ghi nhớ
 
@@ -5253,6 +5598,7 @@ Ghi điều gì thay đổi nếu không dùng Options, dùng horizon khác ho�
 ## Chương 88. Đánh giá lại và phát triển phương pháp
 
 Đánh giá lại tốt không hỏi “tại sao giao dịch này thua” một cách đơn lẻ. Nó hỏi một quy tắc hoạt động ra sao trên mẫu và chế độ khác nhau.
+
 
 
 ### Nội dung cốt lõi
@@ -5287,18 +5633,18 @@ Mỗi thay đổi phải có lý do, giả thuyết, phạm vi áp dụng và k�
 
 ### Quy trình áp dụng
 
-1.  Đánh giá lại quy trình theo chu kỳ cố định.
-2.  Đề xuất một thay đổi có giả thuyết rõ.
-3.  Kiểm tra lại bằng dữ liệu lịch sử hoặc phát lại.
-4.  Giao dịch mô phỏng hoặc trực tiếp với quy mô rất nhỏ.
-5.  Đánh giá trên dữ liệu ngoài mẫu.
-6.  Chỉ sau đó mới khóa quy tắc.
+1. Đánh giá lại quy trình theo chu kỳ cố định.
+2. Đề xuất một thay đổi có giả thuyết rõ.
+3. Kiểm tra lại bằng dữ liệu lịch sử hoặc phát lại.
+4. Giao dịch mô phỏng hoặc trực tiếp với quy mô rất nhỏ.
+5. Đánh giá trên dữ liệu ngoài mẫu.
+6. Chỉ sau đó mới khóa quy tắc.
 
 ### Sai lầm thường gặp
 
-- Tối ưu theo P&L vài ngày.
-- Xóa giao dịch xấu.
-- Thay nhiều biến cùng lúc.
+* Tối ưu theo P\&L vài ngày.
+* Xóa giao dịch xấu.
+* Thay nhiều biến cùng lúc.
 
 ### Ghi nhớ
 
@@ -5312,36 +5658,36 @@ Một kết luận chỉ đáng tin khi dữ liệu và cách tính có thể t�
 
 ### Cấu hình futures phải cố định
 
-- Hợp đồng và quy tắc chuyển tháng.
-- Múi giờ và mẫu phiên.
-- Loại thanh và bước gom Footprint.
-- Phân loại Bid/Ask.
-- Ngưỡng Imbalance.
-- Cách đặt lại CVD.
-- Phạm vi Profile/Composite.
-- Bộ lọc trade lớn, iceberg, stops hoặc sweep.
+* Hợp đồng và quy tắc chuyển tháng.
+* Múi giờ và mẫu phiên.
+* Loại thanh và bước gom Footprint.
+* Phân loại Bid/Ask.
+* Ngưỡng Imbalance.
+* Cách đặt lại CVD.
+* Phạm vi Profile/Composite.
+* Bộ lọc trade lớn, iceberg, stops hoặc sweep.
 
 ### Cấu hình Options phải cố định
 
-- mapping option → underlying futures;
-- timezone, expiration time và DTE convention;
-- quote-age/spread filter;
-- mid/mark policy;
-- ATM và moneyness definition;
-- IV model và input assumptions;
-- interpolation/extrapolation policy;
-- expiry buckets;
-- complex-trade grouping;
-- aggressor classification;
-- OI availability policy;
-- exposure formula, sign convention và scenario;
-- expected-move method;
-- regime thresholds;
-- snapshot cadence.
+* mapping option → underlying futures;
+* timezone, expiration time và DTE convention;
+* quote-age/spread filter;
+* mid/mark policy;
+* ATM và moneyness definition;
+* IV model và input assumptions;
+* interpolation/extrapolation policy;
+* expiry buckets;
+* complex-trade grouping;
+* aggressor classification;
+* OI availability policy;
+* exposure formula, sign convention và scenario;
+* expected-move method;
+* regime thresholds;
+* snapshot cadence.
 
 ### Kiểm tra tính toàn vẹn
 
-    Đúng futures contract và option underlying?
+&#x20;   Đúng futures contract và option underlying?
     Đúng expiry và thời điểm đáo hạn?
     Có khoảng trống dữ liệu?
     Quote có two-sided và đủ tươi?
@@ -5350,15 +5696,16 @@ Một kết luận chỉ đáng tin khi dữ liệu và cách tính có thể t�
     Model/config có giống mẫu nghiên cứu?
     CFD basis có ổn định?
 
+
 ### Point-in-time và look-ahead
 
 Mọi backtest Options phải dùng snapshot đúng thời điểm. Cấm sử dụng:
 
-- OI cuối ngày cho buổi sáng cùng ngày;
-- IV/Greeks được tính lại bằng surface sau phiên;
-- complex-order labels chỉ biết sau xử lý;
-- final settlement thay cho quote lúc quyết định;
-- regime được gắn sau khi nhìn kết quả.
+* OI cuối ngày cho buổi sáng cùng ngày;
+* IV/Greeks được tính lại bằng surface sau phiên;
+* complex-order labels chỉ biết sau xử lý;
+* final settlement thay cho quote lúc quyết định;
+* regime được gắn sau khi nhìn kết quả.
 
 ### Thay đổi cấu hình
 
@@ -5373,24 +5720,26 @@ Mỗi thay đổi có lý do, version, ngày áp dụng và giai đoạn đánh 
 Lợi thế không được chứng minh bằng một biểu đồ đẹp hoặc một chuỗi thắng. Nó phải được đo trên một tập giao dịch có quy tắc nhất quán và chi phí thực tế.
 
 
+
 ### Các chỉ số tối thiểu
 
-- Số giao dịch và số lần không giao dịch.
-- Tỷ lệ thắng.
-- Lãi trung bình và lỗ trung bình theo R.
-- Kỳ vọng trung bình mỗi giao dịch.
-- Hệ số lợi nhuận.
-- Sụt giảm lớn nhất.
-- Chuỗi thắng và chuỗi thua dài nhất.
-- MFE, MAE và thời gian giữ lệnh.
-- Chi phí, trượt giá và lệnh không khớp.
+* Số giao dịch và số lần không giao dịch.
+* Tỷ lệ thắng.
+* Lãi trung bình và lỗ trung bình theo R.
+* Kỳ vọng trung bình mỗi giao dịch.
+* Hệ số lợi nhuận.
+* Sụt giảm lớn nhất.
+* Chuỗi thắng và chuỗi thua dài nhất.
+* MFE, MAE và thời gian giữ lệnh.
+* Chi phí, trượt giá và lệnh không khớp.
 
 ### Kỳ vọng
 
-    Kỳ vọng
+&#x20;   Kỳ vọng
     = Tỷ lệ thắng × Lãi trung bình
     - Tỷ lệ thua × Lỗ trung bình
     - Chi phí trung bình
+
 
 Kỳ vọng ước lượng dương không có nghĩa lợi nhuận được bảo đảm. Sai số tăng khi mẫu nhỏ, dữ liệu phụ thuộc nhau hoặc quy tắc được chọn sau khi xem kết quả.
 
@@ -5398,13 +5747,13 @@ Kỳ vọng ước lượng dương không có nghĩa lợi nhuận được b�
 
 Không gộp mọi giao dịch vào một con số. Cần phân tầng theo:
 
-- FAR, AAC, luân phiên hoặc không gian khác.
-- Phong cách Sớm, Tiêu chuẩn hoặc Xác nhận.
-- Loại mốc tham chiếu.
-- Phiên và thời điểm trong ngày.
-- Chế độ biến động, thanh khoản và sự kiện.
-- Options regime, horizon, term/skew state, flow state và data quality.
-- Thuận hoặc ngược bối cảnh nhiều phiên.
+* FAR, AAC, luân phiên hoặc không gian khác.
+* Phong cách Sớm, Tiêu chuẩn hoặc Xác nhận.
+* Loại mốc tham chiếu.
+* Phiên và thời điểm trong ngày.
+* Chế độ biến động, thanh khoản và sự kiện.
+* Options regime, horizon, term/skew state, flow state và data quality.
+* Thuận hoặc ngược bối cảnh nhiều phiên.
 
 ### Độ bất định
 
@@ -5419,11 +5768,12 @@ Một tỷ lệ thắng hoặc kỳ vọng phải được trình bày cùng kí
 Một quy tắc tốt phải sống được ngoài giai đoạn đã dùng để xây nó.
 
 
+
 ### Tách dữ liệu
 
-- Giai đoạn phát triển dùng để hình thành giả thuyết.
-- Giai đoạn kiểm tra dùng để đánh giá mà không chỉnh quy tắc.
-- Giai đoạn theo dõi trực tiếp dùng để xác nhận khả năng thực thi.
+* Giai đoạn phát triển dùng để hình thành giả thuyết.
+* Giai đoạn kiểm tra dùng để đánh giá mà không chỉnh quy tắc.
+* Giai đoạn theo dõi trực tiếp dùng để xác nhận khả năng thực thi.
 
 ### Kiểm tra cuốn chiếu
 
@@ -5433,11 +5783,11 @@ Quy tắc được phát triển trên một cửa sổ quá khứ, kiểm tra t
 
 Một quy tắc đáng tin không nên sụp đổ chỉ vì thay đổi rất nhỏ của:
 
-- Ngưỡng Delta/Imbalance và Options regime thresholds.
-- Độ rộng vùng mốc.
-- Thời gian chờ duy trì.
-- Khoảng dừng lỗ hoặc mục tiêu.
-- Chi phí và trượt giá giả định.
+* Ngưỡng Delta/Imbalance và Options regime thresholds.
+* Độ rộng vùng mốc.
+* Thời gian chờ duy trì.
+* Khoảng dừng lỗ hoặc mục tiêu.
+* Chi phí và trượt giá giả định.
 
 Nếu chỉ một giá trị rất cụ thể tạo kết quả đẹp, nguy cơ khớp quá mức rất cao.
 
@@ -5458,16 +5808,17 @@ Khi thử rất nhiều ngưỡng, chỉ báo và biến thể, một số kết
 Tài liệu chuyên sâu cần ví dụ theo trình tự thời gian, không chỉ hình sau khi kết quả đã rõ. Mỗi tình huống phải cho thấy điều người giao dịch biết tại từng thời điểm.
 
 
+
 ### Bốn nhóm bắt buộc
 
-1.  FAR thành công và FAR thất bại.
-2.  AAC thành công và AAC thất bại.
-3.  Trạng thái chưa được giải quyết dẫn đến đứng ngoài.
-4.  Tín hiệu Order Flow mạnh nhưng xuất hiện tại vị trí sai.
+1. FAR thành công và FAR thất bại.
+2. AAC thành công và AAC thất bại.
+3. Trạng thái chưa được giải quyết dẫn đến đứng ngoài.
+4. Tín hiệu Order Flow mạnh nhưng xuất hiện tại vị trí sai.
 
 ### Cấu trúc một tình huống
 
-    1. Bối cảnh trước phiên
+&#x20;   1. Bối cảnh trước phiên
     2. Vùng mốc và lý do chọn
     3. Ảnh trước khi giá đến
     4. Lần tương tác đầu tiên
@@ -5479,6 +5830,7 @@ Tài liệu chuyên sâu cần ví dụ theo trình tự thời gian, không ch�
     10. Quản lý trong lệnh
     11. Kết quả và điều không được hợp lý hóa sau sự kiện
 
+
 ### Phản ví dụ
 
 Mỗi ví dụ tốt phải đi kèm một phản ví dụ có hình dạng gần giống nhưng kết quả khác. Điều này buộc người học nhìn vào vị trí, khả năng duy trì và kết quả, thay vì học thuộc hình mẫu.
@@ -5487,10 +5839,10 @@ Mỗi ví dụ tốt phải đi kèm một phản ví dụ có hình dạng gầ
 
 Sau mỗi tình huống, ghi thêm:
 
-- Điều gì xảy ra nếu dùng phong cách vào khác?
-- Đứng ngoài có phải quyết định tốt hơn không?
-- Bằng chứng nào chỉ xuất hiện sau khi đã quá muộn?
-- Quy tắc nào cần giữ nguyên dù giao dịch thắng hoặc thua?
+* Điều gì xảy ra nếu dùng phong cách vào khác?
+* Đứng ngoài có phải quyết định tốt hơn không?
+* Bằng chứng nào chỉ xuất hiện sau khi đã quá muộn?
+* Quy tắc nào cần giữ nguyên dù giao dịch thắng hoặc thua?
 
 ### Ghi nhớ
 
@@ -5535,10 +5887,10 @@ Người học phải giải thích khái niệm, phản ví dụ, dữ liệu c
 
 ### Sai lầm thường gặp
 
-- Dạy GEX trước Options data model.
-- Dạy dealer positioning như sự thật.
-- Chỉ cho surface đẹp hoặc trade lớn.
-- Chấm năng lực theo P&L.
+* Dạy GEX trước Options data model.
+* Dạy dealer positioning như sự thật.
+* Chỉ cho surface đẹp hoặc trade lớn.
+* Chấm năng lực theo P\&L.
 
 ### Ghi nhớ
 
@@ -5562,10 +5914,11 @@ Bắt đầu bằng hình ảnh cuộc đấu giá trước khi đưa thuật ng
 
 Nêu dữ liệu, phạm vi, công dụng và giới hạn. Với mỗi chỉ báo phải trả lời:
 
-    Nó đo cái gì?
+&#x20;   Nó đo cái gì?
     Nó dùng để làm gì?
     Nó không đo được gì?
     Khi nào dữ liệu mất giá trị?
+
 
 #### Ví dụ và phản ví dụ
 
@@ -5581,20 +5934,20 @@ Người học phải diễn đạt lại quy trình và tự chỉ ra bằng ch
 
 ### Quy trình áp dụng
 
-1.  Mở bằng vấn đề thực tế.
-2.  Giải thích khái niệm.
-3.  Nêu công cụ quan sát.
-4.  Minh họa.
-5.  Đưa phản ví dụ.
-6.  Chốt điều không được kết luận.
-7.  Yêu cầu người học giải thích lại.
+1. Mở bằng vấn đề thực tế.
+2. Giải thích khái niệm.
+3. Nêu công cụ quan sát.
+4. Minh họa.
+5. Đưa phản ví dụ.
+6. Chốt điều không được kết luận.
+7. Yêu cầu người học giải thích lại.
 
 ### Sai lầm thường gặp
 
-- Giảng liên tục mà không kiểm tra cách hiểu.
-- Chỉ dùng biểu đồ sau khi đã biết kết quả.
-- Không sửa ngôn ngữ quá chắc chắn.
-- Giới thiệu công cụ mà không nói nó dùng để làm gì.
+* Giảng liên tục mà không kiểm tra cách hiểu.
+* Chỉ dùng biểu đồ sau khi đã biết kết quả.
+* Không sửa ngôn ngữ quá chắc chắn.
+* Giới thiệu công cụ mà không nói nó dùng để làm gì.
 
 ### Ghi nhớ
 
@@ -5604,109 +5957,109 @@ Người học phải diễn đạt lại quy trình và tự chỉ ra bằng ch
 
 ## Phụ lục A. Từ điển AMT và công cụ cấu trúc
 
-| Thuật ngữ hoặc công cụ | Khái niệm                                           | Dùng để làm gì                                               |
-|------------------------|-----------------------------------------------------|--------------------------------------------------------------|
-| AMT                    | Lý thuyết xem thị trường như cuộc đấu giá hai chiều | Xác định Cân bằng, Khám phá giá, vị trí và Sự chấp nhận      |
-| đấu giá                | Quá trình thị trường tìm giá và tổ chức giao dịch   | Đọc mục đích hiện tại của chuyển động                        |
-| Vùng cân bằng          | Vùng giao dịch hai chiều được duy trì               | Ưu tiên luân phiên và kiểm tra phá biên                      |
-| Khám phá giá           | Quá trình tìm vùng giá mới                          | Theo dõi vùng giá trị và POC có dịch theo giá hay không      |
-| Chuyển tiếp            | Giai đoạn giữa cân bằng cũ và cân bằng mới          | Hạ độ chắc chắn và chờ thêm bằng chứng                       |
-| Market Profile         | Hồ sơ tổ chức giá theo thời gian                    | Nhìn hình dạng và sự phát triển của cuộc đấu giá             |
-| TPO                    | Cơ hội thời gian tại giá                            | Đo mức độ lặp lại của giá qua các khoảng thời gian           |
-| Volume Profile         | Khối lượng đã khớp phân bổ theo giá                 | Xác định POC, vùng giá trị, HVN và LVN                       |
-| vùng giá trị           | Vùng hoạt động được duy trì theo thước đo đã chọn   | Phân biệt giao dịch trong vùng và ngoài vùng                 |
-| POC                    | Mức hoạt động lớn nhất trong phạm vi                | Xác định trung tâm hoạt động                                 |
-| VAH / VAL              | Biên trên / dưới vùng giá trị                       | Mở Episode khi giá kiểm tra biên                             |
-| HVN / LVN              | Nút khối lượng cao / thấp                           | Nhìn vùng luân phiên và vùng đi nhanh                        |
-| Initial Balance        | Phạm vi đầu phiên theo quy ước                      | Theo dõi mở rộng phạm vi                                     |
-| Composite              | Hồ sơ nhiều phiên thuộc cùng một đấu giá            | Xác định Vùng cân bằng nhiều ngày và biên lớn                |
-| OTF                    | One-Time Framing                                    | Đo nhịp tiến triển một chiều qua các khoảng hoàn tất         |
-| VWAP                   | Giá trung bình có trọng số khối lượng               | Tham chiếu giá trung bình trong phạm vi                      |
-| Anchored VWAP          | VWAP bắt đầu từ mốc chọn trước                      | Theo dõi giá trung bình từ sự kiện hoặc điểm khởi phát       |
-| Mốc tham chiếu         | Mức hoặc vùng đặt câu hỏi cho thị trường            | Chọn nơi mở Episode                                          |
-| Episode                | Vòng đời tương tác giữa giá và một mốc tham chiếu   | Theo dõi từ lần chạm, độ lệch đến kết quả giải quyết         |
-| Độ lệch                | Giá giao dịch ngoài mốc tham chiếu                  | Đo cuộc thử giá mà không mặc định có quét thanh khoản        |
-| Sự chấp nhận           | Hoạt động hoặc vùng giá trị được duy trì ở vùng mới | Phân biệt AAC với phá biên tạm thời                          |
-| Tái nhập               | Giá quay vào vùng cũ về hình học                    | Bắt đầu kiểm tra FAR                                         |
-| Tái chấp nhận          | Hoạt động được duy trì lại trong vùng cũ            | Xác nhận cuộc đấu giá ngoài đã thất bại                      |
-| FAR                    | Failed Auction Re-entry                             | Giao dịch hướng về vùng đấu giá cũ sau tái chấp nhận         |
-| AAC                    | Accepted Auction Continuation                       | Giao dịch tiếp diễn sau khi giá được chấp nhận ngoài vùng cũ |
-| PLAR                   | Đường đi ít cản trở của đấu giá                     | Xây đường đi và hành lang mục tiêu                           |
+|Thuật ngữ hoặc công cụ|Khái niệm|Dùng để làm gì|
+|-|-|-|
+|AMT|Lý thuyết xem thị trường như cuộc đấu giá hai chiều|Xác định Cân bằng, Khám phá giá, vị trí và Sự chấp nhận|
+|đấu giá|Quá trình thị trường tìm giá và tổ chức giao dịch|Đọc mục đích hiện tại của chuyển động|
+|Vùng cân bằng|Vùng giao dịch hai chiều được duy trì|Ưu tiên luân phiên và kiểm tra phá biên|
+|Khám phá giá|Quá trình tìm vùng giá mới|Theo dõi vùng giá trị và POC có dịch theo giá hay không|
+|Chuyển tiếp|Giai đoạn giữa cân bằng cũ và cân bằng mới|Hạ độ chắc chắn và chờ thêm bằng chứng|
+|Market Profile|Hồ sơ tổ chức giá theo thời gian|Nhìn hình dạng và sự phát triển của cuộc đấu giá|
+|TPO|Cơ hội thời gian tại giá|Đo mức độ lặp lại của giá qua các khoảng thời gian|
+|Volume Profile|Khối lượng đã khớp phân bổ theo giá|Xác định POC, vùng giá trị, HVN và LVN|
+|vùng giá trị|Vùng hoạt động được duy trì theo thước đo đã chọn|Phân biệt giao dịch trong vùng và ngoài vùng|
+|POC|Mức hoạt động lớn nhất trong phạm vi|Xác định trung tâm hoạt động|
+|VAH / VAL|Biên trên / dưới vùng giá trị|Mở Episode khi giá kiểm tra biên|
+|HVN / LVN|Nút khối lượng cao / thấp|Nhìn vùng luân phiên và vùng đi nhanh|
+|Initial Balance|Phạm vi đầu phiên theo quy ước|Theo dõi mở rộng phạm vi|
+|Composite|Hồ sơ nhiều phiên thuộc cùng một đấu giá|Xác định Vùng cân bằng nhiều ngày và biên lớn|
+|OTF|One-Time Framing|Đo nhịp tiến triển một chiều qua các khoảng hoàn tất|
+|VWAP|Giá trung bình có trọng số khối lượng|Tham chiếu giá trung bình trong phạm vi|
+|Anchored VWAP|VWAP bắt đầu từ mốc chọn trước|Theo dõi giá trung bình từ sự kiện hoặc điểm khởi phát|
+|Mốc tham chiếu|Mức hoặc vùng đặt câu hỏi cho thị trường|Chọn nơi mở Episode|
+|Episode|Vòng đời tương tác giữa giá và một mốc tham chiếu|Theo dõi từ lần chạm, độ lệch đến kết quả giải quyết|
+|Độ lệch|Giá giao dịch ngoài mốc tham chiếu|Đo cuộc thử giá mà không mặc định có quét thanh khoản|
+|Sự chấp nhận|Hoạt động hoặc vùng giá trị được duy trì ở vùng mới|Phân biệt AAC với phá biên tạm thời|
+|Tái nhập|Giá quay vào vùng cũ về hình học|Bắt đầu kiểm tra FAR|
+|Tái chấp nhận|Hoạt động được duy trì lại trong vùng cũ|Xác nhận cuộc đấu giá ngoài đã thất bại|
+|FAR|Failed Auction Re-entry|Giao dịch hướng về vùng đấu giá cũ sau tái chấp nhận|
+|AAC|Accepted Auction Continuation|Giao dịch tiếp diễn sau khi giá được chấp nhận ngoài vùng cũ|
+|PLAR|Đường đi ít cản trở của đấu giá|Xây đường đi và hành lang mục tiêu|
 
 ## Phụ lục B. Từ điển Order Flow và công cụ thực thi
 
-| Thuật ngữ hoặc công cụ               | Khái niệm                                                        | Dùng để làm gì                                |
-|--------------------------------------|------------------------------------------------------------------|-----------------------------------------------|
-| Order Flow                           | Dữ liệu về giao dịch đã thực sự khớp                             | Đo nỗ lực thực thi và kết quả                 |
-| Bid / Ask                            | Giá mua chờ cao nhất / giá bán chờ thấp nhất                     | Hiểu nơi giao dịch chủ động khớp              |
-| Phía chủ động                        | Phía chấp nhận mức giá hiện có để khớp ngay                      | Phân loại mua hoặc bán chủ động               |
-| Tape / Time & Sales                  | Chuỗi giao dịch đã khớp theo thời gian                           | Đọc tốc độ, nhịp và kích thước giao dịch      |
-| Footprint                            | Bid/Ask và hoạt động theo từng mức giá trong thanh               | Quan sát vi cấu trúc tại Vị trí               |
-| Delta                                | Ask Volume trừ Bid Volume                                        | Đo chênh lệch áp lực chủ động                 |
-| CVD                                  | Delta cộng dồn                                                   | Theo dõi tiến trình áp lực chủ động           |
-| Imbalance                            | Chênh lệch Bid/Ask theo quy tắc                                  | Phát hiện bất đối xứng thực thi               |
-| Stacked Imbalance                    | Nhiều mức liền nhau cùng phía                                    | Nhận diện áp lực chủ động khởi xướng ứng viên |
-| Cluster                              | Cụm hoạt động theo mức giá                                       | Nhìn phân bố khối lượng và giao dịch          |
-| Volume                               | Tổng hợp đồng đã khớp                                            | Đo một thành phần của Nỗ lực                  |
-| Số giao dịch                         | Số lần khớp                                                      | Đo độ phân mảnh của hoạt động                 |
-| Kích thước giao dịch trung bình      | Khối lượng chia số giao dịch                                     | So sánh đặc tính của hoạt động                |
-| Ứng viên hấp thụ                     | Nỗ lực lớn nhưng tiến triển hạn chế tại Vị trí                   | Đặt giả thuyết lực thụ động đang cản          |
-| Ứng viên cạn kiệt                    | Nỗ lực giảm và tiến triển suy yếu                                | Đặt giả thuyết phía chủ động đang hụt sức     |
-| Nỗ lực                               | Khối lượng, số giao dịch, áp lực chủ động, thời gian và tốc độ   | Đo mức nỗ lực                                 |
-| Kết quả                              | Tiến triển, phạm vi, sự duy trì, vùng giá trị và POC dịch chuyển | Đo hiệu quả của nỗ lực                        |
-| Khả năng tạo thuận lợi cho giao dịch | Chất lượng tiến triển theo hướng đấu giá đang thử                | Phân biệt chuyển động khỏe và yếu             |
-| MFE / MAE                            | Thuận lợi / bất lợi tối đa sau điểm vào                          | Đánh giá lại quản trị và vị trí dừng lỗ       |
+|Thuật ngữ hoặc công cụ|Khái niệm|Dùng để làm gì|
+|-|-|-|
+|Order Flow|Dữ liệu về giao dịch đã thực sự khớp|Đo nỗ lực thực thi và kết quả|
+|Bid / Ask|Giá mua chờ cao nhất / giá bán chờ thấp nhất|Hiểu nơi giao dịch chủ động khớp|
+|Phía chủ động|Phía chấp nhận mức giá hiện có để khớp ngay|Phân loại mua hoặc bán chủ động|
+|Tape / Time \& Sales|Chuỗi giao dịch đã khớp theo thời gian|Đọc tốc độ, nhịp và kích thước giao dịch|
+|Footprint|Bid/Ask và hoạt động theo từng mức giá trong thanh|Quan sát vi cấu trúc tại Vị trí|
+|Delta|Ask Volume trừ Bid Volume|Đo chênh lệch áp lực chủ động|
+|CVD|Delta cộng dồn|Theo dõi tiến trình áp lực chủ động|
+|Imbalance|Chênh lệch Bid/Ask theo quy tắc|Phát hiện bất đối xứng thực thi|
+|Stacked Imbalance|Nhiều mức liền nhau cùng phía|Nhận diện áp lực chủ động khởi xướng ứng viên|
+|Cluster|Cụm hoạt động theo mức giá|Nhìn phân bố khối lượng và giao dịch|
+|Volume|Tổng hợp đồng đã khớp|Đo một thành phần của Nỗ lực|
+|Số giao dịch|Số lần khớp|Đo độ phân mảnh của hoạt động|
+|Kích thước giao dịch trung bình|Khối lượng chia số giao dịch|So sánh đặc tính của hoạt động|
+|Ứng viên hấp thụ|Nỗ lực lớn nhưng tiến triển hạn chế tại Vị trí|Đặt giả thuyết lực thụ động đang cản|
+|Ứng viên cạn kiệt|Nỗ lực giảm và tiến triển suy yếu|Đặt giả thuyết phía chủ động đang hụt sức|
+|Nỗ lực|Khối lượng, số giao dịch, áp lực chủ động, thời gian và tốc độ|Đo mức nỗ lực|
+|Kết quả|Tiến triển, phạm vi, sự duy trì, vùng giá trị và POC dịch chuyển|Đo hiệu quả của nỗ lực|
+|Khả năng tạo thuận lợi cho giao dịch|Chất lượng tiến triển theo hướng đấu giá đang thử|Phân biệt chuyển động khỏe và yếu|
+|MFE / MAE|Thuận lợi / bất lợi tối đa sau điểm vào|Đánh giá lại quản trị và vị trí dừng lỗ|
 
 ## Phụ lục C. Từ điển trụ Options
 
-| Thuật ngữ hoặc trường | Khái niệm | Dùng để làm gì | Giới hạn chính |
-|---|---|---|---|
-| Call / Put | Quyền mua / quyền bán futures underlying | Xác định loại hợp đồng | Không tự đồng nghĩa bullish/bearish |
-| Strike | Giá thực hiện | Trục giá của chain | Không phải hỗ trợ/kháng cự bắt buộc |
-| Expiry / DTE | Thời điểm đáo hạn / thời gian còn lại | Tách horizon và độ nhạy | Ngày không đủ nếu không biết giờ đáo hạn |
-| Underlying futures | Hợp đồng futures mà option dẫn tới | Tính moneyness/Greeks đúng | Không thay bằng Spot tùy ý |
-| Bid / Ask / Mid | Báo giá option | Giá, IV và flow classification | Spread rộng/stale làm sai kết quả |
-| Volume | Hợp đồng giao dịch trong khoảng đo | Đo hoạt động mới | Không nói vị thế còn mở |
-| Open Interest | Hợp đồng còn mở | Đo concentration tồn kho | Không cho biết phía Long/Short |
-| ΔOI | Thay đổi OI sau bù trừ | Theo dõi xây/tháo concentration | Thường có độ trễ; cấm look-ahead |
-| Premium / Notional | Giá trị giao dịch | So sánh quy mô flow | Không phải rủi ro hướng thuần |
-| Moneyness | Vị trí strike so với underlying/forward | Chuẩn hóa surface/skew | Phải dùng cùng quy ước |
-| IV | Biến động hàm ý | Đọc giá của rủi ro | Không phải dự báo chắc chắn |
-| ATM IV | IV tại vùng ATM theo phương pháp | Mốc term structure | Phải ghi cách chọn ATM |
-| Term structure | IV theo expiry | Đọc premium theo horizon | Không suy hướng giá |
-| Skew | IV theo moneyness | Đọc bất đối xứng rủi ro | Wing kém thanh khoản dễ gây nhiễu |
-| Risk reversal | Chênh IV call/put cùng Delta | Đo hướng skew tương đối | Không trực tiếp là flow |
-| Butterfly/Convexity | Độ đắt của wing so ATM | Đọc tail pricing | Phụ thuộc nội suy và thanh khoản |
-| Delta | Độ nhạy premium với underlying | Moneyness/risk conversion | Không phải vị thế quan sát |
-| Gamma | Độ thay đổi Delta theo underlying | Đọc convexity theo price | Đơn vị/phương pháp phải rõ |
-| Vega | Độ nhạy premium với IV | Đọc rủi ro biến động | Khác nhau theo expiry |
-| Theta | Độ nhạy premium theo thời gian | Đọc time decay mô hình | Không phải P&L chắc chắn |
-| Vanna | Độ nhạy Delta với IV theo quy ước | Nghiên cứu tương tác price–vol | Chỉ dùng khi công thức rõ |
-| Charm | Độ thay đổi Delta theo thời gian | Nghiên cứu expiry dynamics | Không suy hedging chắc chắn |
-| GEX | Gamma exposure tổng hợp | Một module exposure | Phụ thuộc phía vị thế và dấu |
-| DEX/VEX | Delta/Vega exposure tổng hợp | Đọc sensitivity theo scenario | Không dùng nếu công thức mơ hồ |
-| Absolute concentration | Exposure không dấu | Xác định vùng nhạy cảm | Không cho hướng hedging |
-| Signed exposure | Exposure có dấu | Xây hedging scenario | Phải nêu giả định vị thế |
-| Gamma Flip / Zero Gamma | Mức mô hình đổi dấu | Ranh giới scenario ứng viên | Không phải mức vật lý |
-| Call Resistance / Put Support | Nhãn vendor | Vùng tham khảo nếu methodology rõ | Không phải khái niệm chuẩn hay lệnh |
-| Expected move | Biên độ theo phương pháp/horizon | So biến động thực tế với định giá | Không phải biên bắt buộc |
-| Options Flow | Giao dịch quyền chọn theo thời gian | Đọc hoạt động mới | Ý định có thể là spread/hedge |
-| Flow Episode | Vòng đời một cụm flow | Theo dõi lặp lại và phản ứng | Một print đơn lẻ chưa đủ |
-| Options Regime | Trạng thái tổng hợp theo horizon | Tóm tắt môi trường | Không tạo hướng độc lập |
-| Data quality | Tốt/Hạn chế/Thận trọng/Không dùng | Kiểm soát quyền sử dụng | Phải tính theo từng module |
+|Thuật ngữ hoặc trường|Khái niệm|Dùng để làm gì|Giới hạn chính|
+|-|-|-|-|
+|Call / Put|Quyền mua / quyền bán futures underlying|Xác định loại hợp đồng|Không tự đồng nghĩa bullish/bearish|
+|Strike|Giá thực hiện|Trục giá của chain|Không phải hỗ trợ/kháng cự bắt buộc|
+|Expiry / DTE|Thời điểm đáo hạn / thời gian còn lại|Tách horizon và độ nhạy|Ngày không đủ nếu không biết giờ đáo hạn|
+|Underlying futures|Hợp đồng futures mà option dẫn tới|Tính moneyness/Greeks đúng|Không thay bằng Spot tùy ý|
+|Bid / Ask / Mid|Báo giá option|Giá, IV và flow classification|Spread rộng/stale làm sai kết quả|
+|Volume|Hợp đồng giao dịch trong khoảng đo|Đo hoạt động mới|Không nói vị thế còn mở|
+|Open Interest|Hợp đồng còn mở|Đo concentration tồn kho|Không cho biết phía Long/Short|
+|ΔOI|Thay đổi OI sau bù trừ|Theo dõi xây/tháo concentration|Thường có độ trễ; cấm look-ahead|
+|Premium / Notional|Giá trị giao dịch|So sánh quy mô flow|Không phải rủi ro hướng thuần|
+|Moneyness|Vị trí strike so với underlying/forward|Chuẩn hóa surface/skew|Phải dùng cùng quy ước|
+|IV|Biến động hàm ý|Đọc giá của rủi ro|Không phải dự báo chắc chắn|
+|ATM IV|IV tại vùng ATM theo phương pháp|Mốc term structure|Phải ghi cách chọn ATM|
+|Term structure|IV theo expiry|Đọc premium theo horizon|Không suy hướng giá|
+|Skew|IV theo moneyness|Đọc bất đối xứng rủi ro|Wing kém thanh khoản dễ gây nhiễu|
+|Risk reversal|Chênh IV call/put cùng Delta|Đo hướng skew tương đối|Không trực tiếp là flow|
+|Butterfly/Convexity|Độ đắt của wing so ATM|Đọc tail pricing|Phụ thuộc nội suy và thanh khoản|
+|Delta|Độ nhạy premium với underlying|Moneyness/risk conversion|Không phải vị thế quan sát|
+|Gamma|Độ thay đổi Delta theo underlying|Đọc convexity theo price|Đơn vị/phương pháp phải rõ|
+|Vega|Độ nhạy premium với IV|Đọc rủi ro biến động|Khác nhau theo expiry|
+|Theta|Độ nhạy premium theo thời gian|Đọc time decay mô hình|Không phải P\&L chắc chắn|
+|Vanna|Độ nhạy Delta với IV theo quy ước|Nghiên cứu tương tác price–vol|Chỉ dùng khi công thức rõ|
+|Charm|Độ thay đổi Delta theo thời gian|Nghiên cứu expiry dynamics|Không suy hedging chắc chắn|
+|GEX|Gamma exposure tổng hợp|Một module exposure|Phụ thuộc phía vị thế và dấu|
+|DEX/VEX|Delta/Vega exposure tổng hợp|Đọc sensitivity theo scenario|Không dùng nếu công thức mơ hồ|
+|Absolute concentration|Exposure không dấu|Xác định vùng nhạy cảm|Không cho hướng hedging|
+|Signed exposure|Exposure có dấu|Xây hedging scenario|Phải nêu giả định vị thế|
+|Gamma Flip / Zero Gamma|Mức mô hình đổi dấu|Ranh giới scenario ứng viên|Không phải mức vật lý|
+|Call Resistance / Put Support|Nhãn vendor|Vùng tham khảo nếu methodology rõ|Không phải khái niệm chuẩn hay lệnh|
+|Expected move|Biên độ theo phương pháp/horizon|So biến động thực tế với định giá|Không phải biên bắt buộc|
+|Options Flow|Giao dịch quyền chọn theo thời gian|Đọc hoạt động mới|Ý định có thể là spread/hedge|
+|Flow Episode|Vòng đời một cụm flow|Theo dõi lặp lại và phản ứng|Một print đơn lẻ chưa đủ|
+|Options Regime|Trạng thái tổng hợp theo horizon|Tóm tắt môi trường|Không tạo hướng độc lập|
+|Data quality|Tốt/Hạn chế/Thận trọng/Không dùng|Kiểm soát quyền sử dụng|Phải tính theo từng module|
 
 ### Ma trận nguồn và quyền kết luận
 
-| Lớp | Ví dụ | Quyền sử dụng |
-|---|---|---|
-| Quan sát | Bid/Ask, trade, volume, OI công bố | Mô tả điều đã xuất hiện |
-| Tính toán | IV, Greeks, expected move, surface | Mô tả theo mô hình đã ghi |
-| Tổng hợp | concentration, GEX/DEX/VEX | So sánh vùng và scenario |
-| Suy luận | dealer hedging, pinning, acceleration | Chỉ đặt giả thuyết có phương án thay thế |
+|Lớp|Ví dụ|Quyền sử dụng|
+|-|-|-|
+|Quan sát|Bid/Ask, trade, volume, OI công bố|Mô tả điều đã xuất hiện|
+|Tính toán|IV, Greeks, expected move, surface|Mô tả theo mô hình đã ghi|
+|Tổng hợp|concentration, GEX/DEX/VEX|So sánh vùng và scenario|
+|Suy luận|dealer hedging, pinning, acceleration|Chỉ đặt giả thuyết có phương án thay thế|
 
 ## Phụ lục D. Công thức nền tảng
 
-    Delta = Ask Volume - Bid Volume
+&#x20;   Delta = Ask Volume - Bid Volume
 
     Kích thước giao dịch trung bình = Khối lượng đã khớp / Số giao dịch
 
@@ -5718,50 +6071,53 @@ Người học phải diễn đạt lại quy trình và tự chỉ ra bằng ch
 
     khối lượng vị thế = ngân sách rủi ro / (khoảng cách dừng lỗ × giá trị mỗi đơn vị + chi phí ước tính)
 
-    Bội số R = P&L / Rủi ro ban đầu
+    Bội số R = P\&L / Rủi ro ban đầu
+
 
 Các công thức chỉ tạo dữ liệu thô. “Cao”, “thấp”, “hiệu quả” và “cực đoan” cần phân phối theo sản phẩm, phiên và chế độ thị trường.
 
 Các công thức Options phải được version hóa. Tối thiểu cần ghi:
 
-    Mid = (Bid + Ask) / 2, chỉ khi báo giá hợp lệ
+&#x20;   Mid = (Bid + Ask) / 2, chỉ khi báo giá hợp lệ
     DTE = thời gian đến đáo hạn theo quy ước đã chọn
-    Expected move_IV ≈ Underlying × IV × sqrt(Time)
+    Expected move\_IV ≈ Underlying × IV × sqrt(Time)
     Exposure = Greek × số hợp đồng × contract multiplier × giả định dấu vị thế
+
 
 Công thức expected move, Greeks, GEX/DEX/VEX, skew và surface phụ thuộc mô hình, nguồn, đơn vị và quy ước dấu. Mỗi kết quả luôn được xem là dữ liệu mô hình, không phải vị thế dealer quan sát trực tiếp.
 
 ## Phụ lục E. Bảng kiểm trước phiên
 
-    [ ] Đúng hợp đồng GC và đúng phiên
-    [ ] Nguồn dữ liệu và dấu thời gian hợp lệ
-    [ ] Lịch sự kiện
-    [ ] Vùng giá trị và POC phiên trước
-    [ ] Composite Vùng giá trị / POC
-    [ ] Initial Balance / phiên qua đêm / mốc tuần tháng
-    [ ] Bối cảnh nhiều phiên và trong ngày
+&#x20;   \[ ] Đúng hợp đồng GC và đúng phiên
+    \[ ] Nguồn dữ liệu và dấu thời gian hợp lệ
+    \[ ] Lịch sự kiện
+    \[ ] Vùng giá trị và POC phiên trước
+    \[ ] Composite Vùng giá trị / POC
+    \[ ] Initial Balance / phiên qua đêm / mốc tuần tháng
+    \[ ] Bối cảnh nhiều phiên và trong ngày
 
     OPTIONS
-    [ ] Option underlying và expiry mapping đúng
-    [ ] Snapshot point-in-time hợp lệ
-    [ ] Quote quality đủ cho module đang dùng
-    [ ] OI availability date đúng, không look-ahead
-    [ ] ATM IV và term structure
-    [ ] Skew / convexity
-    [ ] Expected move theo horizon
-    [ ] Volume / OI / ΔOI concentration
-    [ ] Options Flow state
-    [ ] Exposure scenario và giả định
-    [ ] Options Regime
-    [ ] Data quality: Tốt / Hạn chế / Thận trọng / Không dùng
+    \[ ] Option underlying và expiry mapping đúng
+    \[ ] Snapshot point-in-time hợp lệ
+    \[ ] Quote quality đủ cho module đang dùng
+    \[ ] OI availability date đúng, không look-ahead
+    \[ ] ATM IV và term structure
+    \[ ] Skew / convexity
+    \[ ] Expected move theo horizon
+    \[ ] Volume / OI / ΔOI concentration
+    \[ ] Options Flow state
+    \[ ] Exposure scenario và giả định
+    \[ ] Options Regime
+    \[ ] Data quality: Tốt / Hạn chế / Thận trọng / Không dùng
 
-    [ ] Kịch bản FAR / AAC / Luân phiên / Không giao dịch
-    [ ] Giới hạn rủi ro ngày và số giao dịch tối đa
-    [ ] Trạng thái sức khỏe và tâm lý
+    \[ ] Kịch bản FAR / AAC / Luân phiên / Không giao dịch
+    \[ ] Giới hạn rủi ro ngày và số giao dịch tối đa
+    \[ ] Trạng thái sức khỏe và tâm lý
+
 
 ## Phụ lục F. Bảng kiểm tại mốc tham chiếu
 
-    MỐC THAM CHIẾU
+&#x20;   MỐC THAM CHIẾU
     - Loại, vai trò, khung thời gian
 
     EPISODE
@@ -5792,25 +6148,27 @@ Công thức expected move, Greeks, GEX/DEX/VEX, skew và surface phụ thuộc 
     - FAR / AAC / Luân phiên / Chưa được giải quyết
     - Bằng chứng còn thiếu
 
+
 ## Phụ lục G. Bảng kiểm trước điểm vào
 
-    [ ] Vị trí có ý nghĩa
-    [ ] Episode và hướng của lần thử đấu giá rõ
-    [ ] Họ luận điểm rõ
-    [ ] Phong cách vào rõ
-    [ ] Hành vi kỳ vọng viết được
-    [ ] Vô hiệu cấu trúc / Đấu giá / thời gian rõ
-    [ ] Dừng lỗ và khoảng đệm hợp lý
-    [ ] Hành lang mục tiêu và rào cản rõ
-    [ ] Tỷ lệ lợi nhuận/rủi ro thực thi đủ
-    [ ] Khối lượng nằm trong ngân sách rủi ro
-    [ ] Không có điều kiện bắt buộc không giao dịch
-    [ ] Không FOMO hoặc đuổi giá
-    [ ] Options không phải lý do duy nhất; horizon, dữ liệu và policy đều hợp lệ
+&#x20;   \[ ] Vị trí có ý nghĩa
+    \[ ] Episode và hướng của lần thử đấu giá rõ
+    \[ ] Họ luận điểm rõ
+    \[ ] Phong cách vào rõ
+    \[ ] Hành vi kỳ vọng viết được
+    \[ ] Vô hiệu cấu trúc / Đấu giá / thời gian rõ
+    \[ ] Dừng lỗ và khoảng đệm hợp lý
+    \[ ] Hành lang mục tiêu và rào cản rõ
+    \[ ] Tỷ lệ lợi nhuận/rủi ro thực thi đủ
+    \[ ] Khối lượng nằm trong ngân sách rủi ro
+    \[ ] Không có điều kiện bắt buộc không giao dịch
+    \[ ] Không FOMO hoặc đuổi giá
+    \[ ] Options không phải lý do duy nhất; horizon, dữ liệu và policy đều hợp lệ
+
 
 ## Phụ lục H. Mẫu luận điểm thị trường
 
-    Ngày/giờ:
+&#x20;   Ngày/giờ:
     Sản phẩm:
     Trạng thái:
     Bối cảnh nhiều phiên:
@@ -5845,9 +6203,10 @@ Công thức expected move, Greeks, GEX/DEX/VEX, skew và surface phụ thuộc 
     Khối lượng:
     Thời hạn luận điểm:
 
+
 ## Phụ lục I. Mẫu nhật ký giao dịch
 
-    Mã giao dịch:
+&#x20;   Mã giao dịch:
     Kịch bản giao dịch:
     Ảnh trước giao dịch:
     Options snapshot ID, model version và dấu thời gian:
@@ -5855,7 +6214,7 @@ Công thức expected move, Greeks, GEX/DEX/VEX, skew và surface phụ thuộc 
     Điểm vào / Dừng lỗ / Mục tiêu / Khối lượng vị thế:
     Hành động trong giao dịch:
     Thoát lệnh:
-    P&L theo R:
+    P\&L theo R:
     MFE / MAE:
     Điểm tuân thủ 0–5:
     Lỗi thực thi:
@@ -5863,9 +6222,10 @@ Công thức expected move, Greeks, GEX/DEX/VEX, skew và surface phụ thuộc 
     Điều học được:
     Đề xuất sửa quy tắc? CÓ / KHÔNG
 
+
 ## Phụ lục J. Mẫu nghiên cứu tình huống để giảng dạy
 
-    1. Ảnh trước khi giá đến mốc tham chiếu
+&#x20;   1. Ảnh trước khi giá đến mốc tham chiếu
     2. Ảnh lần tương tác đầu
     3. Ảnh khi giá thử đấu giá ngoài vùng
     4. Ảnh chấp nhận hoặc tái nhập
@@ -5879,54 +6239,55 @@ Công thức expected move, Greeks, GEX/DEX/VEX, skew và surface phụ thuộc 
     - Điều kiện vô hiệu
     - Hành động hợp lệ
 
+
 ## Phụ lục K. Thang đánh giá năng lực
 
-| Điểm | Năng lực                                                                     |
-|------|------------------------------------------------------------------------------|
-| 0    | Kể chuyện theo nến và kết quả đã biết                                        |
-| 1    | Xác định được vị trí và mốc tham chiếu                                       |
-| 2    | Xác định được trạng thái và Episode                                          |
-| 3    | Đọc được sự chấp nhận và quan hệ Nỗ lực–Kết quả                              |
-| 4    | Phân biệt dữ liệu thô, dữ liệu tính và suy luận                              |
-| 5    | Viết được bằng chứng còn thiếu, vô hiệu, mục tiêu, rủi ro và không giao dịch |
+|Điểm|Năng lực|
+|-|-|
+|0|Kể chuyện theo nến và kết quả đã biết|
+|1|Xác định được vị trí và mốc tham chiếu|
+|2|Xác định được trạng thái và Episode|
+|3|Đọc được sự chấp nhận và quan hệ Nỗ lực–Kết quả|
+|4|Phân biệt dữ liệu thô, dữ liệu tính và suy luận|
+|5|Viết được bằng chứng còn thiếu, vô hiệu, mục tiêu, rủi ro và không giao dịch|
 
 ## Phụ lục L. Mười nguyên tắc bất biến
 
-1.  Vị trí trước tín hiệu.
-2.  Trạng thái trước hướng.
-3.  Episode trước phán quyết.
-4.  Sự chấp nhận là quá trình, không phải một cây nến.
-5.  Delta là áp lực chủ động, không phải vị thế.
-6.  Nỗ lực phải được so với Kết quả.
-7.  Options định giá sự bất định, không phải chánh án của giá.
-8.  FAR và AAC cần khả năng duy trì của giá.
-9.  Không có vô hiệu và không gian mục tiêu thì không có giao dịch.
+1. Vị trí trước tín hiệu.
+2. Trạng thái trước hướng.
+3. Episode trước phán quyết.
+4. Sự chấp nhận là quá trình, không phải một cây nến.
+5. Delta là áp lực chủ động, không phải vị thế.
+6. Nỗ lực phải được so với Kết quả.
+7. Options định giá sự bất định, không phải chánh án của giá.
+8. FAR và AAC cần khả năng duy trì của giá.
+9. Không có vô hiệu và không gian mục tiêu thì không có giao dịch.
 10. “Chưa đủ bằng chứng” là một kết luận chuyên nghiệp.
 
 ## Phụ lục M. Ma trận năng lực công cụ dòng lệnh
 
-| Công cụ                           | Dữ liệu cần                       | Quan sát chính                      | Quyền sử dụng                                | Giới hạn                                 |
-|-----------------------------------|-----------------------------------|-------------------------------------|----------------------------------------------|------------------------------------------|
-| Footprint Bid × Ask               | Giao dịch Bid/Ask                 | Khối lượng theo mức giá             | Kiểm tra nỗ lực và kết quả                   | Không thấy lệnh bị hủy                   |
-| Tape                              | Dòng giao dịch đã khớp            | Tốc độ, cụm và kích thước giao dịch | Quan sát xung lực và cách lệnh được chia nhỏ | Không biết danh tính                     |
-| DOM                               | Độ sâu tổng hợp                   | Thanh khoản hiển thị                | Điều kiện thực thi                           | Lệnh có thể bị rút                       |
-| MBO DOM                           | Mã lệnh và hàng đợi               | Vòng đời và ưu tiên lệnh            | Nghiên cứu thanh khoản chi tiết              | Phụ thuộc nguồn dữ liệu/cấu hình         |
-| Pulling/Stacking                  | Chuỗi cập nhật DOM                | Rút/thêm thanh khoản                | Bối cảnh độ bền sổ lệnh                      | Ảnh chụp đơn lẻ vô nghĩa                 |
-| Nhận diện lệnh ẩn                 | Số giao dịch và dữ liệu MBO       | Tái nạp và lượng khớp               | Bằng chứng phụ cho hấp thụ                   | Lệnh ẩn vẫn có thể bị xuyên              |
-| Công cụ phát hiện lệnh ẩn bổ sung | Dữ liệu theo yêu cầu riêng        | Mô hình phát hiện riêng             | So sánh chéo                                 | Phụ thuộc thuật toán                     |
-| Nhận diện dừng lỗ                 | Số giao dịch và dữ liệu phân loại | Cụm kích hoạt dừng lỗ               | Bằng chứng phụ về cơ chế thanh khoản         | Không biết dừng lỗ dùng để vào hay thoát |
-| Nhận diện lệnh quét               | Dòng chủ động qua nhiều mức       | Cú quét thanh khoản                 | Quan sát xung lực lấy thanh khoản            | Không tự xác nhận FAR/AAC                |
-| Áp lực thị trường                 | Số giao dịch                      | Áp lực và nhịp độ gần đây           | Xung lực ngắn hạn                            | Nhạy với tham số suy giảm                |
-| Áp lực sổ lệnh                    | Độ sâu                            | Áp lực thanh khoản hiển thị         | Điều kiện sổ lệnh                            | Không phải giao dịch đã khớp             |
-| Sức mạnh thị trường               | Tùy thuật toán                    | Chỉ số tổng hợp                     | Tham khảo sau khi kiểm tra công thức         | Có thể là hộp đen                        |
-| Mức động                          | Tùy thuật toán                    | Mốc thay đổi theo dữ liệu           | Mốc tham chiếu ứng viên                      | Cần biết nguồn và khả năng vẽ lại        |
-| Cực trị thanh chưa hoàn tất\*     | Footprint                         | Cực trị thanh chưa gọn              | Mốc vi mô phụ                                | Không phải nam châm                      |
+|Công cụ|Dữ liệu cần|Quan sát chính|Quyền sử dụng|Giới hạn|
+|-|-|-|-|-|
+|Footprint Bid × Ask|Giao dịch Bid/Ask|Khối lượng theo mức giá|Kiểm tra nỗ lực và kết quả|Không thấy lệnh bị hủy|
+|Tape|Dòng giao dịch đã khớp|Tốc độ, cụm và kích thước giao dịch|Quan sát xung lực và cách lệnh được chia nhỏ|Không biết danh tính|
+|DOM|Độ sâu tổng hợp|Thanh khoản hiển thị|Điều kiện thực thi|Lệnh có thể bị rút|
+|MBO DOM|Mã lệnh và hàng đợi|Vòng đời và ưu tiên lệnh|Nghiên cứu thanh khoản chi tiết|Phụ thuộc nguồn dữ liệu/cấu hình|
+|Pulling/Stacking|Chuỗi cập nhật DOM|Rút/thêm thanh khoản|Bối cảnh độ bền sổ lệnh|Ảnh chụp đơn lẻ vô nghĩa|
+|Nhận diện lệnh ẩn|Số giao dịch và dữ liệu MBO|Tái nạp và lượng khớp|Bằng chứng phụ cho hấp thụ|Lệnh ẩn vẫn có thể bị xuyên|
+|Công cụ phát hiện lệnh ẩn bổ sung|Dữ liệu theo yêu cầu riêng|Mô hình phát hiện riêng|So sánh chéo|Phụ thuộc thuật toán|
+|Nhận diện dừng lỗ|Số giao dịch và dữ liệu phân loại|Cụm kích hoạt dừng lỗ|Bằng chứng phụ về cơ chế thanh khoản|Không biết dừng lỗ dùng để vào hay thoát|
+|Nhận diện lệnh quét|Dòng chủ động qua nhiều mức|Cú quét thanh khoản|Quan sát xung lực lấy thanh khoản|Không tự xác nhận FAR/AAC|
+|Áp lực thị trường|Số giao dịch|Áp lực và nhịp độ gần đây|Xung lực ngắn hạn|Nhạy với tham số suy giảm|
+|Áp lực sổ lệnh|Độ sâu|Áp lực thanh khoản hiển thị|Điều kiện sổ lệnh|Không phải giao dịch đã khớp|
+|Sức mạnh thị trường|Tùy thuật toán|Chỉ số tổng hợp|Tham khảo sau khi kiểm tra công thức|Có thể là hộp đen|
+|Mức động|Tùy thuật toán|Mốc thay đổi theo dữ liệu|Mốc tham chiếu ứng viên|Cần biết nguồn và khả năng vẽ lại|
+|Cực trị thanh chưa hoàn tất\*|Footprint|Cực trị thanh chưa gọn|Mốc vi mô phụ|Không phải nam châm|
 
 ## Phụ lục N. Trạng thái kiểm chứng quy tắc
 
 Mỗi quy tắc mới nên ghi rõ:
 
-    Tên quy tắc
+&#x20;   Tên quy tắc
     Nguồn
     Loại: Cơ chế / Mô hình / Kinh nghiệm
     Trạng thái: Đề xuất / Đang kiểm tra / Đã xác nhận / Bị loại
@@ -5935,51 +6296,53 @@ Mỗi quy tắc mới nên ghi rõ:
     Kích thước mẫu
     Đã tính chi phí hay chưa
 
+
 Bốn tầng nguồn:
 
-| Tầng | Loại nguồn                                            | Quyền sử dụng                |
-|------|-------------------------------------------------------|------------------------------|
-| A    | Cơ chế thị trường, tài liệu sàn và định nghĩa dữ liệu | Dùng làm nền                 |
-| B    | Mô hình và cách diễn giải của giảng viên              | Dùng làm khung               |
-| C    | Kinh nghiệm, mẫu hình và hình minh họa                | Dùng để đặt giả thuyết\*     |
-| D    | Nhận định thị trường theo thời điểm                   | Chỉ dùng làm ví dụ lịch sử\* |
+|Tầng|Loại nguồn|Quyền sử dụng|
+|-|-|-|
+|A|Cơ chế thị trường, tài liệu sàn và định nghĩa dữ liệu|Dùng làm nền|
+|B|Mô hình và cách diễn giải của giảng viên|Dùng làm khung|
+|C|Kinh nghiệm, mẫu hình và hình minh họa|Dùng để đặt giả thuyết\*|
+|D|Nhận định thị trường theo thời điểm|Chỉ dùng làm ví dụ lịch sử\*|
 
 ## Phụ lục O. Bảng kiểm bối cảnh thị trường mở rộng
 
-    [ ] Hợp đồng GC đúng
-    [ ] Chuyển tháng hợp đồng đã được kiểm tra
-    [ ] Mẫu phiên đúng
-    [ ] Nguồn dữ liệu kết nối ổn định
-    [ ] Phân loại Bid/Ask futures đủ tin cậy
-    [ ] MBO khả dụng nếu dùng công cụ MBO
-    [ ] Lịch tin và chế độ sự kiện đã xác định
-    [ ] Chế độ tham gia hiện tại đã xác định
-    [ ] Futures OI được gắn đúng nhịp cập nhật
-    [ ] COT chỉ dùng cho bối cảnh dài hơn
+&#x20;   \[ ] Hợp đồng GC đúng
+    \[ ] Chuyển tháng hợp đồng đã được kiểm tra
+    \[ ] Mẫu phiên đúng
+    \[ ] Nguồn dữ liệu kết nối ổn định
+    \[ ] Phân loại Bid/Ask futures đủ tin cậy
+    \[ ] MBO khả dụng nếu dùng công cụ MBO
+    \[ ] Lịch tin và chế độ sự kiện đã xác định
+    \[ ] Chế độ tham gia hiện tại đã xác định
+    \[ ] Futures OI được gắn đúng nhịp cập nhật
+    \[ ] COT chỉ dùng cho bối cảnh dài hơn
 
     OPTIONS
-    [ ] Option underlying mapping đúng
-    [ ] Expiry date/time và DTE đúng
-    [ ] Snapshot point-in-time hợp lệ
-    [ ] Quote quality policy đã qua
-    [ ] OI availability date đúng, không look-ahead
-    [ ] IV/Greeks model version đã ghi
-    [ ] Term structure và skew cùng quy ước
-    [ ] Expected move có phương pháp và horizon
-    [ ] Complex flow/spread được xử lý phù hợp
-    [ ] Exposure scenario nêu rõ giả định dấu
-    [ ] Options Regime và data quality đã ghi
+    \[ ] Option underlying mapping đúng
+    \[ ] Expiry date/time và DTE đúng
+    \[ ] Snapshot point-in-time hợp lệ
+    \[ ] Quote quality policy đã qua
+    \[ ] OI availability date đúng, không look-ahead
+    \[ ] IV/Greeks model version đã ghi
+    \[ ] Term structure và skew cùng quy ước
+    \[ ] Expected move có phương pháp và horizon
+    \[ ] Complex flow/spread được xử lý phù hợp
+    \[ ] Exposure scenario nêu rõ giả định dấu
+    \[ ] Options Regime và data quality đã ghi
 
     EXECUTION
-    [ ] Basis GC–CFD đã đo
-    [ ] Chênh lệch mua bán CFD bình thường
-    [ ] Người giao dịch đủ tỉnh táo và chưa chạm giới hạn rủi ro
+    \[ ] Basis GC–CFD đã đo
+    \[ ] Chênh lệch mua bán CFD bình thường
+    \[ ] Người giao dịch đủ tỉnh táo và chưa chạm giới hạn rủi ro
+
 
 # KẾT LUẬN
 
 Phương pháp Tam Trụ có thể được cô đọng thành chuỗi câu hỏi:
 
-    TA ĐANG Ở ĐÂU?
+&#x20;   TA ĐANG Ở ĐÂU?
     → bản đồ đấu giá, vùng giá trị, POC, mốc tham chiếu
 
     THỊ TRƯỜNG ĐANG Ở TRẠNG THÁI NÀO?
@@ -6012,6 +6375,8 @@ Phương pháp Tam Trụ có thể được cô đọng thành chuỗi câu hỏ
     RỦI RO BAO NHIÊU?
     → khối lượng vị thế + Chi phí + Rủi ro ngày
 
+
 Một người giao dịch trưởng thành không cố nhìn thấy tương lai. Họ xây bản đồ đấu giá, đọc giá của sự bất định trên Options, theo dõi cuộc thử giá, đo nỗ lực và kết quả, rồi hành động chỉ khi bằng chứng, horizon, hình học và rủi ro cùng cho phép.
 
 > Bí quyết không nằm ở việc biết nhiều thuật ngữ hơn. Nó nằm ở việc hiểu mỗi công cụ đo cái gì, dùng để làm gì, không đo được gì, và không đặt vốn vào nơi luận điểm chưa có hình dạng.
+

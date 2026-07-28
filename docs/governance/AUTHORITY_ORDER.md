@@ -16,8 +16,8 @@
 
 2. **KIM ĐẤU KINH (KDK) — highest domain authority.**
    `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md` defines the *meaning* of every
-   concept: the 9-tier evidence hierarchy (KDK lines 323–341), the `*` convention
-   (343–362), "never trade one signal" (366), and all domain invariants. When any
+   concept: the 9-tier evidence hierarchy (KDK v4 lines 344–363), the `*` convention
+   (365–384), "never trade one signal" (389), and all domain invariants. When any
    other document conflicts with KDK on a domain meaning, **KDK wins** and the
    conflict is recorded in `SUPERSESSION_REGISTER.md`.
 
@@ -55,7 +55,7 @@
   redefine the concept to fit the code.
 - **Options is tier 7; GEX is a module inside Options.** Options never vetoes clear
   price acceptance (tier 4). GEX is one exposure module within the Options pillar,
-  not the pillar itself (KDK glossary line 373).
+  not the pillar itself (KDK v4 glossary line 396).
 - **Ch 76 / 77 / 79** (Options-conditioned strategy families) are **in the target
   product scope** but `AWAITING_DOMAIN_SPEC` — not "out of scope", and not authorized
   for implementation until the reviewer issues a domain spec.
@@ -72,3 +72,12 @@
 
 `CLAUDE.md` carries the short form of this order. On any discrepancy between a
 transient instruction and this file, this file plus KDK govern; escalate to the PO.
+
+## KDK v4 canonical update (2026-07-28)
+Authority order §2 now points at the v4 canonical `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md`
+(repo SHA-256 `4cf22c02…`, 6382 lines; PO-supplied `51cbf108…`, 6309 lines, plus 2 authorized editorial
+corrections — see `KDK_CHANGE_CONTROL.md`). Prior KDK line references (e.g. "hierarchy lines 323–341")
+are superseded; the v4 evidence hierarchy is at lines 344–363. The v4 operating flow and ownership
+boundaries (AMT = location/state/acceptance; Order Flow = executed effort/result; Options = risk
+pricing/horizon/sensitive zones; Governance = permission; Execution = GC→CFD) are binding. "AMT and
+Options prepare in parallel" is never a score-voting model.

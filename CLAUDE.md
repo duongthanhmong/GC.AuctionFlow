@@ -53,7 +53,7 @@ Làm rõ:
 
 Các nguyên tắc phương pháp trong KDK **ràng buộc** mọi phần domain, kể cả Options:
 
-- **Tháp bằng chứng (9 tầng, KDK dòng 323–341):** 1 toàn vẹn dữ liệu · 2 vị trí cấu
+- **Tháp bằng chứng (9 tầng, KDK v4 dòng 344–363):** 1 toàn vẹn dữ liệu · 2 vị trí cấu
   trúc · 3 diễn biến đấu giá · 4 chấp nhận/tái chấp nhận của giá · 5 dòng lệnh đã
   khớp · 6 vi cấu trúc & thanh khoản hiển thị · 7 **Options/OI/COT/vĩ mô** · 8 kỹ
   thuật vào lệnh · 9 câu chuyện/mẫu hình. **Tầng dưới không phủ quyết tầng trên.**
@@ -157,3 +157,25 @@ riêng, phải probe entitlement trước.
   `C:\Users\LOQ\AppData\Roaming\ATAS\Indicators\GC.AuctionFlow.dll`
   **KHÔNG** dual-install sang `Documents`.
 - Xác minh SHA-256 `source == deployed` tại mỗi phase closeout.
+
+## KDK v4 — bản canonical mới (Product Owner, 2026-07-28)
+
+Kim Đấu Kinh canonical hiện tại là `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md`
+(SHA-256 repo `4cf22c028d682a997e73571462b3579aab64f996cfdc0d00f886a47e529f8c5c`, 6382 dòng),
+thay thế bản v3 (6018 dòng). Bản PO cung cấp `51cbf108…` (6309 dòng); repo khác vì đã áp
+**2 chỉnh sửa biên tập được ủy quyền** (bỏ escape Markdown ở Ch51; thêm mục Ch50 "Giao dịch
+phản ứng tại vùng Options"). Chi tiết: `docs/governance/KDK_CHANGE_CONTROL.md`.
+
+**Flow doctrine v4 (bắt buộc):** Toàn vẹn dữ liệu → AMT và Options chuẩn bị song song nhưng
+khác câu hỏi → AMT xây bản đồ/trạng thái → Options xây regime/horizon/vùng nhạy cảm → giá
+tiếp cận vùng → Episode mở → Order Flow đánh giá nỗ lực/kết quả → Acceptance phán quyết
+FAR/AAC/Rotation/Unresolved → Options có thể điều kiện hóa/chặn qua policy đã kiểm chứng →
+Governance quyết Trade/Wait/No-Trade → GC ánh xạ CFD chỉ để thực thi. **"Song song" KHÔNG
+phải mô hình bỏ phiếu điểm.** AMT sở hữu vị trí/trạng thái/acceptance; Order Flow sở hữu nỗ
+lực đã thực thi; Options sở hữu định giá rủi ro/horizon/vùng nhạy cảm; Governance sở hữu quyền
+tham gia; Execution sở hữu quy đổi CFD. Một đường Options đơn lẻ không bao giờ là tín hiệu vào.
+
+**Catalog requirement (02A/02B) ĐÃ regenerate từ v4** — **679 active requirements** (668
+LINE_SHIFT_ONLY + 1 BASELINE_ANCHOR_CORRECTION + 10 NEW); số 669 cũ và v3 line refs **vô hiệu**.
+02B **vẫn provisional**. Catalog đã qua review độc lập; full adoption chờ commit được ủy quyền
+(status SUP-011: ADOPTED_IN_DOCS / CATALOG_REGENERATED).
