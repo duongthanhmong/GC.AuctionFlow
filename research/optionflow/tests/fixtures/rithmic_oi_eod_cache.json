@@ -1,0 +1,417 @@
+{
+  "_note": "SYNTHETIC TEST DATA - fully synthetic, not derived from any live feed. See README.md.",
+  "_synthetic": true,
+  "records": {
+    "OGQ6 C3900": {
+      "exchange": "COMEX",
+      "open_interest": 750,
+      "symbol": "OGQ6 C3900"
+    },
+    "OGQ6 C3910": {
+      "exchange": "COMEX",
+      "open_interest": 760,
+      "symbol": "OGQ6 C3910"
+    },
+    "OGQ6 C3920": {
+      "exchange": "COMEX",
+      "open_interest": 770,
+      "symbol": "OGQ6 C3920"
+    },
+    "OGQ6 C3930": {
+      "exchange": "COMEX",
+      "open_interest": 780,
+      "symbol": "OGQ6 C3930"
+    },
+    "OGQ6 C3940": {
+      "exchange": "COMEX",
+      "open_interest": 790,
+      "symbol": "OGQ6 C3940"
+    },
+    "OGQ6 C3950": {
+      "exchange": "COMEX",
+      "open_interest": 800,
+      "symbol": "OGQ6 C3950"
+    },
+    "OGQ6 C3960": {
+      "exchange": "COMEX",
+      "open_interest": 810,
+      "symbol": "OGQ6 C3960"
+    },
+    "OGQ6 C3970": {
+      "exchange": "COMEX",
+      "open_interest": 820,
+      "symbol": "OGQ6 C3970"
+    },
+    "OGQ6 C3980": {
+      "exchange": "COMEX",
+      "open_interest": 830,
+      "symbol": "OGQ6 C3980"
+    },
+    "OGQ6 C3990": {
+      "exchange": "COMEX",
+      "open_interest": 840,
+      "symbol": "OGQ6 C3990"
+    },
+    "OGQ6 C4000": {
+      "exchange": "COMEX",
+      "open_interest": 850,
+      "symbol": "OGQ6 C4000"
+    },
+    "OGQ6 C4010": {
+      "exchange": "COMEX",
+      "open_interest": 860,
+      "symbol": "OGQ6 C4010"
+    },
+    "OGQ6 C4020": {
+      "exchange": "COMEX",
+      "open_interest": 870,
+      "symbol": "OGQ6 C4020"
+    },
+    "OGQ6 C4030": {
+      "exchange": "COMEX",
+      "open_interest": 880,
+      "symbol": "OGQ6 C4030"
+    },
+    "OGQ6 C4040": {
+      "exchange": "COMEX",
+      "open_interest": 890,
+      "symbol": "OGQ6 C4040"
+    },
+    "OGQ6 C4050": {
+      "exchange": "COMEX",
+      "open_interest": 900,
+      "symbol": "OGQ6 C4050"
+    },
+    "OGQ6 C4060": {
+      "exchange": "COMEX",
+      "open_interest": 910,
+      "symbol": "OGQ6 C4060"
+    },
+    "OGQ6 C4070": {
+      "exchange": "COMEX",
+      "open_interest": 920,
+      "symbol": "OGQ6 C4070"
+    },
+    "OGQ6 C4080": {
+      "exchange": "COMEX",
+      "open_interest": 930,
+      "symbol": "OGQ6 C4080"
+    },
+    "OGQ6 C4090": {
+      "exchange": "COMEX",
+      "open_interest": 940,
+      "symbol": "OGQ6 C4090"
+    },
+    "OGQ6 C4100": {
+      "exchange": "COMEX",
+      "open_interest": 950,
+      "symbol": "OGQ6 C4100"
+    },
+    "OGQ6 C4110": {
+      "exchange": "COMEX",
+      "open_interest": 960,
+      "symbol": "OGQ6 C4110"
+    },
+    "OGQ6 C4120": {
+      "exchange": "COMEX",
+      "open_interest": 970,
+      "symbol": "OGQ6 C4120"
+    },
+    "OGQ6 C4130": {
+      "exchange": "COMEX",
+      "open_interest": 980,
+      "symbol": "OGQ6 C4130"
+    },
+    "OGQ6 C4140": {
+      "exchange": "COMEX",
+      "open_interest": 990,
+      "symbol": "OGQ6 C4140"
+    },
+    "OGQ6 C4150": {
+      "exchange": "COMEX",
+      "open_interest": 1000,
+      "symbol": "OGQ6 C4150"
+    },
+    "OGQ6 C4160": {
+      "exchange": "COMEX",
+      "open_interest": 990,
+      "symbol": "OGQ6 C4160"
+    },
+    "OGQ6 C4170": {
+      "exchange": "COMEX",
+      "open_interest": 980,
+      "symbol": "OGQ6 C4170"
+    },
+    "OGQ6 C4180": {
+      "exchange": "COMEX",
+      "open_interest": 970,
+      "symbol": "OGQ6 C4180"
+    },
+    "OGQ6 C4190": {
+      "exchange": "COMEX",
+      "open_interest": 960,
+      "symbol": "OGQ6 C4190"
+    },
+    "OGQ6 C4200": {
+      "exchange": "COMEX",
+      "open_interest": 950,
+      "symbol": "OGQ6 C4200"
+    },
+    "OGQ6 C4210": {
+      "exchange": "COMEX",
+      "open_interest": 940,
+      "symbol": "OGQ6 C4210"
+    },
+    "OGQ6 C4220": {
+      "exchange": "COMEX",
+      "open_interest": 930,
+      "symbol": "OGQ6 C4220"
+    },
+    "OGQ6 C4230": {
+      "exchange": "COMEX",
+      "open_interest": 920,
+      "symbol": "OGQ6 C4230"
+    },
+    "OGQ6 C4240": {
+      "exchange": "COMEX",
+      "open_interest": 910,
+      "symbol": "OGQ6 C4240"
+    },
+    "OGQ6 C4250": {
+      "exchange": "COMEX",
+      "open_interest": 900,
+      "symbol": "OGQ6 C4250"
+    },
+    "OGQ6 C4260": {
+      "exchange": "COMEX",
+      "open_interest": 890,
+      "symbol": "OGQ6 C4260"
+    },
+    "OGQ6 C4270": {
+      "exchange": "COMEX",
+      "open_interest": 880,
+      "symbol": "OGQ6 C4270"
+    },
+    "OGQ6 C4280": {
+      "exchange": "COMEX",
+      "open_interest": 870,
+      "symbol": "OGQ6 C4280"
+    },
+    "OGQ6 C4290": {
+      "exchange": "COMEX",
+      "open_interest": 860,
+      "symbol": "OGQ6 C4290"
+    },
+    "OGQ6 C4300": {
+      "exchange": "COMEX",
+      "open_interest": 850,
+      "symbol": "OGQ6 C4300"
+    },
+    "OGQ6 P3900": {
+      "exchange": "COMEX",
+      "open_interest": 750,
+      "symbol": "OGQ6 P3900"
+    },
+    "OGQ6 P3910": {
+      "exchange": "COMEX",
+      "open_interest": 760,
+      "symbol": "OGQ6 P3910"
+    },
+    "OGQ6 P3920": {
+      "exchange": "COMEX",
+      "open_interest": 770,
+      "symbol": "OGQ6 P3920"
+    },
+    "OGQ6 P3930": {
+      "exchange": "COMEX",
+      "open_interest": 780,
+      "symbol": "OGQ6 P3930"
+    },
+    "OGQ6 P3940": {
+      "exchange": "COMEX",
+      "open_interest": 790,
+      "symbol": "OGQ6 P3940"
+    },
+    "OGQ6 P3950": {
+      "exchange": "COMEX",
+      "open_interest": 800,
+      "symbol": "OGQ6 P3950"
+    },
+    "OGQ6 P3960": {
+      "exchange": "COMEX",
+      "open_interest": 810,
+      "symbol": "OGQ6 P3960"
+    },
+    "OGQ6 P3970": {
+      "exchange": "COMEX",
+      "open_interest": 820,
+      "symbol": "OGQ6 P3970"
+    },
+    "OGQ6 P3980": {
+      "exchange": "COMEX",
+      "open_interest": 830,
+      "symbol": "OGQ6 P3980"
+    },
+    "OGQ6 P3990": {
+      "exchange": "COMEX",
+      "open_interest": 840,
+      "symbol": "OGQ6 P3990"
+    },
+    "OGQ6 P4000": {
+      "exchange": "COMEX",
+      "open_interest": 850,
+      "symbol": "OGQ6 P4000"
+    },
+    "OGQ6 P4010": {
+      "exchange": "COMEX",
+      "open_interest": 860,
+      "symbol": "OGQ6 P4010"
+    },
+    "OGQ6 P4020": {
+      "exchange": "COMEX",
+      "open_interest": 870,
+      "symbol": "OGQ6 P4020"
+    },
+    "OGQ6 P4030": {
+      "exchange": "COMEX",
+      "open_interest": 880,
+      "symbol": "OGQ6 P4030"
+    },
+    "OGQ6 P4040": {
+      "exchange": "COMEX",
+      "open_interest": 890,
+      "symbol": "OGQ6 P4040"
+    },
+    "OGQ6 P4050": {
+      "exchange": "COMEX",
+      "open_interest": 900,
+      "symbol": "OGQ6 P4050"
+    },
+    "OGQ6 P4060": {
+      "exchange": "COMEX",
+      "open_interest": 890,
+      "symbol": "OGQ6 P4060"
+    },
+    "OGQ6 P4070": {
+      "exchange": "COMEX",
+      "open_interest": 880,
+      "symbol": "OGQ6 P4070"
+    },
+    "OGQ6 P4080": {
+      "exchange": "COMEX",
+      "open_interest": 870,
+      "symbol": "OGQ6 P4080"
+    },
+    "OGQ6 P4090": {
+      "exchange": "COMEX",
+      "open_interest": 860,
+      "symbol": "OGQ6 P4090"
+    },
+    "OGQ6 P4100": {
+      "exchange": "COMEX",
+      "open_interest": 850,
+      "symbol": "OGQ6 P4100"
+    },
+    "OGQ6 P4110": {
+      "exchange": "COMEX",
+      "open_interest": 840,
+      "symbol": "OGQ6 P4110"
+    },
+    "OGQ6 P4120": {
+      "exchange": "COMEX",
+      "open_interest": 830,
+      "symbol": "OGQ6 P4120"
+    },
+    "OGQ6 P4130": {
+      "exchange": "COMEX",
+      "open_interest": 820,
+      "symbol": "OGQ6 P4130"
+    },
+    "OGQ6 P4140": {
+      "exchange": "COMEX",
+      "open_interest": 810,
+      "symbol": "OGQ6 P4140"
+    },
+    "OGQ6 P4150": {
+      "exchange": "COMEX",
+      "open_interest": 800,
+      "symbol": "OGQ6 P4150"
+    },
+    "OGQ6 P4160": {
+      "exchange": "COMEX",
+      "open_interest": 790,
+      "symbol": "OGQ6 P4160"
+    },
+    "OGQ6 P4170": {
+      "exchange": "COMEX",
+      "open_interest": 780,
+      "symbol": "OGQ6 P4170"
+    },
+    "OGQ6 P4180": {
+      "exchange": "COMEX",
+      "open_interest": 770,
+      "symbol": "OGQ6 P4180"
+    },
+    "OGQ6 P4190": {
+      "exchange": "COMEX",
+      "open_interest": 760,
+      "symbol": "OGQ6 P4190"
+    },
+    "OGQ6 P4200": {
+      "exchange": "COMEX",
+      "open_interest": 750,
+      "symbol": "OGQ6 P4200"
+    },
+    "OGQ6 P4210": {
+      "exchange": "COMEX",
+      "open_interest": 740,
+      "symbol": "OGQ6 P4210"
+    },
+    "OGQ6 P4220": {
+      "exchange": "COMEX",
+      "open_interest": 730,
+      "symbol": "OGQ6 P4220"
+    },
+    "OGQ6 P4230": {
+      "exchange": "COMEX",
+      "open_interest": 720,
+      "symbol": "OGQ6 P4230"
+    },
+    "OGQ6 P4240": {
+      "exchange": "COMEX",
+      "open_interest": 710,
+      "symbol": "OGQ6 P4240"
+    },
+    "OGQ6 P4250": {
+      "exchange": "COMEX",
+      "open_interest": 700,
+      "symbol": "OGQ6 P4250"
+    },
+    "OGQ6 P4260": {
+      "exchange": "COMEX",
+      "open_interest": 690,
+      "symbol": "OGQ6 P4260"
+    },
+    "OGQ6 P4270": {
+      "exchange": "COMEX",
+      "open_interest": 680,
+      "symbol": "OGQ6 P4270"
+    },
+    "OGQ6 P4280": {
+      "exchange": "COMEX",
+      "open_interest": 670,
+      "symbol": "OGQ6 P4280"
+    },
+    "OGQ6 P4290": {
+      "exchange": "COMEX",
+      "open_interest": 660,
+      "symbol": "OGQ6 P4290"
+    },
+    "OGQ6 P4300": {
+      "exchange": "COMEX",
+      "open_interest": 650,
+      "symbol": "OGQ6 P4300"
+    }
+  },
+  "schema": "gcae-oi-eod-cache-synthetic-v1"
+}

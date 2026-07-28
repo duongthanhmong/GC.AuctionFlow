@@ -43,5 +43,7 @@ research/optionflow/**/*.pyc
 research/optionflow/.pytest_cache/
 research/optionflow/tests/fixtures/*.json
 !research/optionflow/tests/fixtures/.gitkeep
+# narrow exception: the SYNTHETIC deterministic OI fixture only (live caches stay ignored)
+!research/optionflow/tests/fixtures/rithmic_oi_eod_cache.json
 # published option levels are runtime output, not source
 artifacts/optionflow/
