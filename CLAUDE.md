@@ -6,51 +6,60 @@ Trước mọi task, phải đọc ba tài liệu:
 2. `docs/spec/GC_AuctionFlow_Engine_v1.3_Knowledge_Grounded_Spec_VI.md`
 3. `docs/implementation/IMPLEMENTATION_STATUS.md`
 
-**Tài liệu tri thức nền (KDK):**
+**Tài liệu tri thức miền tối cao (KDK):**
 `docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md` — KIM ĐẤU KINH, Phương pháp
-Tam Trụ (AMT + Order Flow + Options). Là **nguồn tri thức nền** mà v1.3 grounded
-vào, và là **tài liệu chuẩn để bên giám sát soi tính đúng đắn miền (domain
-correctness)**. Không đọc hết mỗi task (6000+ dòng); **tra chương liên quan** khi
-đụng ngữ nghĩa AMT/Order Flow/Options, rồi đối chiếu với v1.3.
+Tam Trụ (AMT + Order Flow + Options). Đây là **thẩm quyền miền (domain authority)
+cao nhất** cho ý nghĩa mọi khái niệm AMT / Order Flow / Options. Mọi tài liệu khác
+(v1.2, v1.3, README, IMPLEMENTATION_STATUS) là **tài liệu triển khai lịch sử phụ
+thuộc KDK**, không được định nghĩa lại một khái niệm miền trái với KDK. Không đọc
+hết mỗi task (6000+ dòng); **tra chương liên quan** khi đụng ngữ nghĩa, rồi đối
+chiếu — nếu tài liệu triển khai mâu thuẫn KDK thì **KDK thắng về ngữ nghĩa miền**
+và mâu thuẫn phải ghi vào `docs/governance/SUPERSESSION_REGISTER.md`.
 
-## Vai trò
+> **GOV-001 (đã sửa 2026-07-28, Round 1B).** Bản CLAUDE.md trước đây ghi "KDK không
+> quyết định scope; v1.3/STATUS thắng KDK" — **SAI thứ tự thẩm quyền và đã bị thay
+> thế**. Xem `docs/governance/AUTHORITY_ORDER.md`.
 
-- **v1.2** quyết định kiến trúc, module boundaries, một-DLL, roadmap,
-  governance, feature flags và phạm vi hệ thống.
-- **v1.3** quyết định ngữ nghĩa AMT/Order Flow, discriminator,
-  measurement contracts, calibration gates và anti-pattern guards.
-- **IMPLEMENTATION_STATUS.md** quyết định trạng thái triển khai hiện tại
-  và phase nào được phép thực hiện.
-- **Source code cùng tests đã khóa** quyết định tên enum, policy version,
-  schema hiện hữu và runtime behavior đã được chứng minh.
-- **KDK** là nguồn tri thức miền (ý nghĩa khái niệm, nguyên tắc phương pháp,
-  tháp bằng chứng, quy ước `*`). KDK **KHÔNG** quyết định phạm vi triển khai,
-  KHÔNG tự mở khóa phase/chương nào. Khi KDK nói về một tính năng mà v1.3/
-  IMPLEMENTATION_STATUS chưa authorize (vd Ch 44–50 dạng chiến lược, Ch 76/77/79),
-  **v1.3 và STATUS thắng** — KDK chỉ là kiến thức, không phải lệnh triển khai.
+## Thứ tự thẩm quyền (BINDING — thay thế bản cũ, GOV-001)
 
-## Thứ tự ưu tiên
+Khi xung đột, áp dụng đúng thứ tự này (chi tiết: `docs/governance/AUTHORITY_ORDER.md`):
 
-Khi xung đột:
+1. **Mục tiêu và ràng buộc hiện hành mà Product Owner nêu rõ.** PO chọn ưu tiên và
+   phạm vi sản phẩm (vd "GC trước"). PO **không** được lặng lẽ định nghĩa lại một
+   khái niệm AMT/Order Flow/Options trái KDK.
+2. **KIM ĐẤU KINH (KDK)** — thẩm quyền miền cao nhất về ý nghĩa khái niệm, tháp
+   bằng chứng 9 tầng, quy ước `*`, và các bất biến miền.
+3. **Specification do reviewer ban hành** — bản dịch KDK thành công việc triển khai
+   (phase spec, acceptance gate). Đây là cách hợp lệ để biến KDK thành scope.
+4. **Spec kiến trúc hiện hành (v1.2 / v1.3)** — chỉ có hiệu lực **ở nơi không mâu
+   thuẫn KDK**. Nơi mâu thuẫn: KDK thắng về ngữ nghĩa, ghi vào SUPERSESSION_REGISTER.
+5. **IMPLEMENTATION_STATUS và hồ sơ phase lịch sử** — trạng thái triển khai, không
+   phải thẩm quyền miền.
+6. **Source code và tests hiện hữu** — **bằng chứng về hành vi hiện tại**, KHÔNG
+   phải thẩm quyền để sửa nghĩa KDK. Một tag LOCK lịch sử là bằng chứng của một
+   gate đã qua, **không** cấp quyền miễn nhiễm cho một lỗi miền.
 
-1. Invariant và behavior của phase LOCKED trong source/tests
-2. `IMPLEMENTATION_STATUS.md` mới nhất
-3. Milestone được operator giao rõ ràng
-4. v1.3 đối với ngữ nghĩa miền
-5. v1.2 đối với kiến trúc và roadmap
-6. KDK đối với ý nghĩa khái niệm và nguyên tắc phương pháp — **không vượt quyền
-   scope** của (1)–(5).
-
-Không dùng một tài liệu để vượt quyền tài liệu khác.
+Làm rõ:
+- Không ai — PO, Claude, reviewer, code, tests, hay tài liệu cũ — được **lặng lẽ**
+  định nghĩa lại một khái niệm AMT / Order Flow / Options trái với KDK.
+- Khi ràng buộc triển khai cản một tính năng KDK, đánh dấu `NOT_IMPLEMENTED`,
+  `BLOCKED` hoặc `AWAITING_SPEC` — **không** định nghĩa lại khái niệm cho khớp code.
+- **Chương 76, 77, 79 nằm trong phạm vi sản phẩm mục tiêu** nhưng vẫn
+  `AWAITING_DOMAIN_SPEC` và **chưa được phép triển khai** (cần reviewer domain spec).
+- **GEX là một mô-đun exposure BÊN TRONG trụ Options, không phải trụ Options.**
+- Sửa nghĩa KDK chỉ qua `docs/governance/KDK_CHANGE_CONTROL.md`.
 
 ## Nguyên tắc KDK ràng buộc (bên giám sát soi theo đây)
 
 Các nguyên tắc phương pháp trong KDK **ràng buộc** mọi phần domain, kể cả Options:
 
-- **Tháp bằng chứng (9 tầng):** Options ở **tầng 7**, dưới "tính toàn vẹn dữ liệu",
-  "vị trí cấu trúc", "diễn biến đấu giá", "sự chấp nhận của giá", "dòng lệnh". **Tầng
-  dưới không phủ quyết tầng trên.** Options/GEX **không phủ quyết** sự chấp nhận rõ
-  ràng của giá — khớp với bất biến v1.3 §50 (GEX không bao giờ là điều kiện cần).
+- **Tháp bằng chứng (9 tầng, KDK dòng 323–341):** 1 toàn vẹn dữ liệu · 2 vị trí cấu
+  trúc · 3 diễn biến đấu giá · 4 chấp nhận/tái chấp nhận của giá · 5 dòng lệnh đã
+  khớp · 6 vi cấu trúc & thanh khoản hiển thị · 7 **Options/OI/COT/vĩ mô** · 8 kỹ
+  thuật vào lệnh · 9 câu chuyện/mẫu hình. **Tầng dưới không phủ quyết tầng trên.**
+  Options (tầng 7) **không phủ quyết** sự chấp nhận rõ ràng của giá (tầng 4); xung
+  đột chỉ làm giảm độ chắc chắn hoặc đổi quản trị theo quy tắc đã kiểm chứng — khớp
+  bất biến §50 (GEX không bao giờ là điều kiện cần).
 - **Quy ước `*`:** nội dung `*` (kinh nghiệm/nghiên cứu) **không** tự tạo entry, tăng
   size, xác định hướng, hay phủ quyết chấp nhận giá. Không nâng `*` thành quy luật
   nếu chưa qua lộ trình kiểm chứng (phát lại → quan sát → mô phỏng → ngoài mẫu).
@@ -69,11 +78,14 @@ Các nguyên tắc phương pháp trong KDK **ràng buộc** mọi phần domain
 - Không đổi tên enum hoặc policy đã build chỉ để khớp văn bản.
 - **GEX/OptionFlow — ĐÃ AUTHORIZED (operator 2026-07-28).** Được tạo module/field/
   enum OptionFlow trong DLL, đọc dữ liệu từ sidecar `artifacts/optionflow/<PRODUCT>/`.
-  Bất biến bắt buộc giữ (v1.3 §50 / KDK Ch51): GEX là **context tùy chọn**, không bao
-  giờ là điều kiện cần; khi vắng GEX (file thiếu/cũ/tắt) mọi logic AMT+OrderFlow vẫn
-  chạy đủ và cho ra kết luận y hệt. GPS row cho GEX chỉ tạo khi phase OptionFlow yêu
-  cầu rõ. **Vẫn cấm** họ chiến lược KDK Ch 76/77/79 (GEX-conditioned strategies) —
-  cần đề xuất mở khóa riêng.
+  Bất biến bắt buộc giữ (§50 / KDK Ch50–51): **GEX là một mô-đun exposure bên trong
+  trụ Options, không phải trụ Options**; Options là **context tùy chọn tầng 7**,
+  không bao giờ là điều kiện cần; khi vắng GEX (file thiếu/cũ/tắt) mọi logic
+  AMT+OrderFlow vẫn chạy **byte-identical** và cho kết luận y hệt. GPS row cho GEX
+  chỉ tạo khi phase OptionFlow yêu cầu rõ.
+- **KDK Ch 76/77/79 (họ chiến lược điều kiện-Options)** — **nằm trong phạm vi sản
+  phẩm mục tiêu** nhưng trạng thái `AWAITING_DOMAIN_SPEC`, **chưa được phép triển
+  khai**; cần reviewer ban hành domain spec trước. Không mô tả là "out of scope".
 - Không dùng Implementation Bible đã archive làm nguồn có thẩm quyền.
 - Không sửa phase LOCKED nếu milestone không bắt buộc.
 - Không gọi CODE/TEST PASS là FINAL PASS khi live acceptance còn pending.
@@ -82,42 +94,55 @@ Các nguyên tắc phương pháp trong KDK **ràng buộc** mọi phần domain
 
 ```text
 PLAN
-→ AUDIT ba tài liệu và code hiện tại
+→ TRA CỨU requirement KDK liên quan (KDK-CHxx-REQ-yyy trong 02A/02B)
+→ đối chiếu reviewer specification (bản dịch KDK → công việc)
+→ AUDIT tài liệu triển khai (v1.2/v1.3/STATUS) + code hiện tại
+→ kiểm tra tương thích kiến trúc (chỉ nơi không mâu thuẫn KDK)
 → xác định phase boundary
-→ liệt kê invariants
+→ liệt kê invariants (gồm bất biến miền KDK)
 → IMPLEMENT tối thiểu
 → chạy targeted tests
 → chạy full regression
-→ kiểm tra semantics theo v1.3
-→ kiểm tra scope theo v1.2
-→ cập nhật IMPLEMENTATION_STATUS
+→ KIỂM TRA NGỮ NGHĨA MIỀN THEO KDK (ánh xạ về requirement ID)
+→ kiểm tra tương thích v1.3/v1.2 (phụ thuộc KDK, không phủ quyết KDK)
+→ cập nhật IMPLEMENTATION_STATUS + trạng thái requirement (02B)
 → chỉ commit/tag sau khi đúng gate.
 ```
 
-## Phase 5 — OptionFlow / GEX (AUTHORIZED, operator 2026-07-28)
+## Phase 5 — OptionFlow / GEX
 
-Sidecar `research/optionflow/` (Python, ResearchTools — KHÔNG cài ATAS) kéo option
-chain thẳng từ Rithmic, tính GEX + greeks bậc cao, ghi `artifacts/optionflow/
-<PRODUCT>/levels.json` (schema `gcae-optionflow-v1`, xem `research/optionflow/
-SCHEMA.md`). Đã live: OI verified 202/202, ATM/walls/flip/regime/vanna/charm/
-term-structure/EM/skew/gamma-curve.
+> **⚠️ HISTORICAL / SUPERSEDED (GOV-002, sửa 2026-07-28 Round 1B).** Đoạn "đã live /
+> LOCK / hoàn thiện" bên dưới là **ghi chép lịch sử của các gate cũ, KHÔNG phải trạng
+> thái hiện tại**. Audit đã xác định: trụ Options **chưa phải pillar hoàn chỉnh**.
+> Không trình bày Phase 5 như một Options pillar đã xong.
 
-**Ưu tiên GC trước (operator 2026-07-28).** Hoàn thiện + LOCK GC trước; ES/NQ là
-nâng cấp sau (sidecar đã chạy được nhưng chưa live-accept, để dành).
+### TRẠNG THÁI HIỆN TẠI (đúng, thay cho mọi tuyên bố cũ)
+- **Overlay Options = `DISPLAY_ONLY`.** DLL đọc `levels.json` và render; không gate
+  AMT/OrderFlow (bất biến §50 giữ: `GexContext=null` ⇒ phase 1–4 byte-identical).
+- **Analytics Options = `IMPLEMENTED_BUT_INVALIDATED` / `BLOCKED_BY_DEFECT`.** Sidecar
+  tính GEX/flip/regime/EM/skew nhưng **sai** do 6 lỗi đã xác định (OPT-001..006, xem
+  `docs/review/03_OPTIONS_DEFECT_REGISTER.md`): mất định danh (expiry/underlying),
+  trộn kỳ hạn, thiếu cổng chất lượng quote, `dealer_positioning` khẳng định như sự
+  thật. **Không dùng ATM/walls/flip/regime/vanna/charm/EM/skew làm domain truth.**
+- **Live 2026-07-28 chỉ chứng minh:** DLL nhận & render dữ liệu trực tiếp
+  (`LIVE_DATA_INGRESS`), **không** chứng minh phép tính đúng, module calibrated, hay
+  hệ sẵn sàng. Không gọi đây là live-accept/LOCK của một Options pillar.
+- **Rebuild pending:** roadmap Phase C (schema `gcae-optionflow-v2`, định danh theo
+  (expiry,strike,underlying) + cổng QC + exposure gắn nhãn kịch bản). Chi tiết
+  `docs/review/04A_BINDING_ROADMAP_CANDIDATE.md`.
 
-Roadmap DLL (đọc-only, diagnostics OFF mặc định):
-- **5-0** Governance ✅ · **5A** freeze schema ✅ (GC; ES/NQ deferred)
-- **5B** `OptionFlowReader` + `GexContext` nullable ✅ CODE/TEST PASS
-- **5C** render lines/panel ✅ + polish ✅ · **5D** AMT confluence ✅ (display-only)
-- **5E** GC live accept 1 phiên → **LOCK**. Sidecar + ATAS chạy **cùng một** account
-  `fin` được (Rithmic cho nhiều kết nối ticker-plant song song; giới hạn 1-phiên chỉ
-  ở order plant). Live 2026-07-28: panel chart khớp khít số sidecar (spot/flip/ATM/
-  regime/skew/EM), 5 confluence hợp lý.
+### Ghi chép lịch sử (HISTORICAL — không phải trạng thái hiện tại)
+Sidecar `research/optionflow/` kéo option chain từ Rithmic, tính GEX + greeks, ghi
+`artifacts/optionflow/<PRODUCT>/levels.json` (schema `gcae-optionflow-v1`). Các gate
+cũ từng ghi: 5-0 Governance, 5A schema, 5B reader/GexContext, 5C render, 5D confluence,
+5E "GC live accept → LOCK". **Những nhãn PASS/LOCK đó là mốc lịch sử; tag được giữ
+nguyên nhưng không cấp miễn nhiễm cho lỗi domain** (xem AUTHORITY_ORDER §6,
+SUPERSESSION_REGISTER SUP-004/005/006). **Ưu tiên GC trước** vẫn đúng theo operator.
 
 Bất biến (bắt buộc, §50): `GexContext = null` khi file thiếu/cũ/tắt ⇒ mọi phase 1–4
-chạy **byte-identical** như chưa có GEX; GEX không bao giờ là điều kiện cần. DLL
-**chỉ đọc, không recompute** (giữ one-DLL). Cấm GPS-row/alert/thesis-gating từ GEX
-ở Phase 5; regime tham gia thesis = Phase 6 (đề xuất mở khóa riêng, đụng Ch 76/77/79).
+chạy **byte-identical**; GEX không bao giờ là điều kiện cần; **GEX là một mô-đun bên
+trong trụ Options**. DLL **chỉ đọc, không recompute**. Cấm GPS-row/alert/thesis-gating
+từ GEX; regime tham gia thesis cần Ch 76/77/79 = `AWAITING_DOMAIN_SPEC`.
 
 **Order flow trực tiếp từ Rithmic (MBO/DOM/time&sales)** — khả thi trên cùng kết nối
 (async_rithmic có `ORDER_BOOK`/`depth_by_order`), giàu hơn ATAS (giữ order_id/priority)
