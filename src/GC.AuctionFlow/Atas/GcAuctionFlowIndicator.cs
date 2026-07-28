@@ -15,6 +15,7 @@ using GC.AuctionFlow.Entry;
 using GC.AuctionFlow.Execution;
 using GC.AuctionFlow.Imbalance;
 using GC.AuctionFlow.Memory;
+using GC.AuctionFlow.OptionFlow;
 using GC.AuctionFlow.Orderflow;
 using GC.AuctionFlow.Participation;
 using GC.AuctionFlow.Plar;
@@ -50,6 +51,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private GcaeRuntimeEngine? _runtime;
     private AuctionGpsCardRenderer? _gpsRenderer;
     private PrimaryProfileOverlayRenderer? _overlayRenderer;
+    private OptionFlowOverlayRenderer? _optionFlowRenderer;
+    private OptionFlowProvider? _optionFlowProvider;
     private PrimaryProfileHost? _profileHost;
     private CompositeProfileHost? _compositeHost;
     /// <summary>Last operator fingerprint successfully applied to the published Composite snapshot.</summary>
@@ -408,6 +411,29 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("Show Previous Profile Levels")]
     public bool ShowPreviousProfileLevels { get; set; }
 
+    // --- OptionFlow / GEX overlay (read-only, diagnostics-gated, default OFF) ---
+    [DisplayName("Enable OptionFlow Overlay")]
+    [Description("Read-only GEX overlay from the sidecar (artifacts/optionflow). OFF by default; when off or the file is missing/stale, nothing GEX renders and every other decision is unchanged.")]
+    public bool EnableOptionFlowOverlay { get; set; }
+
+    [DisplayName("OptionFlow Data Root")]
+    [Description("Folder that contains <PRODUCT>/levels.json, e.g. the sidecar's artifacts/optionflow directory. Empty disables the overlay.")]
+    public string OptionFlowDataRoot { get; set; } = "";
+
+    [DisplayName("OptionFlow Product")]
+    [Description("GC / ES / NQ — which product's levels.json to read.")]
+    public string OptionFlowProduct { get; set; } = "GC";
+
+    [DisplayName("OptionFlow Max Age (seconds)")]
+    [Description("Older than this ⇒ treated as stale ⇒ nothing renders.")]
+    public int OptionFlowMaxAgeSeconds { get; set; } = 1800;
+
+    [DisplayName("OptionFlow Panel Margin X")]
+    public int OptionFlowPanelMarginX { get; set; } = 12;
+
+    [DisplayName("OptionFlow Panel Margin Y")]
+    public int OptionFlowPanelMarginY { get; set; } = 320;
+
     [Category("Primary Profile")]
     [DisplayName("Enable TPO Parity Diagnostics")]
     [Description("When true, GPS card shows bounded Classic TPO parity diagnostic rows. Default false. No file I/O.")]
@@ -706,6 +732,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (EnablePrimaryProfileOverlay)
                 _overlayRenderer?.Render(context, drawingLayouts, ChartInfo);
+
+            if (EnableOptionFlowOverlay)
+                _optionFlowRenderer?.Render(context, drawingLayouts, ChartInfo,
+                    OptionFlowPanelMarginX, OptionFlowPanelMarginY);
         }
         catch
         {
@@ -1091,6 +1121,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             GcaeRuntimeEngine? runtime;
             AuctionGpsCardRenderer? gps;
             PrimaryProfileOverlayRenderer? overlay;
+            OptionFlowOverlayRenderer? optionFlow;
             lock (_lifecycleGate)
             {
                 trade = _tradeProbe;
@@ -1100,6 +1131,9 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 runtime = _runtime;
                 gps = _gpsRenderer;
                 overlay = _overlayRenderer;
+                optionFlow = _optionFlowRenderer;
+                _optionFlowRenderer = null;
+                _optionFlowProvider = null;
                 _tradeProbe = null;
                 _tradeMapper = null;
                 _domProbe = null;
@@ -1139,6 +1173,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             try { runtime?.Stop(); } catch { /* contained */ }
             try { gps?.Dispose(); } catch { /* contained */ }
             try { overlay?.Dispose(); } catch { /* contained */ }
+            try { optionFlow?.Dispose(); } catch { /* contained */ }
 
             // Recorder first: stop accepting → drain → finalize → dispose (locked Trade Recorder order)
             try { recorder?.StopAndDispose(); } catch { /* contained */ }
@@ -1282,6 +1317,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             _gpsRenderer ??= new AuctionGpsCardRenderer();
             _gpsRenderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
             _overlayRenderer ??= new PrimaryProfileOverlayRenderer();
+            _optionFlowRenderer ??= new OptionFlowOverlayRenderer();
         }
 
         EnsureDrawingSubscription();
@@ -1290,7 +1326,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
     private void EnsureDrawingSubscription()
     {
-        if ((!EnableAuctionGpsCard && !EnablePrimaryProfileOverlay) || _drawingSubscribed)
+        if ((!EnableAuctionGpsCard && !EnablePrimaryProfileOverlay && !EnableOptionFlowOverlay) || _drawingSubscribed)
             return;
         try
         {
@@ -2955,6 +2991,27 @@ public sealed class GcAuctionFlowIndicator : Indicator
             else
             {
                 overlay?.Update(null);
+            }
+
+            // OptionFlow / GEX: throttled read of the sidecar file (never on the
+            // render thread). Current is null on any failure ⇒ the renderer draws
+            // nothing, and nothing else in the engine consumes this.
+            if (EnableOptionFlowOverlay && _optionFlowRenderer is not null
+                && !string.IsNullOrWhiteSpace(OptionFlowDataRoot))
+            {
+                _optionFlowProvider ??= new OptionFlowProvider(
+                    OptionFlowDataRoot,
+                    TimeSpan.FromSeconds(Math.Max(1, OptionFlowMaxAgeSeconds)),
+                    TimeSpan.FromSeconds(10));
+                var product = string.IsNullOrWhiteSpace(OptionFlowProduct)
+                    ? "GC" : OptionFlowProduct.Trim().ToUpperInvariant();
+                _optionFlowProvider.Refresh(product, DateTimeOffset.UtcNow);
+                _optionFlowRenderer.Update(
+                    OptionFlowOverlayViewModel.Build(_optionFlowProvider.Current));
+            }
+            else
+            {
+                _optionFlowRenderer?.Update(null);
             }
         }
         catch

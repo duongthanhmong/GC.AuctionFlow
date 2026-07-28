@@ -44,7 +44,7 @@
 | Phase 4B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Entry Policy Engine, ObserveOnly only (`ENTRY_POLICY_V1`) |
 | Phase 4C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — CFD Mapping, INVALID (`CFD_MAPPING_POLICY_V1`) |
 | Phase 4A | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Position Sizing + Account Risk (`RISK_POLICY_V1`) |
-| Test count | **1451** passed / 0 failed / 0 skipped (1444 + 7 OptionFlow reader) |
+| Test count | **1458** passed / 0 failed / 0 skipped (1444 + 14 OptionFlow reader/overlay) |
 | GPS diagnostic rows | **25** |
 | Anti-pattern guards | **22 tests** covering AP-001..AP-028 (v1.3 §12) |
 | P0-07C3D | **PASS + LOCKED** |
@@ -66,7 +66,7 @@
 | Phase 3B | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Signal Maturity (`SIGNAL_MATURITY_POLICY_V1`) |
 | Phase 3C | **CODE/TEST PASS — LIVE ACCEPTANCE PENDING** — Thesis Contract + 5-dimension Invalidation (`THESIS_CONTRACT_POLICY_V1`) |
 | P0-07C4 | **NOT STARTED** |
-| **Phase 5 — OptionFlow / GEX** | **AUTHORIZED (operator 2026-07-28, `D-V13-002a`).** Sidecar `research/optionflow/` LIVE: OI verified 202/202, GEX/flip/regime/walls/ATM/vanna/charm/term-structure/expected-move/skew/gamma-curve computed & validated (GC live; ES/NQ pending live). Schema `gcae-optionflow-v1`. Sub-phases: 5A schema freeze ✅ (SCHEMA.md; ES/NQ live pending RTH) · **5B `OptionFlowReader` + nullable `GexContext` — CODE/TEST PASS** (src/GC.AuctionFlow/OptionFlow/, 7 tests, full regression 1451/1451; anti-pattern guard now allows GEX only in `GC.AuctionFlow.OptionFlow`) · 5C render → 5D AMT confluence → 5E live accept + LOCK. Diagnostics OFF default; GEX never a necessary condition (§50); DLL read-only. Ch 76/77/79 remain OUT OF SCOPE. |
+| **Phase 5 — OptionFlow / GEX** | **AUTHORIZED (operator 2026-07-28, `D-V13-002a`).** Sidecar `research/optionflow/` LIVE: OI verified 202/202, GEX/flip/regime/walls/ATM/vanna/charm/term-structure/expected-move/skew/gamma-curve computed & validated (GC live; ES/NQ pending live). Schema `gcae-optionflow-v1`. Sub-phases: 5A schema freeze ✅ (SCHEMA.md; ES/NQ live pending RTH) · **5B `OptionFlowReader` + nullable `GexContext` — CODE/TEST PASS** (7 tests; anti-pattern guard now allows GEX only in `GC.AuctionFlow.OptionFlow`) · **5C render — CODE/TEST PASS** (`OptionFlowOverlayViewModel` + `OptionFlowProvider` throttled reader + `OptionFlowOverlayRenderer`; wired into the indicator behind `EnableOptionFlowOverlay`/diagnostics OFF default; build 0/0, full regression 1458/1458; live chart validation = 5E) · 5D AMT confluence → 5E live accept + LOCK. Diagnostics OFF default; GEX never a necessary condition (§50); DLL read-only. Ch 76/77/79 remain OUT OF SCOPE. |
 
 ## Foundation repair day (2026-07-27/28) — CODE/TEST PASS, LIVE ACCEPTANCE MIXED
 
