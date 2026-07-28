@@ -428,6 +428,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Older than this ⇒ treated as stale ⇒ nothing renders.")]
     public int OptionFlowMaxAgeSeconds { get; set; } = 1800;
 
+    [DisplayName("OptionFlow Confluence Tolerance")]
+    [Description("Price distance within which a GEX level is marked confluent with an AMT/profile/reference level. 0 disables confluence. Display-only — never affects any decision.")]
+    public decimal OptionFlowConfluenceTolerance { get; set; } = 2.0m;
+
     [DisplayName("OptionFlow Panel Inset From Right")]
     [Description("Panel left edge = right chart edge minus this many pixels (top-right anchor).")]
     public int OptionFlowPanelMarginX { get; set; } = 210;
@@ -2977,9 +2981,10 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 renderer?.Update(null, false);
             }
 
+            PrimaryProfileOverlayViewModel? amtVm = null;
             if (EnablePrimaryProfileOverlay && overlay is not null)
             {
-                var ovm = PrimaryProfileOverlayViewModel.FromProfiles(
+                amtVm = PrimaryProfileOverlayViewModel.FromProfiles(
                     profiles,
                     ShowPreviousProfileLevels,
                     composite,
@@ -2987,7 +2992,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     showCompositePreview: EnableDevelopingCompositePreview,
                     structuralReferences: references,
                     enableStructuralReferenceOverlay: EnableStructuralReferences && EnableStructuralReferenceOverlay);
-                overlay.Update(ovm);
+                overlay.Update(amtVm);
             }
             else
             {
@@ -3007,8 +3012,25 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 var product = string.IsNullOrWhiteSpace(OptionFlowProduct)
                     ? "GC" : OptionFlowProduct.Trim().ToUpperInvariant();
                 _optionFlowProvider.Refresh(product, DateTimeOffset.UtcNow);
-                _optionFlowRenderer.Update(
-                    OptionFlowOverlayViewModel.Build(_optionFlowProvider.Current));
+
+                // AMT confluence: match GEX levels to existing profile/reference
+                // levels. Display-only; builds the AMT view for confluence even when
+                // the profile overlay itself is off. Never mutates any decision.
+                List<AmtLevelRef>? amtRefs = null;
+                if (OptionFlowConfluenceTolerance > 0m)
+                {
+                    amtVm ??= PrimaryProfileOverlayViewModel.FromProfiles(
+                        profiles, ShowPreviousProfileLevels, composite, EnableCompositeOverlay,
+                        showCompositePreview: EnableDevelopingCompositePreview,
+                        structuralReferences: references,
+                        enableStructuralReferenceOverlay: EnableStructuralReferences && EnableStructuralReferenceOverlay);
+                    amtRefs = amtVm.Levels
+                        .Select(l => new AmtLevelRef(l.Price, l.Label))
+                        .ToList();
+                }
+
+                _optionFlowRenderer.Update(OptionFlowOverlayViewModel.Build(
+                    _optionFlowProvider.Current, amtRefs, OptionFlowConfluenceTolerance));
             }
             else
             {

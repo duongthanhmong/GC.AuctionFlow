@@ -73,6 +73,35 @@ public sealed class OptionFlowOverlayViewModelTests
     }
 
     [Fact]
+    public void Gex_level_near_amt_level_is_marked_confluent()
+    {
+        var amt = new List<AmtLevelRef>
+        {
+            new(4201.0m, "REF CONFIRMED | CMP RANGE HIGH | 4201.0"),   // 1.0 from the 4200 wall
+            new(3500.0m, "REF | FAR | 3500"),                          // far away
+        };
+        var vm = OptionFlowOverlayViewModel.Build(SampleContext(), amt, tolerance: 2.0m);
+
+        var wall = vm.Lines.First(l => l.Price == 4200m);
+        Assert.True(wall.Confluent);
+        Assert.Equal("CMP RANGE HIGH", wall.ConfluenceWith);
+        Assert.StartsWith("◆", wall.Label);
+
+        var atm = vm.Lines.First(l => l.Price == 4080m);
+        Assert.False(atm.Confluent);   // nearest AMT (4201) is far from 4080
+
+        Assert.Contains(vm.PanelLines, p => p.StartsWith("Confluence x"));
+    }
+
+    [Fact]
+    public void No_confluence_when_tolerance_zero_or_no_amt()
+    {
+        var vm = OptionFlowOverlayViewModel.Build(SampleContext(), null, tolerance: 0m);
+        Assert.All(vm.Lines, l => Assert.False(l.Confluent));
+        Assert.DoesNotContain(vm.PanelLines, p => p.StartsWith("Confluence"));
+    }
+
+    [Fact]
     public void Same_price_levels_merge_into_one_line_with_dominant_kind()
     {
         var ctx = new GexContext(

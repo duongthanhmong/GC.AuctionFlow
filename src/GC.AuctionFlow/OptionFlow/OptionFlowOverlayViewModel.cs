@@ -12,11 +12,29 @@ public enum OptionFlowLineKind
     Other
 }
 
+/// <summary>An existing AMT / profile / reference level to test GEX confluence against.</summary>
+public sealed record AmtLevelRef(decimal Price, string Label)
+{
+    /// <summary>Compact descriptor pulled from a "REF ... | NAME | price" style label.</summary>
+    public string ShortName
+    {
+        get
+        {
+            var parts = Label.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return parts.Length >= 2 ? parts[^2] : Label.Trim();
+        }
+    }
+}
+
 /// <summary>
 /// One horizontal line to draw. <see cref="Priority"/> orders label-collision
-/// resolution (higher wins its label; the line is always drawn).
+/// resolution (higher wins its label; the line is always drawn). When
+/// <see cref="Confluent"/>, this GEX level sits within tolerance of an existing
+/// AMT level (<see cref="ConfluenceWith"/>) — a display-only annotation.
 /// </summary>
-public sealed record OptionFlowLine(decimal Price, string Label, OptionFlowLineKind Kind, int Priority);
+public sealed record OptionFlowLine(
+    decimal Price, string Label, OptionFlowLineKind Kind, int Priority,
+    bool Confluent = false, string? ConfluenceWith = null);
 
 /// <summary>
 /// Pure mapping from a <see cref="GexContext"/> to drawable overlay lines and a
@@ -73,7 +91,13 @@ public sealed record OptionFlowOverlayViewModel(
         _ => levelType
     };
 
-    public static OptionFlowOverlayViewModel Build(GexContext? ctx)
+    public static OptionFlowOverlayViewModel Build(GexContext? ctx) =>
+        Build(ctx, null, 0m);
+
+    /// <param name="amtLevels">Existing AMT/profile/reference levels for confluence.</param>
+    /// <param name="tolerance">Max price distance (same units as strikes) to count as confluent.</param>
+    public static OptionFlowOverlayViewModel Build(
+        GexContext? ctx, IReadOnlyList<AmtLevelRef>? amtLevels, decimal tolerance)
     {
         if (ctx is null)
             return Empty;
@@ -88,13 +112,19 @@ public sealed record OptionFlowOverlayViewModel(
             list.Add(l);
         }
 
+        var confluences = new List<string>();
         var lines = new List<OptionFlowLine>(groups.Count);
         foreach (var (price, members) in groups)
         {
             var kind = members.Select(m => KindOf(m.LevelType))
                               .OrderByDescending(PriorityOf).First();
             var tags = string.Join("+", members.Select(m => Tag(m.LevelType)).Distinct());
-            lines.Add(new OptionFlowLine(price, $"{tags} {price:0.##}", kind, PriorityOf(kind)));
+
+            var (confluent, with) = NearestAmt(price, amtLevels, tolerance);
+            var label = confluent ? $"◆ {tags} {price:0.##}" : $"{tags} {price:0.##}";
+            lines.Add(new OptionFlowLine(price, label, kind, PriorityOf(kind), confluent, with));
+            if (confluent && with is not null)
+                confluences.Add($"{price:0.##} {tags} = {with}");
         }
         lines.Sort((a, b) => a.Price.CompareTo(b.Price));
 
@@ -116,6 +146,34 @@ public sealed record OptionFlowOverlayViewModel(
         if (a?.DealerPositioning is { } dp && dp.Posture is { } posture)
             panel.Add($"Dealer {posture.Replace('_', ' ')}");
 
+        if (confluences.Count > 0)
+        {
+            panel.Add($"Confluence x{confluences.Count}:");
+            foreach (var c in confluences)
+                panel.Add($"  {c}");
+        }
+
         return new OptionFlowOverlayViewModel(lines.Count > 0 || panel.Count > 1, lines, panel);
+    }
+
+    /// <summary>Nearest AMT level within tolerance, or (false, null).</summary>
+    private static (bool confluent, string? with) NearestAmt(
+        decimal price, IReadOnlyList<AmtLevelRef>? amtLevels, decimal tolerance)
+    {
+        if (amtLevels is null || amtLevels.Count == 0 || tolerance <= 0m)
+            return (false, null);
+
+        AmtLevelRef? best = null;
+        var bestDist = decimal.MaxValue;
+        foreach (var a in amtLevels)
+        {
+            var d = Math.Abs(a.Price - price);
+            if (d <= tolerance && d < bestDist)
+            {
+                best = a;
+                bestDist = d;
+            }
+        }
+        return best is null ? (false, null) : (true, best.ShortName);
     }
 }

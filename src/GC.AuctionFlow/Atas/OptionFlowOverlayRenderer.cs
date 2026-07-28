@@ -56,7 +56,8 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
             {
                 var y = container.GetYByPrice(line.Price, false);
                 var color = ColorFor(line.Kind);
-                context.DrawLine(new RenderPen(color, 1f), x0, y, x1, y);
+                // Confluent GEX+AMT levels drawn thicker (the '◆' marker is in the label).
+                context.DrawLine(new RenderPen(color, line.Confluent ? 2.5f : 1f), x0, y, x1, y);
 
                 var collides = false;
                 foreach (var yy in labelledYs)
