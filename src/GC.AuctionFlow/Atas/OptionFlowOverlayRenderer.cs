@@ -27,7 +27,8 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
         Volatile.Write(ref _viewModel, viewModel);
     }
 
-    public void Render(RenderContext context, DrawingLayouts layout, IChart? chart, int panelMarginX, int panelMarginY)
+    public void Render(RenderContext context, DrawingLayouts layout, IChart? chart,
+        int panelMarginX, int panelMarginY, bool showProfile, int profileMaxWidth)
     {
         if (_disposed || context is null || chart is null)
             return;
@@ -59,6 +60,11 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
                 return;
             }
 
+            // GEX profile histogram (drawn first, behind the lines/labels).
+            if (showProfile && vm.Profile.Count > 0)
+                DrawProfile(context, vm.Profile, x0, Math.Max(20, profileMaxWidth),
+                    p => container.GetYByPrice(p, false));
+
             // Draw lines highest-priority first; a label is suppressed when it would
             // land within MinLabelSepPx of one already drawn, so labels never stack.
             const int MinLabelSepPx = 13;
@@ -87,6 +93,33 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
         catch
         {
             // Contained: render must never throw into ATAS.
+        }
+    }
+
+    private static void DrawProfile(RenderContext context, IReadOnlyList<GexProfileNode> profile,
+        int x0, int maxWidth, Func<decimal, int> priceToY)
+    {
+        // Bar height ≈ pixel gap between adjacent strikes (clamped), so bars tile
+        // like a histogram without overlapping.
+        var barH = 3;
+        if (profile.Count >= 2)
+        {
+            var y0 = priceToY((decimal)profile[0].Strike);
+            var y1 = priceToY((decimal)profile[1].Strike);
+            barH = Math.Clamp(Math.Abs(y1 - y0) - 1, 2, 10);
+        }
+
+        foreach (var node in profile)
+        {
+            var norm = node.Normalized;
+            if (norm == 0.0) continue;
+            var len = (int)(Math.Min(Math.Abs(norm), 1.0) * maxWidth);
+            if (len < 1) continue;
+            var y = priceToY((decimal)node.Strike);
+            var color = norm > 0
+                ? Color.FromArgb(150, 70, 190, 130)   // positive GEX: green
+                : Color.FromArgb(150, 210, 90, 90);    // negative GEX: red
+            context.FillRectangle(color, new Rectangle(x0, y - barH / 2, len, barH));
         }
     }
 

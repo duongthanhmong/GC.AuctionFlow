@@ -5,6 +5,9 @@ namespace GC.AuctionFlow.OptionFlow;
 /// <summary>One drawable option-derived level (VALID only).</summary>
 public sealed record GexLevel(string LevelType, string Scope, double Price);
 
+/// <summary>One strike in the GEX histogram. Normalized ∈ [-1,1] vs max |net_gex|.</summary>
+public sealed record GexProfileNode(double Strike, double NetGex, double Normalized);
+
 /// <summary>
 /// Validated, read-only option-flow context sourced from the sidecar. OPTIONAL by
 /// contract (D-V13-002a / v1.3 §50): callers must treat a <c>null</c> GexContext as
@@ -21,7 +24,8 @@ public sealed record GexContext(
     string? DataHealth,
     long PublishedAtEpoch,
     IReadOnlyList<GexLevel> Levels,
-    AnalyticsDto? Analytics)
+    AnalyticsDto? Analytics,
+    IReadOnlyList<GexProfileNode> Profile)
 {
     public const string SchemaVersion = "gcae-optionflow-v1";
 
@@ -58,6 +62,13 @@ public sealed record GexContext(
             levels.Add(new GexLevel(l.LevelType!, l.Scope!, l.Price.Value));
         }
 
+        var profile = new List<GexProfileNode>();
+        foreach (var n in dto.GexProfile ?? new List<GexProfileNodeDto>())
+        {
+            if (n.Strike is null || n.NetGex is null) continue;
+            profile.Add(new GexProfileNode(n.Strike.Value, n.NetGex.Value, n.Normalized ?? 0.0));
+        }
+
         context = new GexContext(
             Product: dto.Product!,
             UnderlyingSymbol: dto.UnderlyingSymbol,
@@ -68,7 +79,8 @@ public sealed record GexContext(
             DataHealth: dto.DataHealth,
             PublishedAtEpoch: dto.PublishedAtEpoch!.Value,
             Levels: levels,
-            Analytics: dto.Analytics);
+            Analytics: dto.Analytics,
+            Profile: profile);
         return SchemaValidationResult.Ok();
     }
 }

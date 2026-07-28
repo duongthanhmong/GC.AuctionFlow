@@ -113,6 +113,14 @@ def compute_full_levels(quotes: list[ContractQuote], F: float, product: str,
             levels_by_type["TRUE_ZERO_GAMMA"].detail.update(
                 {"flip_zone_low": zlo, "flip_zone_high": zhi})
 
+    # Per-strike GEX profile for the histogram (normalized by max |net_gex|).
+    max_abs = max((abs(s.net_gex) for s in table.values()), default=0.0) or 1.0
+    gex_profile = [
+        {"strike": s.strike, "net_gex": s.net_gex, "normalized": s.net_gex / max_abs}
+        for s in sorted(table.values(), key=lambda x: x.strike)
+        if s.net_gex != 0.0
+    ]
+
     iso, epoch = _now()
     return LevelsDoc(
         product=product, underlying_symbol=underlying_symbol, spot=F,
@@ -121,4 +129,5 @@ def compute_full_levels(quotes: list[ContractQuote], F: float, product: str,
         data_health="LIVE" if levels else "BLOCKED",
         coverage=_coverage(table), levels=levels,
         analytics=analytics.build_analytics(quotes, F, RISK_FREE_RATE),
+        gex_profile=gex_profile,
     )

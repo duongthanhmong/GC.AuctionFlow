@@ -47,6 +47,7 @@ class LevelsDoc:
     coverage: dict
     levels: list[OutLevel]
     analytics: dict | None = None   # deep metrics: vanna/charm walls, term structure, EM, skew
+    gex_profile: list | None = None  # per-strike [{strike, net_gex, normalized}] for the histogram
     schema_version: str = SCHEMA_VERSION
 
     def to_json(self) -> dict:

@@ -439,6 +439,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [DisplayName("OptionFlow Panel Top Offset")]
     public int OptionFlowPanelMarginY { get; set; } = 40;
 
+    [DisplayName("Show OptionFlow GEX Profile")]
+    [Description("Draw the per-strike GEX histogram (green = positive, red = negative) on the left edge. Read-only, display-only.")]
+    public bool ShowOptionFlowProfile { get; set; }
+
+    [DisplayName("OptionFlow Profile Width (px)")]
+    public int OptionFlowProfileWidth { get; set; } = 140;
+
     [Category("Primary Profile")]
     [DisplayName("Enable TPO Parity Diagnostics")]
     [Description("When true, GPS card shows bounded Classic TPO parity diagnostic rows. Default false. No file I/O.")]
@@ -740,7 +747,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
 
             if (EnableOptionFlowOverlay)
                 _optionFlowRenderer?.Render(context, drawingLayouts, ChartInfo,
-                    OptionFlowPanelMarginX, OptionFlowPanelMarginY);
+                    OptionFlowPanelMarginX, OptionFlowPanelMarginY,
+                    ShowOptionFlowProfile, OptionFlowProfileWidth);
         }
         catch
         {

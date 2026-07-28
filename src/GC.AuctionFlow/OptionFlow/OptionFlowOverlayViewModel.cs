@@ -47,10 +47,11 @@ public sealed record OptionFlowLine(
 public sealed record OptionFlowOverlayViewModel(
     bool HasData,
     IReadOnlyList<OptionFlowLine> Lines,
-    IReadOnlyList<string> PanelLines)
+    IReadOnlyList<string> PanelLines,
+    IReadOnlyList<GexProfileNode> Profile)
 {
     public static readonly OptionFlowOverlayViewModel Empty =
-        new(false, Array.Empty<OptionFlowLine>(), Array.Empty<string>());
+        new(false, Array.Empty<OptionFlowLine>(), Array.Empty<string>(), Array.Empty<GexProfileNode>());
 
     private static OptionFlowLineKind KindOf(string levelType) => levelType switch
     {
@@ -155,7 +156,8 @@ public sealed record OptionFlowOverlayViewModel(
                 panel.Add($"  {c}");
         }
 
-        return new OptionFlowOverlayViewModel(lines.Count > 0 || panel.Count > 1, lines, panel);
+        return new OptionFlowOverlayViewModel(
+            lines.Count > 0 || panel.Count > 1, lines, panel, ctx.Profile);
     }
 
     /// <summary>Nearest AMT level within tolerance, or (false, null).</summary>

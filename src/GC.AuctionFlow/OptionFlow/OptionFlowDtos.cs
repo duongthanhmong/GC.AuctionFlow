@@ -23,6 +23,14 @@ public sealed class OptionFlowDocDto
     public CoverageDto? Coverage { get; set; }
     public List<LevelDto>? Levels { get; set; }
     public AnalyticsDto? Analytics { get; set; }
+    public List<GexProfileNodeDto>? GexProfile { get; set; }
+}
+
+public sealed class GexProfileNodeDto
+{
+    public double? Strike { get; set; }
+    public double? NetGex { get; set; }
+    public double? Normalized { get; set; }
 }
 
 public sealed class CoverageDto

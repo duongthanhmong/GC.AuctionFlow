@@ -26,7 +26,8 @@ public sealed class OptionFlowOverlayViewModelTests
             ExpectedMove = new ExpectedMoveDto { OneDayMove = 43.6, AtmIv = 0.204 },
             IvSkew = new IvSkewDto { Skew = 0.055 },
             DealerPositioning = new DealerPositioningDto { Posture = "SHORT_GAMMA" },
-        });
+        },
+        Profile: Array.Empty<GexProfileNode>());
 
     [Fact]
     public void Null_context_yields_empty_view()
@@ -111,7 +112,8 @@ public sealed class OptionFlowOverlayViewModelTests
                 new("CALL_GEX_WALL", "0DTE", 4100.0),
                 new("GAMMA_ACTIVITY_PEAK", "0DTE", 4100.0),
             },
-            Analytics: null);
+            Analytics: null,
+            Profile: Array.Empty<GexProfileNode>());
 
         var vm = OptionFlowOverlayViewModel.Build(ctx);
         Assert.Single(vm.Lines);                                   // merged, not stacked

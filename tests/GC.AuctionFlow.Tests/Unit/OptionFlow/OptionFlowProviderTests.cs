@@ -6,7 +6,7 @@ public sealed class OptionFlowProviderTests
 {
     private static GexContext Ctx() => new(
         "GC", "GCQ6", 4079.75, "NEGATIVE_GAMMA", 4086.46, null, "LIVE",
-        1_785_182_400, new List<GexLevel>(), null);
+        1_785_182_400, new List<GexLevel>(), null, Array.Empty<GexProfileNode>());
 
     [Fact]
     public void First_refresh_reads_then_throttles_within_interval()

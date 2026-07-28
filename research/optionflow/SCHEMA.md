@@ -24,6 +24,7 @@ Written atomically (tmp + replace); readers open shared, non-locking.
 | `coverage` | object | `{strike_count, oi_coverage_pct, gex_contract_coverage_pct}` |
 | `levels` | array | see below |
 | `analytics` | object\|null | see below |
+| `gex_profile` | array\|null | per-strike histogram: `[{strike, net_gex, normalized}]`, `normalized` ∈ [-1,1] vs max \|net_gex\| |
 
 ## `levels[]` — drawable reference lines
 

@@ -50,7 +50,11 @@ public sealed class OptionFlowReaderTests : IDisposable
         "atm": {"strike": 4080.0, "call_price": 21.4, "put_price": 14.5, "straddle": 35.9, "straddle_move_to_expiry": 35.9, "atm_iv": 0.202, "dte": 0.8, "distance_from_spot": 0.25},
         "dealer_positioning": {"total_net_gex": -1447561.0, "total_net_dex": 0.0, "gross_gamma": 5.0, "posture": "SHORT_GAMMA"},
         "term_structure": {"0DTE": {"net_gex": -692448.0, "strikes": 62, "contracts": 79}, "1_7DTE": {"net_gex": -755113.0, "strikes": 62, "contracts": 80}}
-      }
+      },
+      "gex_profile": [
+        {"strike": 4100.0, "net_gex": 203552629.0, "normalized": 1.0},
+        {"strike": 4000.0, "net_gex": -150000000.0, "normalized": -0.737}
+      ]
     }
     """.Replace("__SCHEMA__", schema).Replace("__EPOCH__", epoch.ToString());
 
@@ -71,6 +75,11 @@ public sealed class OptionFlowReaderTests : IDisposable
         Assert.DoesNotContain(ctx.Levels, l => l.LevelType == "MAX_PAIN");
         Assert.Equal(4080.0, ctx.Analytics!.Atm!.Strike);
         Assert.Equal("SHORT_GAMMA", ctx.Analytics!.DealerPositioning!.Posture);
+
+        // GEX profile parsed for the histogram.
+        Assert.Equal(2, ctx.Profile.Count);
+        Assert.Contains(ctx.Profile, n => n.Strike == 4100.0 && n.Normalized == 1.0);
+        Assert.Contains(ctx.Profile, n => n.Strike == 4000.0 && n.NetGex < 0);
     }
 
     [Fact]
