@@ -18,10 +18,12 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
     private readonly RenderFont _lineFont = new("Segoe UI", 9f, FontStyle.Regular);
     private readonly RenderFont _panelFont = new("Segoe UI", 9f, FontStyle.Bold);
     private OptionFlowOverlayViewModel? _viewModel;
+    private string? _diagnostic;
     private bool _disposed;
 
-    public void Update(OptionFlowOverlayViewModel? viewModel)
+    public void Update(OptionFlowOverlayViewModel? viewModel, string? diagnostic = null)
     {
+        Volatile.Write(ref _diagnostic, diagnostic);
         Volatile.Write(ref _viewModel, viewModel);
     }
 
@@ -33,8 +35,7 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
             return;
 
         var vm = Volatile.Read(ref _viewModel);
-        if (vm is null || !vm.HasData)
-            return;
+        var diag = Volatile.Read(ref _diagnostic);
 
         try
         {
@@ -47,6 +48,16 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
             var x0 = container.GetXByBar(first, false);
             var x1 = container.GetXByBar(last, false);
             if (x1 <= x0) x1 = x0 + 800;
+            var diagPanelX = Math.Max(x0 + 8, x1 - panelMarginX);
+
+            // No data: surface WHY (path/stale/schema) so the overlay is self-diagnosing.
+            if (vm is null || !vm.HasData)
+            {
+                if (!string.IsNullOrEmpty(diag))
+                    context.DrawString("OptionFlow: " + diag, _lineFont,
+                        Color.FromArgb(190, 210, 160, 160), diagPanelX, panelMarginY);
+                return;
+            }
 
             // Draw lines highest-priority first; a label is suppressed when it would
             // land within MinLabelSepPx of one already drawn, so labels never stack.

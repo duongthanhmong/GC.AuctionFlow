@@ -3014,23 +3014,29 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _optionFlowProvider.Refresh(product, DateTimeOffset.UtcNow);
 
                 // AMT confluence: match GEX levels to existing profile/reference
-                // levels. Display-only; builds the AMT view for confluence even when
-                // the profile overlay itself is off. Never mutates any decision.
+                // levels. Display-only; wrapped so a confluence failure can NEVER
+                // break the overlay itself. Never mutates any decision.
                 List<AmtLevelRef>? amtRefs = null;
-                if (OptionFlowConfluenceTolerance > 0m)
+                try
                 {
-                    amtVm ??= PrimaryProfileOverlayViewModel.FromProfiles(
-                        profiles, ShowPreviousProfileLevels, composite, EnableCompositeOverlay,
-                        showCompositePreview: EnableDevelopingCompositePreview,
-                        structuralReferences: references,
-                        enableStructuralReferenceOverlay: EnableStructuralReferences && EnableStructuralReferenceOverlay);
-                    amtRefs = amtVm.Levels
-                        .Select(l => new AmtLevelRef(l.Price, l.Label))
-                        .ToList();
+                    if (OptionFlowConfluenceTolerance > 0m)
+                    {
+                        amtVm ??= PrimaryProfileOverlayViewModel.FromProfiles(
+                            profiles, ShowPreviousProfileLevels, composite, EnableCompositeOverlay,
+                            showCompositePreview: EnableDevelopingCompositePreview,
+                            structuralReferences: references,
+                            enableStructuralReferenceOverlay: EnableStructuralReferences && EnableStructuralReferenceOverlay);
+                        amtRefs = amtVm.Levels
+                            .Where(l => !string.IsNullOrWhiteSpace(l.Label))
+                            .Select(l => new AmtLevelRef(l.Price, l.Label))
+                            .ToList();
+                    }
                 }
+                catch { amtRefs = null; }
 
-                _optionFlowRenderer.Update(OptionFlowOverlayViewModel.Build(
-                    _optionFlowProvider.Current, amtRefs, OptionFlowConfluenceTolerance));
+                _optionFlowRenderer.Update(
+                    OptionFlowOverlayViewModel.Build(_optionFlowProvider.Current, amtRefs, OptionFlowConfluenceTolerance),
+                    _optionFlowProvider.Diagnostic);
             }
             else
             {

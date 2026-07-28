@@ -20,6 +20,8 @@ public sealed record AmtLevelRef(decimal Price, string Label)
     {
         get
         {
+            if (string.IsNullOrWhiteSpace(Label))
+                return "";
             var parts = Label.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             return parts.Length >= 2 ? parts[^2] : Label.Trim();
         }
