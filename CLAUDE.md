@@ -6,6 +6,13 @@ Trước mọi task, phải đọc ba tài liệu:
 2. `docs/spec/GC_AuctionFlow_Engine_v1.3_Knowledge_Grounded_Spec_VI.md`
 3. `docs/implementation/IMPLEMENTATION_STATUS.md`
 
+**Tài liệu tri thức nền (KDK):**
+`docs/spec/KDK_KIM_DAU_KINH_CHUYEN_SAU_OPTIONS.md` — KIM ĐẤU KINH, Phương pháp
+Tam Trụ (AMT + Order Flow + Options). Là **nguồn tri thức nền** mà v1.3 grounded
+vào, và là **tài liệu chuẩn để bên giám sát soi tính đúng đắn miền (domain
+correctness)**. Không đọc hết mỗi task (6000+ dòng); **tra chương liên quan** khi
+đụng ngữ nghĩa AMT/Order Flow/Options, rồi đối chiếu với v1.3.
+
 ## Vai trò
 
 - **v1.2** quyết định kiến trúc, module boundaries, một-DLL, roadmap,
@@ -16,6 +23,11 @@ Trước mọi task, phải đọc ba tài liệu:
   và phase nào được phép thực hiện.
 - **Source code cùng tests đã khóa** quyết định tên enum, policy version,
   schema hiện hữu và runtime behavior đã được chứng minh.
+- **KDK** là nguồn tri thức miền (ý nghĩa khái niệm, nguyên tắc phương pháp,
+  tháp bằng chứng, quy ước `*`). KDK **KHÔNG** quyết định phạm vi triển khai,
+  KHÔNG tự mở khóa phase/chương nào. Khi KDK nói về một tính năng mà v1.3/
+  IMPLEMENTATION_STATUS chưa authorize (vd Ch 44–50 dạng chiến lược, Ch 76/77/79),
+  **v1.3 và STATUS thắng** — KDK chỉ là kiến thức, không phải lệnh triển khai.
 
 ## Thứ tự ưu tiên
 
@@ -26,8 +38,25 @@ Khi xung đột:
 3. Milestone được operator giao rõ ràng
 4. v1.3 đối với ngữ nghĩa miền
 5. v1.2 đối với kiến trúc và roadmap
+6. KDK đối với ý nghĩa khái niệm và nguyên tắc phương pháp — **không vượt quyền
+   scope** của (1)–(5).
 
 Không dùng một tài liệu để vượt quyền tài liệu khác.
+
+## Nguyên tắc KDK ràng buộc (bên giám sát soi theo đây)
+
+Các nguyên tắc phương pháp trong KDK **ràng buộc** mọi phần domain, kể cả Options:
+
+- **Tháp bằng chứng (9 tầng):** Options ở **tầng 7**, dưới "tính toàn vẹn dữ liệu",
+  "vị trí cấu trúc", "diễn biến đấu giá", "sự chấp nhận của giá", "dòng lệnh". **Tầng
+  dưới không phủ quyết tầng trên.** Options/GEX **không phủ quyết** sự chấp nhận rõ
+  ràng của giá — khớp với bất biến v1.3 §50 (GEX không bao giờ là điều kiện cần).
+- **Quy ước `*`:** nội dung `*` (kinh nghiệm/nghiên cứu) **không** tự tạo entry, tăng
+  size, xác định hướng, hay phủ quyết chấp nhận giá. Không nâng `*` thành quy luật
+  nếu chưa qua lộ trình kiểm chứng (phát lại → quan sát → mô phỏng → ngoài mẫu).
+- **"Không giao dịch một tín hiệu"** — luôn cần: bằng chứng + điều kiện sai + không
+  gian mục tiêu + dữ liệu đủ tin cậy.
+- Không tự đặt threshold (trùng `G-CAL-001`).
 
 ## Các lệnh cấm
 
