@@ -48,15 +48,29 @@ public sealed class OptionFlowOverlayRenderer : IDisposable
             var x1 = container.GetXByBar(last, false);
             if (x1 <= x0) x1 = x0 + 800;
 
-            foreach (var line in vm.Lines)
+            // Draw lines highest-priority first; a label is suppressed when it would
+            // land within MinLabelSepPx of one already drawn, so labels never stack.
+            const int MinLabelSepPx = 13;
+            var labelledYs = new List<int>(vm.Lines.Count);
+            foreach (var line in vm.Lines.OrderByDescending(l => l.Priority).ThenBy(l => l.Price))
             {
                 var y = container.GetYByPrice(line.Price, false);
                 var color = ColorFor(line.Kind);
                 context.DrawLine(new RenderPen(color, 1f), x0, y, x1, y);
-                context.DrawString(line.Label, _lineFont, color, x0 + 4, y - 12);
+
+                var collides = false;
+                foreach (var yy in labelledYs)
+                    if (Math.Abs(yy - y) < MinLabelSepPx) { collides = true; break; }
+                if (!collides)
+                {
+                    labelledYs.Add(y);
+                    context.DrawString(line.Label, _lineFont, color, x0 + 4, y - 12);
+                }
             }
 
-            DrawPanel(context, vm, x0 + panelMarginX, panelMarginY);
+            // Panel anchored top-right: panelMarginX = inset from the right edge.
+            var panelX = Math.Max(x0 + 8, x1 - panelMarginX);
+            DrawPanel(context, vm, panelX, panelMarginY);
         }
         catch
         {

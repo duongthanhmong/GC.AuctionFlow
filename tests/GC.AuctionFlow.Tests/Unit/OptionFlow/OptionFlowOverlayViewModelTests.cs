@@ -64,11 +64,31 @@ public sealed class OptionFlowOverlayViewModelTests
     }
 
     [Fact]
-    public void Labels_are_human_readable_and_carry_price()
+    public void Labels_are_compact_and_carry_price()
     {
         var vm = OptionFlowOverlayViewModel.Build(SampleContext());
         var call = vm.Lines.First(l => l.Kind == OptionFlowLineKind.CallWall);
-        Assert.Contains("CALL OI WALL", call.Label);
+        Assert.Contains("CallOI", call.Label);
         Assert.Contains("4200", call.Label);
+    }
+
+    [Fact]
+    public void Same_price_levels_merge_into_one_line_with_dominant_kind()
+    {
+        var ctx = new GexContext(
+            "GC", "GCQ6", 4080.0, "NEGATIVE_GAMMA", null, null, "LIVE", 1_785_182_400,
+            new List<GexLevel>
+            {
+                new("CALL_GEX_WALL", "0DTE", 4100.0),
+                new("GAMMA_ACTIVITY_PEAK", "0DTE", 4100.0),
+            },
+            Analytics: null);
+
+        var vm = OptionFlowOverlayViewModel.Build(ctx);
+        Assert.Single(vm.Lines);                                   // merged, not stacked
+        var line = vm.Lines[0];
+        Assert.Equal(OptionFlowLineKind.CallWall, line.Kind);      // wall (80) beats peak (40)
+        Assert.Contains("CallGEX", line.Label);
+        Assert.Contains("GammaPeak", line.Label);
     }
 }

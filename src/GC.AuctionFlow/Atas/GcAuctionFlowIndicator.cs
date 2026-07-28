@@ -428,11 +428,12 @@ public sealed class GcAuctionFlowIndicator : Indicator
     [Description("Older than this ⇒ treated as stale ⇒ nothing renders.")]
     public int OptionFlowMaxAgeSeconds { get; set; } = 1800;
 
-    [DisplayName("OptionFlow Panel Margin X")]
-    public int OptionFlowPanelMarginX { get; set; } = 12;
+    [DisplayName("OptionFlow Panel Inset From Right")]
+    [Description("Panel left edge = right chart edge minus this many pixels (top-right anchor).")]
+    public int OptionFlowPanelMarginX { get; set; } = 210;
 
-    [DisplayName("OptionFlow Panel Margin Y")]
-    public int OptionFlowPanelMarginY { get; set; } = 320;
+    [DisplayName("OptionFlow Panel Top Offset")]
+    public int OptionFlowPanelMarginY { get; set; } = 40;
 
     [Category("Primary Profile")]
     [DisplayName("Enable TPO Parity Diagnostics")]
