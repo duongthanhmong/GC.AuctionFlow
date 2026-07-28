@@ -46,7 +46,7 @@ KDK có đủ chiều sâu đó. v1.3 chuyển tri thức KDK thành **hợp đ�
 | Ch 76 (ghim giá quanh GEX), Ch 77 (khuếch đại GEX âm), Ch 79 (AMT vs GEX xung đột) | **OUT OF SCOPE** — không triển khai họ chiến lược này (cần mở khóa riêng). |
 | `GexContext` trong thesis contract | **Tùy chọn, đọc-only**; `null` khi vắng; **không bao giờ là điều kiện cần** cho bất kỳ kết luận nào (bất biến §50 giữ nguyên). |
 
-> Khi một chương KDK nói "vai trò của GEX", v1.3 diễn giải là: **trường bối cảnh tùy chọn, hiện đang không khả dụng**. Mọi logic phải hoạt động đầy đủ khi GEX vắng mặt. KDK Ch 51 đã quy định rõ: khi thiếu GEX, AMT + Order Flow vẫn đủ để ra kết luận; GEX không bao giờ là điều kiện cần.
+> Khi một chương KDK nói "vai trò của GEX", v1.3 diễn giải là: **trường bối cảnh tùy chọn, khả dụng qua Phase 5 (đọc-only, diagnostics-gated) nhưng có thể vắng bất cứ lúc nào** (file thiếu/cũ/tắt). Mọi logic phải hoạt động đầy đủ khi GEX vắng mặt. KDK Ch 51 đã quy định rõ: khi thiếu GEX, AMT + Order Flow vẫn đủ để ra kết luận; GEX không bao giờ là điều kiện cần.
 
 ## 0.4 Ký hiệu chuẩn tắc
 

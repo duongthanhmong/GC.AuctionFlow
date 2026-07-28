@@ -73,10 +73,14 @@ chain thẳng từ Rithmic, tính GEX + greeks bậc cao, ghi `artifacts/optionf
 SCHEMA.md`). Đã live: OI verified 202/202, ATM/walls/flip/regime/vanna/charm/
 term-structure/EM/skew/gamma-curve.
 
+**Ưu tiên GC trước (operator 2026-07-28).** Hoàn thiện + LOCK GC trước; ES/NQ là
+nâng cấp sau (sidecar đã chạy được nhưng chưa live-accept, để dành).
+
 Roadmap DLL (đọc-only, diagnostics OFF mặc định):
-- **5-0** Governance ✅ · **5A** freeze schema ✅ (+ ES/NQ live đang xác nhận)
-- **5B** `OptionFlowReader` + `GexContext` nullable + **test regression bất biến**
-- **5C** render lines/panel · **5D** AMT confluence (display-only) · **5E** live accept → LOCK
+- **5-0** Governance ✅ · **5A** freeze schema ✅ (GC; ES/NQ deferred)
+- **5B** `OptionFlowReader` + `GexContext` nullable ✅ CODE/TEST PASS
+- **5C** render lines/panel ✅ + polish ✅ · **5D** AMT confluence ✅ (display-only)
+- **5E** GC live accept 1 phiên (sidecar account B + ATAS account A) → **LOCK**
 
 Bất biến (bắt buộc, §50): `GexContext = null` khi file thiếu/cũ/tắt ⇒ mọi phase 1–4
 chạy **byte-identical** như chưa có GEX; GEX không bao giờ là điều kiện cần. DLL
