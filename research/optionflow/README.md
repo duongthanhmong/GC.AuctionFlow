@@ -75,10 +75,14 @@ pytest -q            # offline tests, no Rithmic needed
 Never in the repo. Create `C:\Users\LOQ\.gcae\rithmic.env`:
 
 ```
-RITHMIC_USER=fin_indirecttickapquhidepostnet
-RITHMIC_PASSWORD=<your password>
+RITHMIC_USER=<your Rithmic user id>
+RITHMIC_PASSWORD=<your Rithmic password>
 RITHMIC_SYSTEM_NAME=<the System you pick in Seachains' login dropdown>
 ```
+
+> Placeholders only. **Never** commit a real user id, password, token, key or
+> certificate to the repo, to a scan pattern, a log, or a report (see `SEC-001`).
+> The values live only in `C:\Users\LOQ\.gcae\rithmic.env`, which `.gitignore` excludes.
 
 `app_name`/`app_version` are not separate credentials — `async_rithmic` supplies
 defaults. If `RITHMIC_SYSTEM_NAME` is blank, `run_snapshot.py --list-systems`

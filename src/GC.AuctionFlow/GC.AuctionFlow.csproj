@@ -18,6 +18,29 @@
   </PropertyGroup>
 
   <!--
+    Phase A (A-IMPLEMENT-001 / A3) — reproducible build integrity. Behaviour-neutral:
+    these settings affect only build determinism/metadata, never IL semantics.
+    Cross-directory hash equality is achieved by the clean-build script passing a
+    PathMap that maps each build's source root to the fixed token '/_/'.
+  -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <!-- Map the project dir (wherever the repo lives) to a fixed token so the DLL is
+         byte-identical regardless of build location. Makes the deployable reproducible. -->
+    <PathMap>$(MSBuildProjectDirectory)\=/_/</PathMap>
+    <!-- Stop the SDK from embedding the git repo-root path (SourceRoot) as an absolute
+         path outside the project dir; that made the in-repo build differ from a copy.
+         With this off, PathMap fully governs embedded paths => build is path-independent. -->
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <DebugType>portable</DebugType>
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
+    <Optimize>true</Optimize>
+    <!-- SDK/compiler version is pinned by root global.json (sdk 10.0.302, rollForward disable),
+         not here. clean_build.sh fails if the resolved SDK differs from the pin. -->
+  </PropertyGroup>
+
+  <!--
     ATAS_HOME: operator environment variable when set; otherwise local default.
     Do not hardcode HintPath strings elsewhere — always go through $(ATAS_HOME).
   -->

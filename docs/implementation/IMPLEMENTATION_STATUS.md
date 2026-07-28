@@ -1748,3 +1748,31 @@ Focused live gate proved Evidence PARTIAL publication, natural UpperBoundary evi
 ## Phase 1B / 1A locks (unchanged)
 
 See prior closeout sections; tags and hashes unchanged.
+
+## Phase A — Foundation & Release Integrity (2026-07-28) — EVIDENCE ONLY, awaiting reviewer sign-off
+
+> Governance context: Round 1B audit CLOSED; reviewer authorized Phase A implementation
+> (freeze lifted only for release-integrity files, all domain logic frozen). This entry
+> records evidence; **not a LOCK**. No commit/tag/deploy performed. Details:
+> `docs/review/phaseA/A_IMPLEMENTATION_REPORT.md`.
+
+| Gate | Result |
+|------|--------|
+| A-ACC-01 credential assignment scan | PASS (0 literals) |
+| A-ACC-02 source archive forbidden entries | PASS (0) |
+| A-ACC-03 no OAC project in solution | PASS (GC.AuctionFlow + Tests only) |
+| A-ACC-04 one deployable DLL | PASS |
+| A-ACC-05 two isolated clean builds identical DLL | PASS |
+| A-ACC-06 PDB determinism (separate) | PASS |
+| A-ACC-07 build 0 errors / 0 warnings | PASS |
+| A-ACC-08 .NET regression | PASS (1461/1461) |
+| A-ACC-09 Python OptionFlow | PASS (37/37) |
+
+- Reproducible DLL SHA-256 (path-independent): `5d9e9d633d21d687e6205544d46e671eba0ce67acc51ac71cc466714e24450cb`
+- Reproducible PDB SHA-256: `d58d6300246fd9b5fd6f67419582585c7cdd50724e4b69b941327b07c1c8a845`
+- Prior (pre-reproducibility csproj) clean build `1526e42f…`; deployed archive `4c7b5f09…` (SUP-009).
+- csproj now sets Deterministic + ContinuousIntegrationBuild + PathMap +
+  EnableSourceControlManagerQueries=false; reproduced across isolated source paths using the
+  pinned .NET SDK 10.0.302 on the recorded environment; cross-machine reproducibility has not
+  yet been claimed.
+- Pending: SEC-001 password rotation (operator); TRACE-003..006 (02B, Phase B/C prereq).

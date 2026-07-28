@@ -3,6 +3,10 @@ bin/
 obj/
 [Bb]uild/
 [Oo]ut/
+# Python bytecode/cache (global; research/optionflow also has its own rules)
+__pycache__/
+*.pyc
+*.pyo
 artifacts/*
 !artifacts/.gitkeep
 !artifacts/build/
