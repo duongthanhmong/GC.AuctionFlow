@@ -80,7 +80,10 @@ Roadmap DLL (đọc-only, diagnostics OFF mặc định):
 - **5-0** Governance ✅ · **5A** freeze schema ✅ (GC; ES/NQ deferred)
 - **5B** `OptionFlowReader` + `GexContext` nullable ✅ CODE/TEST PASS
 - **5C** render lines/panel ✅ + polish ✅ · **5D** AMT confluence ✅ (display-only)
-- **5E** GC live accept 1 phiên (sidecar account B + ATAS account A) → **LOCK**
+- **5E** GC live accept 1 phiên → **LOCK**. Sidecar + ATAS chạy **cùng một** account
+  `fin` được (Rithmic cho nhiều kết nối ticker-plant song song; giới hạn 1-phiên chỉ
+  ở order plant). Live 2026-07-28: panel chart khớp khít số sidecar (spot/flip/ATM/
+  regime/skew/EM), 5 confluence hợp lý.
 
 Bất biến (bắt buộc, §50): `GexContext = null` khi file thiếu/cũ/tắt ⇒ mọi phase 1–4
 chạy **byte-identical** như chưa có GEX; GEX không bao giờ là điều kiện cần. DLL
