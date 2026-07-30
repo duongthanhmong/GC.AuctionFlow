@@ -306,4 +306,68 @@ public sealed class EpisodeDatasetStoreTests : IDisposable
         store.Append(Array.Empty<EpisodeDatasetRecord>());
         Assert.Equal(0, store.RowsAppended);
     }
+
+    // ========== F: disabling pauses, it does not erase ==========
+
+    /// <summary>
+    /// Turning the Research feature off must not reset the scanner's corpus.
+    ///
+    /// `Configure(enabled: false)` used to call `Reset()`, clearing the rows, the dedup set
+    /// and every count. The host object surviving the toggle was no comfort at all: a flag
+    /// flipped twice mid-session silently reset the sample any later calibration decision
+    /// would rest on, and `G-CAL-002` step 4 wants a sample spanning sessions.
+    ///
+    /// The published snapshot still goes to Disabled - that is the module's public statement
+    /// about what it is doing now, and it is unchanged.
+    /// </summary>
+    [Fact]
+    public async Task F01_Disabling_the_scanner_preserves_its_corpus()
+    {
+        var store = Store();
+        var scanner = new HistoricalScannerHost(
+            new HistoricalScannerPolicyConfig(enabled: true), store);
+        var closed = Phase5AHistoricalScannerTests.ClosedForStore(Episode("EP-1"), Episode("EP-2"));
+        var at = new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+        scanner.Rebuild(closed, at);
+        await Settle(store);
+
+        var collected = scanner.Current!.RowsCollected;
+        var rows = scanner.Rows.Count;
+        Assert.Equal(2, collected);
+
+        scanner.Configure(new HistoricalScannerPolicyConfig(enabled: false));
+
+        // Public output says Disabled; the corpus behind it is intact.
+        Assert.Equal(HistoricalScannerState.Disabled, scanner.Current!.State);
+        Assert.Equal(rows, scanner.Rows.Count);
+
+        // Re-enabled, the same rolling window is NOT folded again: the dedup set survived.
+        scanner.Configure(new HistoricalScannerPolicyConfig(enabled: true));
+        scanner.Rebuild(closed, at);
+
+        Assert.Equal(collected, scanner.Current!.RowsCollected);
+        Assert.Equal(rows, scanner.Rows.Count);
+        Assert.Equal(2, (await Store().LoadAsync()).Count);
+    }
+
+    /// <summary>A disabled rebuild collects nothing and leaves the file alone.</summary>
+    [Fact]
+    public async Task F02_A_disabled_scanner_collects_nothing_and_writes_nothing()
+    {
+        var store = Store();
+        var scanner = new HistoricalScannerHost(
+            new HistoricalScannerPolicyConfig(enabled: true), store);
+        var at = new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+        scanner.Rebuild(Phase5AHistoricalScannerTests.ClosedForStore(Episode("EP-1")), at);
+        await Settle(store);
+        var before = File.ReadAllBytes(store.FilePath);
+
+        scanner.Configure(new HistoricalScannerPolicyConfig(enabled: false));
+        scanner.Rebuild(Phase5AHistoricalScannerTests.ClosedForStore(Episode("EP-2")), at);
+
+        Assert.Equal(before, File.ReadAllBytes(store.FilePath));
+        Assert.Equal(1, store.RowsWritten);
+    }
 }

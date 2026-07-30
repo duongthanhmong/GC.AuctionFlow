@@ -146,6 +146,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
                     new ModuleDriveStep("AuctionEfficiencyEvidence", ProcessAuctionEfficiencyEvidence,
                         EnsureAuctionEfficiencyInitializedForPublish,
                         "ExecutedOrderflow", "ClusterRawFeatures", "AuctionEpisodes", "AcceptanceReentryEvidence"),
+                    // Research collection, not classification. It reads the efficiency
+                    // evidence directly and never requires the classifier, because the
+                    // corpus that would let the classifier be calibrated cannot depend on
+                    // the classifier being on.
+                    new ModuleDriveStep("EffortResultResearchCollector",
+                        ProcessEffortResultResearchCollector,
+                        null, "AuctionEfficiencyEvidence"),
                     new ModuleDriveStep("EffortResult", ProcessEffortResult,
                         EnsureEffortResultInitializedForPublish, "AuctionEfficiencyEvidence"),
                     new ModuleDriveStep("TradeFacilitation", ProcessTradeFacilitation,
@@ -222,6 +229,19 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private HistoricalBarReplayHost? _barReplayHost;
     private VolatilityRegimeHost? _volatilityRegimeHost;
     private ParticipationRegimeHost? _participationRegimeHost;
+    private EffortResultResearchCollector? _effortResultResearchCollector;
+    private EpisodeDatasetStore? _researchDatasetStore;
+
+    /// <summary>
+    /// The one research store this indicator owns.
+    ///
+    /// Both research hosts are handed **this instance**. They each default-construct their
+    /// own when none is supplied, which is right for a unit test and wrong here: two stores
+    /// mean two queues and two writer threads competing for the same two files, and the
+    /// "one owned thread" contract would be true of the class and false of the process.
+    /// </summary>
+    private EpisodeDatasetStore ResearchDatasetStore =>
+        _researchDatasetStore ??= new EpisodeDatasetStore();
     private Guid _sessionId;
     private int _disposed;
     private bool _instrumentCaptured;
@@ -2193,7 +2213,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 EnableStructuralReferences ? _referenceHost?.Current : null,
                 ExpectedTickSize > 0m ? ExpectedTickSize : RuntimeGateConfig.DefaultExpectedTickSize);
 
-            _historicalScannerHost ??= new HistoricalScannerHost(policy);
+            _historicalScannerHost ??= new HistoricalScannerHost(policy, ResearchDatasetStore);
             _historicalScannerHost.Configure(policy);
             _historicalScannerHost.Rebuild(
                 episodes,
@@ -2206,6 +2226,47 @@ public sealed class GcAuctionFlowIndicator : Indicator
         catch (Exception ex)
         {
             RecordFault("HistoricalScanner", ex);
+        }
+    }
+
+    /// <summary>
+    /// Collects closed-episode Effort/Result evidence into the research corpus.
+    ///
+    /// Gated on the Research feature flag alone. It deliberately does **not** require
+    /// <see cref="EnableEffortResultClassifier"/>: the corpus is what would eventually let
+    /// that classifier be calibrated, so requiring the classifier to be on in order to
+    /// collect it would be circular. Both flags stay <c>false</c> by default.
+    ///
+    /// The call queues and returns. Nothing here touches the disk on this thread — the
+    /// module schedule runs on ATAS threads, and disk work there is the defect that
+    /// corrupted a chart.
+    /// </summary>
+    private void ProcessEffortResultResearchCollector()
+    {
+        if (!EnableHistoricalScanner || Volatile.Read(ref _disposed) != 0)
+        {
+            // Not discarded on disable, for the same reason the scanner is not: it is a
+            // corpus, and dropping it because a toggle flipped would silently reset the
+            // sample any later calibration decision would rest on.
+            _effortResultResearchCollector?.Configure(
+                new EffortResultResearchPolicyConfig(enabled: false));
+            return;
+        }
+
+        try
+        {
+            var policy = new EffortResultResearchPolicyConfig(enabled: true);
+            var efficiency = EnableAuctionEfficiencyEvidence ? _efficiencyHost?.Current : null;
+
+            _effortResultResearchCollector ??=
+                new EffortResultResearchCollector(policy, ResearchDatasetStore);
+            _effortResultResearchCollector.Configure(policy);
+            _effortResultResearchCollector.Rebuild(efficiency);
+            ClearFault("EffortResultResearchCollector");
+        }
+        catch (Exception ex)
+        {
+            RecordFault("EffortResultResearchCollector", ex);
         }
     }
 
