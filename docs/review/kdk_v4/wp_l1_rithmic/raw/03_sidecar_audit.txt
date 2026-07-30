@@ -1,0 +1,9 @@
+###### .gcae SIDECAR HASH AUDIT ######
+  sidecars found        : 489
+  verified OK           : 489
+  match only after LF   : 0   <-- autocrlf rewrote the bytes on checkout
+  genuine MISMATCH      : 0
+  target file missing   : 0
+  sidecar unparseable   : 0
+
+=== affected target extensions ===
