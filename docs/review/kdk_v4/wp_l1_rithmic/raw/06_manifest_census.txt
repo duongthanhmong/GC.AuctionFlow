@@ -1,0 +1,249 @@
+###### RECORDER MANIFEST CENSUS AND DE-DUPLICATION ######
+root: C:\Users\LOQ\.gcae
+
+=== 1. every physical manifest path ===
+   recorder/sessions/01f6650494194d3bacbe00062dede326/manifest.json sessionId=01f66504-9419-4d3b-acbe-00062dede326
+   recorder/sessions/05e04cd727144545b553ba867de67cbd/manifest.json sessionId=05e04cd7-2714-4545-b553-ba867de67cbd
+   recorder/sessions/0740b23f384d43f8b4ad5fa7b88ced45/manifest.json sessionId=0740b23f-384d-43f8-b4ad-5fa7b88ced45
+   recorder/sessions/11e2d59b9856459fab7ca0737eefac74/manifest.json sessionId=11e2d59b-9856-459f-ab7c-a0737eefac74
+   recorder/sessions/15fa18b397b945819f88e1cb8dd13d1f/manifest.json sessionId=15fa18b3-97b9-4581-9f88-e1cb8dd13d1f
+   recorder/sessions/1b544b3206fa4f929c831450c64fc24d/manifest.json sessionId=1b544b32-06fa-4f92-9c83-1450c64fc24d
+   recorder/sessions/1b59056de6474b4886132b0f1fed253d/manifest.json sessionId=1b59056d-e647-4b48-8613-2b0f1fed253d
+   recorder/sessions/1d9a59c029b34698989070da83d3e568/manifest.json sessionId=1d9a59c0-29b3-4698-9890-70da83d3e568
+   recorder/sessions/24d29b6b300843d2a14315de1b4e7c68/manifest.json sessionId=24d29b6b-3008-43d2-a143-15de1b4e7c68
+   recorder/sessions/256cceffb1dc4d9f97a63e97bf345a5b/manifest.json sessionId=256cceff-b1dc-4d9f-97a6-3e97bf345a5b
+   recorder/sessions/27ca68e6537740838ab00eb825c185ef/manifest.json sessionId=27ca68e6-5377-4083-8ab0-0eb825c185ef
+   recorder/sessions/2836848c6c7844e59203211a044c3dd6/manifest.json sessionId=2836848c-6c78-44e5-9203-211a044c3dd6
+   recorder/sessions/29834bc0f7494bd6946baa2c29048234/manifest.json sessionId=29834bc0-f749-4bd6-946b-aa2c29048234
+   recorder/sessions/2ce34b5ba4f741018879f55ce3c5fd19/manifest.json sessionId=2ce34b5b-a4f7-4101-8879-f55ce3c5fd19
+   recorder/sessions/330db98c10f34e5295bdc1d3d0d5f927/manifest.json sessionId=330db98c-10f3-4e52-95bd-c1d3d0d5f927
+   recorder/sessions/3b4c151328804149915744dd43f912bd/manifest.json sessionId=3b4c1513-2880-4149-9157-44dd43f912bd
+   recorder/sessions/418ae9218b724f36ac37f1ff347563fc/manifest.json sessionId=418ae921-8b72-4f36-ac37-f1ff347563fc
+   recorder/sessions/459ef9bec5e545ffa3d16b3067941db8/manifest.json sessionId=459ef9be-c5e5-45ff-a3d1-6b3067941db8
+   recorder/sessions/4b0078a775764849acf44fc47f30fd68/manifest.json sessionId=4b0078a7-7576-4849-acf4-4fc47f30fd68
+   recorder/sessions/4d26a652071f458585ac1a863c8247cd/manifest.json sessionId=4d26a652-071f-4585-85ac-1a863c8247cd
+   recorder/sessions/4f2e64fd53cb4e0085bebde0d99c1254/manifest.json sessionId=4f2e64fd-53cb-4e00-85be-bde0d99c1254
+   recorder/sessions/56a922978f604bfe9abbf6bba3b17cd1/manifest.json sessionId=56a92297-8f60-4bfe-9abb-f6bba3b17cd1
+   recorder/sessions/5b15b3e3014d4e668dafafcc71b0d014/manifest.json sessionId=5b15b3e3-014d-4e66-8daf-afcc71b0d014
+   recorder/sessions/6ea63c0464c64df1827dce53083f432a/manifest.json sessionId=6ea63c04-64c6-4df1-827d-ce53083f432a
+   recorder/sessions/737a08961394470b83f6070b684cf383/manifest.json sessionId=737a0896-1394-470b-83f6-070b684cf383
+   recorder/sessions/7cc5b6551f794a6094aee403ec20a408/manifest.json sessionId=7cc5b655-1f79-4a60-94ae-e403ec20a408
+   recorder/sessions/7e66c91b311c460182fbfc4e2ff22d30/manifest.json sessionId=7e66c91b-311c-4601-82fb-fc4e2ff22d30
+   recorder/sessions/8719e2ef09844d48a4403bd25fbe7057/manifest.json sessionId=8719e2ef-0984-4d48-a440-3bd25fbe7057
+   recorder/sessions/8939116c3cb34f43be98d3eed0d05e34/manifest.json sessionId=8939116c-3cb3-4f43-be98-d3eed0d05e34
+   recorder/sessions/896e846d489347be87058ef2d8c70225/manifest.json sessionId=896e846d-4893-47be-8705-8ef2d8c70225
+   recorder/sessions/8cb9508ccd0f4b329670adcb52bd9a65/manifest.json sessionId=8cb9508c-cd0f-4b32-9670-adcb52bd9a65
+   recorder/sessions/8d96b396fc334c6b8f411bcfae9717ee/manifest.json sessionId=8d96b396-fc33-4c6b-8f41-1bcfae9717ee
+   recorder/sessions/91dd8ca0736f49819f59b43de3577f96/manifest.json sessionId=91dd8ca0-736f-4981-9f59-b43de3577f96
+   recorder/sessions/922fbc8283fb4cfaa34973bc42a0cf2b/manifest.json sessionId=922fbc82-83fb-4cfa-a349-73bc42a0cf2b
+   recorder/sessions/9457a89e2126462d9d875696b0e447b9/manifest.json sessionId=9457a89e-2126-462d-9d87-5696b0e447b9
+   recorder/sessions/94ad02d363aa41a48014c2dccaa3b929/manifest.json sessionId=94ad02d3-63aa-41a4-8014-c2dccaa3b929
+   recorder/sessions/ae2c9dba591749ca90566c540c1d1a22/manifest.json sessionId=ae2c9dba-5917-49ca-9056-6c540c1d1a22
+   recorder/sessions/b18a8bd4839342efa77c4449117f3452/manifest.json sessionId=b18a8bd4-8393-42ef-a77c-4449117f3452
+   recorder/sessions/b46a5c0d0f6443eaa231d59f9fb9fa33/manifest.json sessionId=b46a5c0d-0f64-43ea-a231-d59f9fb9fa33
+   recorder/sessions/bb623d6c07ea47c088a8da5578c84515/manifest.json sessionId=bb623d6c-07ea-47c0-88a8-da5578c84515
+   recorder/sessions/bf07a0df2e2844da916951188ff129cd/manifest.json sessionId=bf07a0df-2e28-44da-9169-51188ff129cd
+   recorder/sessions/bf63639411144f478da03a40b56c34af/manifest.json sessionId=bf636394-1114-4f47-8da0-3a40b56c34af
+   recorder/sessions/cd8c149dfecf47cc85947b5dc857785f/manifest.json sessionId=cd8c149d-fecf-47cc-8594-7b5dc857785f
+   recorder/sessions/d17d613d2a434006bd0cc871a53af3d3/manifest.json sessionId=d17d613d-2a43-4006-bd0c-c871a53af3d3
+   recorder/sessions/d9635f6d1b6a4fc4a8c2ce3c2632ccc9/manifest.json sessionId=d9635f6d-1b6a-4fc4-a8c2-ce3c2632ccc9
+   recorder/sessions/e1d23eda9fbd4564908e6cb410e8df69/manifest.json sessionId=e1d23eda-9fbd-4564-908e-6cb410e8df69
+   recorder/sessions/e4146f74e8214803a0dc8cc3085b1b64/manifest.json sessionId=e4146f74-e821-4803-a0dc-8cc3085b1b64
+   recorder/sessions/e6dd3da4ac824c49baaa54d65f32311c/manifest.json sessionId=e6dd3da4-ac82-4c49-baaa-54d65f32311c
+   recorder/sessions/ea8f3e5ea39b4de2bf5d14bcb7052660/manifest.json sessionId=ea8f3e5e-a39b-4de2-bf5d-14bcb7052660
+   recorder/sessions/eca2de33b1d34e52b9cdc38282f9bccd/manifest.json sessionId=eca2de33-b1d3-4e52-b9cd-c38282f9bccd
+   recorder/sessions/ed0cf85ceb794762b104e7acbfb911b7/manifest.json sessionId=ed0cf85c-eb79-4762-b104-e7acbfb911b7
+   recorder/sessions/f16ab70ab3ae458ea5b03e4155ebedf7/manifest.json sessionId=f16ab70a-b3ae-458e-a5b0-3e4155ebedf7
+   recorder/sessions/f1826353ea004843a52440520852cab5/manifest.json sessionId=f1826353-ea00-4843-a524-40520852cab5
+   recorder/sessions/fbd7161456c045ca8ff9830ccaef8342/manifest.json sessionId=fbd71614-56c0-45ca-8ff9-830ccaef8342
+   recorder/samples/737a08961394470b83f6070b684cf383/manifest.json sessionId=737a0896-1394-470b-83f6-070b684cf383
+   recorder/samples/94ad02d363aa41a48014c2dccaa3b929/manifest.json sessionId=94ad02d3-63aa-41a4-8014-c2dccaa3b929
+   physical manifests: 56
+
+=== 2. physical count vs unique sessionId ===
+   physical manifests   : 56
+   unparseable          : 0
+   unique sessionId     : 54
+   sessionIds appearing more than once: 2
+
+=== 3. same-ID pairs compared by HASH (not assumed duplicate) ===
+   sessionId 737a0896-1394-470b-83f6-070b684cf383 appears 2 times:
+      recorder/sessions/737a08961394470b83f6070b684cf383/manifest.json manifest sha256=8ccf56f6a5b128ad
+           segment 264e5b9e712e4967821fd787db2d5882.seg     c521fc1ba53810d3
+      recorder/samples/737a08961394470b83f6070b684cf383/manifest.json manifest sha256=8ccf56f6a5b128ad
+           segment 264e5b9e712e4967821fd787db2d5882.seg     c521fc1ba53810d3
+      -> IDENTICAL — manifest and every segment hash match
+
+   sessionId 94ad02d3-63aa-41a4-8014-c2dccaa3b929 appears 2 times:
+      recorder/sessions/94ad02d363aa41a48014c2dccaa3b929/manifest.json manifest sha256=6d824326d86c2fb9
+           segment 95389e066b594a80ac60783086504742.seg     9ccd22b47d014600
+           segment d10679ad4da9450990c0c1c7cebb4b64.seg     c53b87f8c8b62a17
+      recorder/samples/94ad02d363aa41a48014c2dccaa3b929/manifest.json manifest sha256=6d824326d86c2fb9
+           segment 95389e066b594a80ac60783086504742.seg     9ccd22b47d014600
+           segment d10679ad4da9450990c0c1c7cebb4b64.seg     c53b87f8c8b62a17
+      -> IDENTICAL — manifest and every segment hash match
+
+=== 4. totals, de-duplicated ===
+   UNIQUE SESSIONS (canonical): 54 manifests
+      segments                     : 290
+      records                      : 8594041
+        marketEventRecordCount     : 6265874
+        invocationResultRecordCount: 2328167
+        lifecycleIntegrityRecords  : 0
+   CURATED SAMPLE COPIES (reported separately, NOT added): 2 manifests
+      segments                     : 3
+      records                      : 1078
+        marketEventRecordCount     : 539
+        invocationResultRecordCount: 539
+        lifecycleIntegrityRecords  : 0
+
+=== 5. stream posture and instrument, UNIQUE SESSIONS ONLY ===
+   -- enabledStreams --
+        28  Trade,Dom,Mbo
+        15  Trade
+        11  Trade,Dom
+   -- disabledStreams --
+        54  Mbo
+   -- MBO posture --
+        28  schema=True recording=True isolation=OperatorDecision
+        25  schema=True recording=False isolation=IsolatedEnvironmentOnly
+         1  schema=True recording=False isolation=OperatorDecision
+   -- instrument --
+        53  GCQ6@COMEX
+         1  GCZ6@COMEX
+   -- start date UTC --
+        35  2026-07-27
+         7  2026-07-28
+         6  2026-07-23
+         5  2026-07-22
+         1  2026-07-30
+   -- abnormalTermination --
+        52  False
+         2  True
+
+=== 6. session directories WITHOUT a valid manifest ===
+   5eeafc13755846799407ad76b1133211
+      segments: 1 files, 851968 bytes
+      recovery: 0 files, 0 bytes
+      loose files: (none)
+   71cc9a3c502b4df8970f974efc73f3a1
+      segments: 1 files, 1855488 bytes
+      recovery: 0 files, 0 bytes
+      loose files: (none)
+   753b7dc3509342468f1524a68179e4a6
+      segments: 1 files, 5132288 bytes
+      recovery: 0 files, 0 bytes
+      loose files: (none)
+   97673894124b42e88aea7fb2fc2b8c66
+      segments: 1 files, 4247552 bytes
+      recovery: 0 files, 0 bytes
+      loose files: (none)
+   c237940af5954981898f70cdd384d476
+      segments: 1 files, 29433856 bytes
+      recovery: 0 files, 0 bytes
+      loose files: (none)
+   d3d89f53a11e4546a7f2bc6f4beaf6ce
+      segments: 1 files, 884736 bytes
+      recovery: 0 files, 0 bytes
+      loose files: (none)
+   total without manifest: 6
+
+=== 7. .tmp files — classified, NOT decoded and NOT modified ===
+   count: 44
+   path                                                                  bytes final-exists  in-manifest
+   recorder/sessions/05e04cd727144545b553ba867de67cbd/segments/d4981bf0f3934f84a631358c1fe57ae7.seg.tmp     122880        False        False
+   recorder/sessions/0740b23f384d43f8b4ad5fa7b88ced45/segments/22aafb8034ae4ea7a15a2abfc85ef7d0.seg.tmp   26136576        False        False
+   recorder/sessions/11e2d59b9856459fab7ca0737eefac74/segments/a15c8c962cc94777a7336cef45431aac.seg.tmp   25169920        False        False
+   recorder/sessions/1b544b3206fa4f929c831450c64fc24d/segments/67fe60b74a4140f5abaad87b54e28f1f.seg.tmp    7344128        False        False
+   recorder/sessions/1b59056de6474b4886132b0f1fed253d/segments/35480af8f8bf48d4b2bcebfa94c8ff5b.seg.tmp    6938624        False        False
+   recorder/sessions/1d9a59c029b34698989070da83d3e568/segments/9b26f40780e14fdd9442f55dcf14616e.seg.tmp    1290240        False        False
+   recorder/sessions/24d29b6b300843d2a14315de1b4e7c68/segments/864f2b97ff504aceb1c3078ad93e6d6a.seg.tmp   54431744        False        False
+   recorder/sessions/256cceffb1dc4d9f97a63e97bf345a5b/segments/3e62270b5c424977ab41a1db3bf46c9d.seg.tmp    7999488        False        False
+   recorder/sessions/27ca68e6537740838ab00eb825c185ef/segments/55da145177b24b6a981f25efe6d3465c.seg.tmp    2781184        False        False
+   recorder/sessions/29834bc0f7494bd6946baa2c29048234/segments/d2a23b4b2da14d2691ff18b1adabc364.seg.tmp   12312576        False        False
+   recorder/sessions/330db98c10f34e5295bdc1d3d0d5f927/segments/00034b43dcf5417db5f7d877dad4fd1e.seg.tmp   12103680        False        False
+   recorder/sessions/418ae9218b724f36ac37f1ff347563fc/segments/b11ea2b29ddd49b082a15a378d3ea0c0.seg.tmp   19771392        False        False
+   recorder/sessions/4d26a652071f458585ac1a863c8247cd/segments/15b74cd530514d7e98a6477d1c09c4a4.seg.tmp   28913664        False        False
+   recorder/sessions/4f2e64fd53cb4e0085bebde0d99c1254/segments/685ec20b52cc4416aa385bfb01b72ab7.seg.tmp     753664        False        False
+   recorder/sessions/56a922978f604bfe9abbf6bba3b17cd1/segments/e0c6e04a58ec4a9eba9573af0206f465.seg.tmp   53874688        False        False
+   recorder/sessions/5eeafc13755846799407ad76b1133211/segments/e6ad73259500441ea0dfa8be7f8f2ed6.seg.tmp     851968        False        False
+   recorder/sessions/71cc9a3c502b4df8970f974efc73f3a1/segments/e00ee870467944ec9c6b43f5931f7a9c.seg.tmp    1855488        False        False
+   recorder/sessions/753b7dc3509342468f1524a68179e4a6/segments/b12222fbdf9a41469d58cb6f3938cdb7.seg.tmp    5132288        False        False
+   recorder/sessions/7e66c91b311c460182fbfc4e2ff22d30/segments/f9b8cc4c196e46b6bc10a5654f1586e9.seg.tmp     937984        False        False
+   recorder/sessions/8719e2ef09844d48a4403bd25fbe7057/segments/97e9e0f9b37249eabe1c5169f53b5165.seg.tmp    6483968        False        False
+   recorder/sessions/8939116c3cb34f43be98d3eed0d05e34/segments/5605cae8cb6a49648433af3e18cf38f1.seg.tmp   17035264        False        False
+   recorder/sessions/896e846d489347be87058ef2d8c70225/segments/ac87815590ac454394b3b1a70b800b40.seg.tmp    2080768        False        False
+   recorder/sessions/8d96b396fc334c6b8f411bcfae9717ee/segments/a21015001b1147ffa00f9e6cefb52cc0.seg.tmp   18264064        False        False
+   recorder/sessions/91dd8ca0736f49819f59b43de3577f96/segments/d36d9773ee9a46a4a53c3ae51cf5d913.seg.tmp   30752768        False        False
+   recorder/sessions/922fbc8283fb4cfaa34973bc42a0cf2b/segments/652be40beee74e66a219b322819e1040.seg.tmp   43823104        False        False
+   recorder/sessions/9457a89e2126462d9d875696b0e447b9/segments/0adc5796e04f4691a6e4d28e9c20c04e.seg.tmp    7655424        False        False
+   recorder/sessions/97673894124b42e88aea7fb2fc2b8c66/segments/3fd6bffffce841508042fca21e850a21.seg.tmp    4247552        False        False
+   recorder/sessions/ae2c9dba591749ca90566c540c1d1a22/segments/48b2417384f248c2ba54502f53bf0fdf.seg.tmp    3342336        False        False
+   recorder/sessions/b18a8bd4839342efa77c4449117f3452/segments/198aa0722fcf440ea80ac3ab6999ab3f.seg.tmp   30195712        False        False
+   recorder/sessions/b46a5c0d0f6443eaa231d59f9fb9fa33/segments/24f7f4c16ed04795b4f40c068920447c.seg.tmp   11669504        False        False
+   recorder/sessions/bb623d6c07ea47c088a8da5578c84515/segments/cd7726267af44695abbd7252d30f5156.seg.tmp    9175040        False        False
+   recorder/sessions/bf07a0df2e2844da916951188ff129cd/segments/f2c27db194784cec98bc76ce046f98a2.seg.tmp   64598016        False        False
+   recorder/sessions/c237940af5954981898f70cdd384d476/segments/e5fd0483acee4242a1f770c723583742.seg.tmp   29433856        False        False
+   recorder/sessions/cd8c149dfecf47cc85947b5dc857785f/segments/e611a4e755244a6b842da1ff70dc86c1.seg.tmp   22343680        False        False
+   recorder/sessions/d17d613d2a434006bd0cc871a53af3d3/segments/94d1af8745064d00837bd7f76c5565b7.seg.tmp   15716352        False        False
+   recorder/sessions/d3d89f53a11e4546a7f2bc6f4beaf6ce/segments/b59af16f98a041ffa6b3334c750cfa66.seg.tmp     884736        False        False
+   recorder/sessions/d9635f6d1b6a4fc4a8c2ce3c2632ccc9/segments/ab33e5d5e65f44f684a3c86af6fdf226.seg.tmp   47341568        False        False
+   recorder/sessions/e1d23eda9fbd4564908e6cb410e8df69/segments/37412c680a5a4879a06594e900b9e03b.seg.tmp     331776        False        False
+   recorder/sessions/e4146f74e8214803a0dc8cc3085b1b64/segments/ca561ee6707c44f3b862153ad96a4f1d.seg.tmp   58949632        False        False
+   recorder/sessions/e6dd3da4ac824c49baaa54d65f32311c/segments/88fdad02c42c41e2b24a0370be71081e.seg.tmp    9887744        False        False
+   recorder/sessions/ea8f3e5ea39b4de2bf5d14bcb7052660/segments/0bb444d5dc7f448796b35427c8cf5adb.seg.tmp   47001600        False        False
+   recorder/sessions/eca2de33b1d34e52b9cdc38282f9bccd/segments/5ce8fb2a481647ca82dcb83abd9df325.seg.tmp   49319936        False        False
+   recorder/sessions/ed0cf85ceb794762b104e7acbfb911b7/segments/6531204d23bf4d8ba5d40a65ab93aee2.seg.tmp   23740416        False        False
+   recorder/sessions/f1826353ea004843a52440520852cab5/segments/b4464fbf779646589c3e7efb1a79d9e6.seg.tmp   16109568        False        False
+
+   zero-byte                       : 0
+   without a corresponding final file: 44
+   claimed by a manifest segment list: 0
+   -> recoverability NOT asserted: deciding whether these hold usable records
+      requires decoding .seg payloads, which Stage 1 does not do.
+
+   by session:
+      05e04cd727144545b553ba867de67cbd           1 files        122880 bytes
+      0740b23f384d43f8b4ad5fa7b88ced45           1 files      26136576 bytes
+      11e2d59b9856459fab7ca0737eefac74           1 files      25169920 bytes
+      1b544b3206fa4f929c831450c64fc24d           1 files       7344128 bytes
+      1b59056de6474b4886132b0f1fed253d           1 files       6938624 bytes
+      1d9a59c029b34698989070da83d3e568           1 files       1290240 bytes
+      24d29b6b300843d2a14315de1b4e7c68           1 files      54431744 bytes
+      256cceffb1dc4d9f97a63e97bf345a5b           1 files       7999488 bytes
+      27ca68e6537740838ab00eb825c185ef           1 files       2781184 bytes
+      29834bc0f7494bd6946baa2c29048234           1 files      12312576 bytes
+      330db98c10f34e5295bdc1d3d0d5f927           1 files      12103680 bytes
+      418ae9218b724f36ac37f1ff347563fc           1 files      19771392 bytes
+      4d26a652071f458585ac1a863c8247cd           1 files      28913664 bytes
+      4f2e64fd53cb4e0085bebde0d99c1254           1 files        753664 bytes
+      56a922978f604bfe9abbf6bba3b17cd1           1 files      53874688 bytes
+      5eeafc13755846799407ad76b1133211           1 files        851968 bytes
+      71cc9a3c502b4df8970f974efc73f3a1           1 files       1855488 bytes
+      753b7dc3509342468f1524a68179e4a6           1 files       5132288 bytes
+      7e66c91b311c460182fbfc4e2ff22d30           1 files        937984 bytes
+      8719e2ef09844d48a4403bd25fbe7057           1 files       6483968 bytes
+      8939116c3cb34f43be98d3eed0d05e34           1 files      17035264 bytes
+      896e846d489347be87058ef2d8c70225           1 files       2080768 bytes
+      8d96b396fc334c6b8f411bcfae9717ee           1 files      18264064 bytes
+      91dd8ca0736f49819f59b43de3577f96           1 files      30752768 bytes
+      922fbc8283fb4cfaa34973bc42a0cf2b           1 files      43823104 bytes
+      9457a89e2126462d9d875696b0e447b9           1 files       7655424 bytes
+      97673894124b42e88aea7fb2fc2b8c66           1 files       4247552 bytes
+      ae2c9dba591749ca90566c540c1d1a22           1 files       3342336 bytes
+      b18a8bd4839342efa77c4449117f3452           1 files      30195712 bytes
+      b46a5c0d0f6443eaa231d59f9fb9fa33           1 files      11669504 bytes
+      bb623d6c07ea47c088a8da5578c84515           1 files       9175040 bytes
+      bf07a0df2e2844da916951188ff129cd           1 files      64598016 bytes
+      c237940af5954981898f70cdd384d476           1 files      29433856 bytes
+      cd8c149dfecf47cc85947b5dc857785f           1 files      22343680 bytes
+      d17d613d2a434006bd0cc871a53af3d3           1 files      15716352 bytes
+      d3d89f53a11e4546a7f2bc6f4beaf6ce           1 files        884736 bytes
+      d9635f6d1b6a4fc4a8c2ce3c2632ccc9           1 files      47341568 bytes
+      e1d23eda9fbd4564908e6cb410e8df69           1 files        331776 bytes
+      e4146f74e8214803a0dc8cc3085b1b64           1 files      58949632 bytes
+      e6dd3da4ac824c49baaa54d65f32311c           1 files       9887744 bytes
+      ea8f3e5ea39b4de2bf5d14bcb7052660           1 files      47001600 bytes
+      eca2de33b1d34e52b9cdc38282f9bccd           1 files      49319936 bytes
+      ed0cf85ceb794762b104e7acbfb911b7           1 files      23740416 bytes
+      f1826353ea004843a52440520852cab5           1 files      16109568 bytes

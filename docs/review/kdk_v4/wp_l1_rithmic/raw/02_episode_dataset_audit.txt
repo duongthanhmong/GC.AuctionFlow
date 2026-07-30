@@ -1,55 +1,37 @@
 ###### episode-dataset.jsonl AUDIT ######
-path  : %USERPROFILE%\.gcaeesearch\episode-dataset.jsonl
-size  : 2,927,958 bytes
-mtime : 2026-07-31T03:32:57
-sha256: 79b97b03f94849ebf7cb71f454f8eedffbd58dd106be600396d29466734f241f
+  path        : C:\Users\LOQ\.gcae\research\episode-dataset.jsonl
+  size        : 2927958 bytes
+  mtime       : 2026-07-31T03:32:57
+  sha256      : 79b97b03f94849ebf7cb71f454f8eedffbd58dd106be600396d29466734f241f
+  sha256 (LF) : ee69cf0ecedf78b18297c8b66803a092a61be8d49fb190d4a48a55513b0a5228   <- compare this one against a git blob; the checkout is CRLF
 
-lines (non-blank) : 5,143
-blank lines       : 0
-MALFORMED lines   : 1
-distinct EpisodeId: 2,113
-DUPLICATE ids     : 2,098  (extra rows: 3,029)
-rows with a short 'EP-n' id (test-fixture shape): 2,931
+=== counts ===
+  non-blank lines   : 5143
+  blank lines       : 0
+  MALFORMED lines   : 1   [2673]
+  distinct EpisodeId: 2113
+  duplicate ids     : 2098  (surplus rows: 3029)
+  distinct field-sets: 1
 
-PrimaryAuctionId distribution (top 12):
-     5127  'PI-2026-07-26'
-        5  'PI-2026-07-29'
-        4  'PI-2026-07-27'
-        3  'PI-2026-07-28'
-        3  'PI-2026-07-30'
+=== rows by EpisodeId shape ===
+    5127  fixture (EP-<n>)
+      15  production (composite identity)
 
-EpisodePolicyVersion:
-     5127  'EPISODE_POLICY_V1'
-       15  'AUCTION_EPISODE_POLICY_V1'
+=== shape x policy x auction ===
+    5127  fixture (EP-<n>)                 EPISODE_POLICY_V1            PI-2026-07-26
+       5  production (composite identity)  AUCTION_EPISODE_POLICY_V1    PI-2026-07-29
+       4  production (composite identity)  AUCTION_EPISODE_POLICY_V1    PI-2026-07-27
+       3  production (composite identity)  AUCTION_EPISODE_POLICY_V1    PI-2026-07-28
+       3  production (composite identity)  AUCTION_EPISODE_POLICY_V1    PI-2026-07-30
 
-DataQuality:
-     5140  2
-        2  3
-Admissibility:
-     5136  0
-        4  2
-        2  1
-ReferenceType:
-     5125  2
-        2  13
-        2  1
-        2  7
-        2  4
-        2  6
-        2  0
-        2  3
-
-distinct field-sets (schema shapes): 1
-     5142 rows, 22 fields: Admissibility, AggressorEvidence, AttemptCount, CanonicalOutsideDelta, CanonicalOutsideExecutedVolume, CanonicalOutsideTradeCount, CrossCount, DataQuality, EpisodeId, EpisodePolicyVersion...
-
-=== duplicate ids, top 10 ===
-   x23  'EP-1'
-   x6  'EP-2'
-   x6  'EP-3'
-   x3  'EP-0'
-   x3  'EP-4'
-   x3  'EP-5'
-   x3  'EP-6'
-   x3  'EP-7'
-   x3  'EP-8'
-   x3  'EP-9'
+=== most duplicated ids ===
+  x23   EP-1
+  x6    EP-2
+  x6    EP-3
+  x3    EP-0
+  x3    EP-4
+  x3    EP-5
+  x3    EP-6
+  x3    EP-7
+  x3    EP-8
+  x3    EP-9

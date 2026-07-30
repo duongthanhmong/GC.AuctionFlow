@@ -1,0 +1,51 @@
+###### .gcae RECURSIVE INVENTORY (recomputed) ######
+root: C:\Users\LOQ\.gcae
+
+=== 1. file counts ===
+  predicate: os.walk(root), pruning any directory named '.git'
+  files including .git : 1079
+  files excluding .git : 1027   <-- the figure used throughout the report
+
+=== 2. extension histogram (basename suffix, excluding .git) ===
+      489  .sha256
+      293  .seg
+      197  .json
+       44  .tmp
+        1  (no extension)
+        1  .env
+        1  .md
+        1  .jsonl
+   ------
+     1027  TOTAL  (must equal the excluding-.git count above: OK)
+
+=== 3. directory census ===
+   recorder/sessions     60 directories,  54 with manifest.json, 6 without
+        NO MANIFEST: 5eeafc13755846799407ad76b1133211
+        NO MANIFEST: 71cc9a3c502b4df8970f974efc73f3a1
+        NO MANIFEST: 753b7dc3509342468f1524a68179e4a6
+        NO MANIFEST: 97673894124b42e88aea7fb2fc2b8c66
+        NO MANIFEST: c237940af5954981898f70cdd384d476
+        NO MANIFEST: d3d89f53a11e4546a7f2bc6f4beaf6ce
+   recorder/samples       2 directories,   2 with manifest.json, 0 without
+
+=== 4. source/config search ===
+  extensions searched (16): .py .cs .ps1 .sh .bat .cmd .ipynb .sql .yaml .yml .toml .ini .cfg .proto .js .ts
+  matches: 0
+
+  equivalent shell predicate:
+    find <root> -type f -not -path '*/.git/*' \
+      \( -name '*.py' -o -name '*.cs' -o -name '*.ps1' -o -name '*.sh' -o -name '*.bat' -o -name '*.cmd' -o -name '*.ipynb' -o -name '*.sql' -o -name '*.yaml' -o -name '*.yml' -o -name '*.toml' -o -name '*.ini' -o -name '*.cfg' -o -name '*.proto' -o -name '*.js' -o -name '*.ts' \)
+
+=== 5. same search across the DATA_rithmic GIT HISTORY (all commits) ===
+  commits examined     : 2
+  source paths in history: 0
+     (none)
+  command: git rev-list --all | xargs -n1 git ls-tree -r --name-only
+
+=== 6. size by top-level entry ===
+            173 bytes  .gitignore
+       58706284 bytes  capability/
+       10350790 bytes  instrument_master_gcae.json
+    13630244489 bytes  recorder/
+        2927958 bytes  research/
+             93 bytes  rithmic.env
