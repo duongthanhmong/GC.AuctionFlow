@@ -1,0 +1,273 @@
+###### .gcae RECURSIVE INVENTORY ######
+
+=== 1. cây thư mục (đầy đủ, mọi cấp) ===
+.gcae
+.gcae/.git
+.gcae/.git/hooks
+.gcae/.git/info
+.gcae/.git/logs
+.gcae/.git/logs/refs
+.gcae/.git/logs/refs/heads
+.gcae/.git/logs/refs/remotes
+.gcae/.git/logs/refs/remotes/origin
+.gcae/.git/objects
+.gcae/.git/objects/07
+.gcae/.git/objects/08
+.gcae/.git/objects/18
+.gcae/.git/objects/47
+.gcae/.git/objects/53
+.gcae/.git/objects/5a
+.gcae/.git/objects/5b
+.gcae/.git/objects/5c
+.gcae/.git/objects/5f
+.gcae/.git/objects/66
+.gcae/.git/objects/75
+.gcae/.git/objects/78
+.gcae/.git/objects/7f
+.gcae/.git/objects/91
+.gcae/.git/objects/99
+.gcae/.git/objects/9c
+.gcae/.git/objects/a0
+.gcae/.git/objects/bb
+.gcae/.git/objects/c1
+.gcae/.git/objects/info
+.gcae/.git/objects/pack
+.gcae/.git/refs
+.gcae/.git/refs/heads
+.gcae/.git/refs/remotes
+.gcae/.git/refs/remotes/origin
+.gcae/.git/refs/tags
+.gcae/capability
+.gcae/recorder
+.gcae/recorder/samples
+.gcae/recorder/samples/737a08961394470b83f6070b684cf383
+.gcae/recorder/samples/737a08961394470b83f6070b684cf383/recovery
+.gcae/recorder/samples/737a08961394470b83f6070b684cf383/segments
+.gcae/recorder/samples/94ad02d363aa41a48014c2dccaa3b929
+.gcae/recorder/samples/94ad02d363aa41a48014c2dccaa3b929/recovery
+.gcae/recorder/samples/94ad02d363aa41a48014c2dccaa3b929/segments
+.gcae/recorder/sessions
+.gcae/recorder/sessions/01f6650494194d3bacbe00062dede326
+.gcae/recorder/sessions/01f6650494194d3bacbe00062dede326/recovery
+.gcae/recorder/sessions/01f6650494194d3bacbe00062dede326/segments
+.gcae/recorder/sessions/05e04cd727144545b553ba867de67cbd
+.gcae/recorder/sessions/05e04cd727144545b553ba867de67cbd/recovery
+.gcae/recorder/sessions/05e04cd727144545b553ba867de67cbd/segments
+.gcae/recorder/sessions/0740b23f384d43f8b4ad5fa7b88ced45
+.gcae/recorder/sessions/0740b23f384d43f8b4ad5fa7b88ced45/recovery
+.gcae/recorder/sessions/0740b23f384d43f8b4ad5fa7b88ced45/segments
+.gcae/recorder/sessions/11e2d59b9856459fab7ca0737eefac74
+.gcae/recorder/sessions/11e2d59b9856459fab7ca0737eefac74/recovery
+.gcae/recorder/sessions/11e2d59b9856459fab7ca0737eefac74/segments
+.gcae/recorder/sessions/15fa18b397b945819f88e1cb8dd13d1f
+.gcae/recorder/sessions/15fa18b397b945819f88e1cb8dd13d1f/recovery
+.gcae/recorder/sessions/15fa18b397b945819f88e1cb8dd13d1f/segments
+.gcae/recorder/sessions/1b544b3206fa4f929c831450c64fc24d
+.gcae/recorder/sessions/1b544b3206fa4f929c831450c64fc24d/recovery
+.gcae/recorder/sessions/1b544b3206fa4f929c831450c64fc24d/segments
+.gcae/recorder/sessions/1b59056de6474b4886132b0f1fed253d
+.gcae/recorder/sessions/1b59056de6474b4886132b0f1fed253d/recovery
+.gcae/recorder/sessions/1b59056de6474b4886132b0f1fed253d/segments
+.gcae/recorder/sessions/1d9a59c029b34698989070da83d3e568
+.gcae/recorder/sessions/1d9a59c029b34698989070da83d3e568/recovery
+.gcae/recorder/sessions/1d9a59c029b34698989070da83d3e568/segments
+.gcae/recorder/sessions/24d29b6b300843d2a14315de1b4e7c68
+.gcae/recorder/sessions/24d29b6b300843d2a14315de1b4e7c68/recovery
+.gcae/recorder/sessions/24d29b6b300843d2a14315de1b4e7c68/segments
+.gcae/recorder/sessions/256cceffb1dc4d9f97a63e97bf345a5b
+.gcae/recorder/sessions/256cceffb1dc4d9f97a63e97bf345a5b/recovery
+.gcae/recorder/sessions/256cceffb1dc4d9f97a63e97bf345a5b/segments
+.gcae/recorder/sessions/27ca68e6537740838ab00eb825c185ef
+.gcae/recorder/sessions/27ca68e6537740838ab00eb825c185ef/recovery
+.gcae/recorder/sessions/27ca68e6537740838ab00eb825c185ef/segments
+.gcae/recorder/sessions/2836848c6c7844e59203211a044c3dd6
+.gcae/recorder/sessions/2836848c6c7844e59203211a044c3dd6/recovery
+.gcae/recorder/sessions/2836848c6c7844e59203211a044c3dd6/segments
+.gcae/recorder/sessions/29834bc0f7494bd6946baa2c29048234
+.gcae/recorder/sessions/29834bc0f7494bd6946baa2c29048234/recovery
+.gcae/recorder/sessions/29834bc0f7494bd6946baa2c29048234/segments
+.gcae/recorder/sessions/2ce34b5ba4f741018879f55ce3c5fd19
+.gcae/recorder/sessions/2ce34b5ba4f741018879f55ce3c5fd19/recovery
+.gcae/recorder/sessions/2ce34b5ba4f741018879f55ce3c5fd19/segments
+.gcae/recorder/sessions/330db98c10f34e5295bdc1d3d0d5f927
+.gcae/recorder/sessions/330db98c10f34e5295bdc1d3d0d5f927/recovery
+.gcae/recorder/sessions/330db98c10f34e5295bdc1d3d0d5f927/segments
+.gcae/recorder/sessions/3b4c151328804149915744dd43f912bd
+.gcae/recorder/sessions/3b4c151328804149915744dd43f912bd/recovery
+.gcae/recorder/sessions/3b4c151328804149915744dd43f912bd/segments
+.gcae/recorder/sessions/418ae9218b724f36ac37f1ff347563fc
+.gcae/recorder/sessions/418ae9218b724f36ac37f1ff347563fc/recovery
+.gcae/recorder/sessions/418ae9218b724f36ac37f1ff347563fc/segments
+.gcae/recorder/sessions/459ef9bec5e545ffa3d16b3067941db8
+.gcae/recorder/sessions/459ef9bec5e545ffa3d16b3067941db8/recovery
+.gcae/recorder/sessions/459ef9bec5e545ffa3d16b3067941db8/segments
+.gcae/recorder/sessions/4b0078a775764849acf44fc47f30fd68
+.gcae/recorder/sessions/4b0078a775764849acf44fc47f30fd68/recovery
+.gcae/recorder/sessions/4b0078a775764849acf44fc47f30fd68/segments
+.gcae/recorder/sessions/4d26a652071f458585ac1a863c8247cd
+.gcae/recorder/sessions/4d26a652071f458585ac1a863c8247cd/recovery
+.gcae/recorder/sessions/4d26a652071f458585ac1a863c8247cd/segments
+.gcae/recorder/sessions/4f2e64fd53cb4e0085bebde0d99c1254
+.gcae/recorder/sessions/4f2e64fd53cb4e0085bebde0d99c1254/recovery
+.gcae/recorder/sessions/4f2e64fd53cb4e0085bebde0d99c1254/segments
+.gcae/recorder/sessions/56a922978f604bfe9abbf6bba3b17cd1
+.gcae/recorder/sessions/56a922978f604bfe9abbf6bba3b17cd1/recovery
+.gcae/recorder/sessions/56a922978f604bfe9abbf6bba3b17cd1/segments
+.gcae/recorder/sessions/5b15b3e3014d4e668dafafcc71b0d014
+.gcae/recorder/sessions/5b15b3e3014d4e668dafafcc71b0d014/recovery
+.gcae/recorder/sessions/5b15b3e3014d4e668dafafcc71b0d014/segments
+.gcae/recorder/sessions/5eeafc13755846799407ad76b1133211
+.gcae/recorder/sessions/5eeafc13755846799407ad76b1133211/recovery
+.gcae/recorder/sessions/5eeafc13755846799407ad76b1133211/segments
+.gcae/recorder/sessions/6ea63c0464c64df1827dce53083f432a
+.gcae/recorder/sessions/6ea63c0464c64df1827dce53083f432a/recovery
+.gcae/recorder/sessions/6ea63c0464c64df1827dce53083f432a/segments
+.gcae/recorder/sessions/71cc9a3c502b4df8970f974efc73f3a1
+.gcae/recorder/sessions/71cc9a3c502b4df8970f974efc73f3a1/recovery
+.gcae/recorder/sessions/71cc9a3c502b4df8970f974efc73f3a1/segments
+.gcae/recorder/sessions/737a08961394470b83f6070b684cf383
+.gcae/recorder/sessions/737a08961394470b83f6070b684cf383/recovery
+.gcae/recorder/sessions/737a08961394470b83f6070b684cf383/segments
+.gcae/recorder/sessions/753b7dc3509342468f1524a68179e4a6
+.gcae/recorder/sessions/753b7dc3509342468f1524a68179e4a6/recovery
+.gcae/recorder/sessions/753b7dc3509342468f1524a68179e4a6/segments
+.gcae/recorder/sessions/7cc5b6551f794a6094aee403ec20a408
+.gcae/recorder/sessions/7cc5b6551f794a6094aee403ec20a408/recovery
+.gcae/recorder/sessions/7cc5b6551f794a6094aee403ec20a408/segments
+.gcae/recorder/sessions/7e66c91b311c460182fbfc4e2ff22d30
+.gcae/recorder/sessions/7e66c91b311c460182fbfc4e2ff22d30/recovery
+.gcae/recorder/sessions/7e66c91b311c460182fbfc4e2ff22d30/segments
+.gcae/recorder/sessions/8719e2ef09844d48a4403bd25fbe7057
+.gcae/recorder/sessions/8719e2ef09844d48a4403bd25fbe7057/recovery
+.gcae/recorder/sessions/8719e2ef09844d48a4403bd25fbe7057/segments
+.gcae/recorder/sessions/8939116c3cb34f43be98d3eed0d05e34
+.gcae/recorder/sessions/8939116c3cb34f43be98d3eed0d05e34/recovery
+.gcae/recorder/sessions/8939116c3cb34f43be98d3eed0d05e34/segments
+.gcae/recorder/sessions/896e846d489347be87058ef2d8c70225
+.gcae/recorder/sessions/896e846d489347be87058ef2d8c70225/recovery
+.gcae/recorder/sessions/896e846d489347be87058ef2d8c70225/segments
+.gcae/recorder/sessions/8cb9508ccd0f4b329670adcb52bd9a65
+.gcae/recorder/sessions/8cb9508ccd0f4b329670adcb52bd9a65/recovery
+.gcae/recorder/sessions/8cb9508ccd0f4b329670adcb52bd9a65/segments
+.gcae/recorder/sessions/8d96b396fc334c6b8f411bcfae9717ee
+.gcae/recorder/sessions/8d96b396fc334c6b8f411bcfae9717ee/recovery
+.gcae/recorder/sessions/8d96b396fc334c6b8f411bcfae9717ee/segments
+.gcae/recorder/sessions/91dd8ca0736f49819f59b43de3577f96
+.gcae/recorder/sessions/91dd8ca0736f49819f59b43de3577f96/recovery
+.gcae/recorder/sessions/91dd8ca0736f49819f59b43de3577f96/segments
+.gcae/recorder/sessions/922fbc8283fb4cfaa34973bc42a0cf2b
+.gcae/recorder/sessions/922fbc8283fb4cfaa34973bc42a0cf2b/recovery
+.gcae/recorder/sessions/922fbc8283fb4cfaa34973bc42a0cf2b/segments
+.gcae/recorder/sessions/9457a89e2126462d9d875696b0e447b9
+.gcae/recorder/sessions/9457a89e2126462d9d875696b0e447b9/recovery
+.gcae/recorder/sessions/9457a89e2126462d9d875696b0e447b9/segments
+.gcae/recorder/sessions/94ad02d363aa41a48014c2dccaa3b929
+.gcae/recorder/sessions/94ad02d363aa41a48014c2dccaa3b929/recovery
+.gcae/recorder/sessions/94ad02d363aa41a48014c2dccaa3b929/segments
+.gcae/recorder/sessions/97673894124b42e88aea7fb2fc2b8c66
+.gcae/recorder/sessions/97673894124b42e88aea7fb2fc2b8c66/recovery
+.gcae/recorder/sessions/97673894124b42e88aea7fb2fc2b8c66/segments
+.gcae/recorder/sessions/ae2c9dba591749ca90566c540c1d1a22
+.gcae/recorder/sessions/ae2c9dba591749ca90566c540c1d1a22/recovery
+.gcae/recorder/sessions/ae2c9dba591749ca90566c540c1d1a22/segments
+.gcae/recorder/sessions/b18a8bd4839342efa77c4449117f3452
+.gcae/recorder/sessions/b18a8bd4839342efa77c4449117f3452/recovery
+.gcae/recorder/sessions/b18a8bd4839342efa77c4449117f3452/segments
+.gcae/recorder/sessions/b46a5c0d0f6443eaa231d59f9fb9fa33
+.gcae/recorder/sessions/b46a5c0d0f6443eaa231d59f9fb9fa33/recovery
+.gcae/recorder/sessions/b46a5c0d0f6443eaa231d59f9fb9fa33/segments
+.gcae/recorder/sessions/bb623d6c07ea47c088a8da5578c84515
+.gcae/recorder/sessions/bb623d6c07ea47c088a8da5578c84515/recovery
+.gcae/recorder/sessions/bb623d6c07ea47c088a8da5578c84515/segments
+.gcae/recorder/sessions/bf07a0df2e2844da916951188ff129cd
+.gcae/recorder/sessions/bf07a0df2e2844da916951188ff129cd/recovery
+.gcae/recorder/sessions/bf07a0df2e2844da916951188ff129cd/segments
+.gcae/recorder/sessions/bf63639411144f478da03a40b56c34af
+.gcae/recorder/sessions/bf63639411144f478da03a40b56c34af/recovery
+.gcae/recorder/sessions/bf63639411144f478da03a40b56c34af/segments
+.gcae/recorder/sessions/c237940af5954981898f70cdd384d476
+.gcae/recorder/sessions/c237940af5954981898f70cdd384d476/recovery
+.gcae/recorder/sessions/c237940af5954981898f70cdd384d476/segments
+.gcae/recorder/sessions/cd8c149dfecf47cc85947b5dc857785f
+.gcae/recorder/sessions/cd8c149dfecf47cc85947b5dc857785f/recovery
+.gcae/recorder/sessions/cd8c149dfecf47cc85947b5dc857785f/segments
+.gcae/recorder/sessions/d17d613d2a434006bd0cc871a53af3d3
+.gcae/recorder/sessions/d17d613d2a434006bd0cc871a53af3d3/recovery
+.gcae/recorder/sessions/d17d613d2a434006bd0cc871a53af3d3/segments
+.gcae/recorder/sessions/d3d89f53a11e4546a7f2bc6f4beaf6ce
+.gcae/recorder/sessions/d3d89f53a11e4546a7f2bc6f4beaf6ce/recovery
+.gcae/recorder/sessions/d3d89f53a11e4546a7f2bc6f4beaf6ce/segments
+.gcae/recorder/sessions/d9635f6d1b6a4fc4a8c2ce3c2632ccc9
+.gcae/recorder/sessions/d9635f6d1b6a4fc4a8c2ce3c2632ccc9/recovery
+.gcae/recorder/sessions/d9635f6d1b6a4fc4a8c2ce3c2632ccc9/segments
+.gcae/recorder/sessions/e1d23eda9fbd4564908e6cb410e8df69
+.gcae/recorder/sessions/e1d23eda9fbd4564908e6cb410e8df69/recovery
+.gcae/recorder/sessions/e1d23eda9fbd4564908e6cb410e8df69/segments
+.gcae/recorder/sessions/e4146f74e8214803a0dc8cc3085b1b64
+.gcae/recorder/sessions/e4146f74e8214803a0dc8cc3085b1b64/recovery
+.gcae/recorder/sessions/e4146f74e8214803a0dc8cc3085b1b64/segments
+.gcae/recorder/sessions/e6dd3da4ac824c49baaa54d65f32311c
+.gcae/recorder/sessions/e6dd3da4ac824c49baaa54d65f32311c/recovery
+.gcae/recorder/sessions/e6dd3da4ac824c49baaa54d65f32311c/segments
+.gcae/recorder/sessions/ea8f3e5ea39b4de2bf5d14bcb7052660
+.gcae/recorder/sessions/ea8f3e5ea39b4de2bf5d14bcb7052660/recovery
+.gcae/recorder/sessions/ea8f3e5ea39b4de2bf5d14bcb7052660/segments
+.gcae/recorder/sessions/eca2de33b1d34e52b9cdc38282f9bccd
+.gcae/recorder/sessions/eca2de33b1d34e52b9cdc38282f9bccd/recovery
+.gcae/recorder/sessions/eca2de33b1d34e52b9cdc38282f9bccd/segments
+.gcae/recorder/sessions/ed0cf85ceb794762b104e7acbfb911b7
+.gcae/recorder/sessions/ed0cf85ceb794762b104e7acbfb911b7/recovery
+.gcae/recorder/sessions/ed0cf85ceb794762b104e7acbfb911b7/segments
+.gcae/recorder/sessions/f16ab70ab3ae458ea5b03e4155ebedf7
+.gcae/recorder/sessions/f16ab70ab3ae458ea5b03e4155ebedf7/recovery
+.gcae/recorder/sessions/f16ab70ab3ae458ea5b03e4155ebedf7/segments
+.gcae/recorder/sessions/f1826353ea004843a52440520852cab5
+.gcae/recorder/sessions/f1826353ea004843a52440520852cab5/recovery
+.gcae/recorder/sessions/f1826353ea004843a52440520852cab5/segments
+.gcae/recorder/sessions/fbd7161456c045ca8ff9830ccaef8342
+.gcae/recorder/sessions/fbd7161456c045ca8ff9830ccaef8342/recovery
+.gcae/recorder/sessions/fbd7161456c045ca8ff9830ccaef8342/segments
+.gcae/research
+
+=== 2. tổng dung lượng theo thư mục cấp 1-2 ===
+57M	.gcae/capability
+9.9M	.gcae/instrument_master_gcae.json
+13G	.gcae/recorder
+2.8M	.gcae/research
+1.0K	.gcae/rithmic.env
+TOTAL: 13G
+
+=== 3. số file theo phần mở rộng ===
+    489 sha256
+    293 seg
+    197 json
+     44 tmp
+     14 sample
+      1 rev
+      1 pack
+      1 md
+      1 jsonl
+      1 idx
+      1 gitignore
+      1 git/refs/remotes/origin/main
+      1 git/refs/heads/main
+      1 git/packed-refs
+      1 git/objects/info/packs
+      1 git/objects/info/commit-graph
+      1 git/objects/c1/75b16d1dba0fdd220ade916977064395bdc6b8
+      1 git/objects/bb/27c5dd417deb845c19ca2000a61e6a807b2f27
+      1 git/objects/a0/afdcf83ec0e3b20820922fb038283b5972f0bc
+      1 git/objects/9c/0c0e1b51b60cfe6db6e0a6e4004887dcaf4ed9
+      1 git/objects/99/bcad140ee23b1b9029cf0871221ae12d2034b4
+      1 git/objects/91/b3f3e579e70d5d19871c35cab9b9910e478ff3
+      1 git/objects/7f/7c6f74e21e3dc61c172d1ef7b5636729ac1c52
+      1 git/objects/78/0e0eda107ba4a0873ca93573c61e195398824d
+      1 git/objects/75/4ae43e47e3faf739a01fd6db56f5b0d0a28aee
+      1 git/objects/66/7b0fa6915fdc6ea05b1ad9ef042e1e9102864d
+      1 git/objects/5f/faf40b4b92003a95514d3499b4ee29146d54d3
+      1 git/objects/5c/381cd42ec7cdeca00a99d7d9d72ca9d82a6c10
+      1 git/objects/5c/1c2f46ef2a3390ec12dd89e29cd9955720eff6
+      1 git/objects/5b/f168dede092f7ec11c9372f1d545c596ca3d3d
+
+=== 4. tổng số file ===
+1079

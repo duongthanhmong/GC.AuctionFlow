@@ -1,0 +1,4 @@
+  working copy:   2927958 bytes  CRLF=5143  bare-LF=0  sha256=79b97b03f94849eb
+  HEAD blob   :   2922815 bytes  CRLF=0  bare-LF=5143  sha256=ee69cf0ecedf78b1
+  identical after LF normalisation: True
+  => the raw-byte difference is git's autocrlf filter, NOT a content change.

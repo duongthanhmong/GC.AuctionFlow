@@ -61,6 +61,25 @@ public sealed class TradeStreamProbeTests
         return probe;
     }
 
+    /// <summary>
+    /// The callback-invocation counters are incremented on the calling thread, as the very
+    /// first statement of <c>TryEnqueueNewTrade</c> / <c>TryEnqueueCumulative</c>, before any
+    /// gate and before the channel. Nothing the worker does can change them.
+    ///
+    /// This test used to wait for <c>ProcessedByWorker</c> to reach 4 before reading them. That
+    /// counter is incremented only by <c>ProcessLoopAsync</c>, which runs as a
+    /// <c>Task.Run</c> work item, so the wait made a synchronous assertion depend on the
+    /// ThreadPool having a free thread within 2,000 ms. Under full-suite load it does not:
+    /// measured with the pool saturated, all four counters below were already correct while
+    /// <c>ProcessedByWorker</c> was still 0 after the whole budget, and the worker then caught
+    /// up in 12 ms once the pool was released
+    /// (`docs/review/kdk_v4/wp_l1_02/raw/02b_repro_run1.txt`).
+    ///
+    /// The wait is gone; the assertions are unchanged.
+    /// <c>Bounded_queue_full_behavior_and_non_blocking_enqueue</c> makes the same point from
+    /// the other side — it constructs the probe with no worker at all and still expects every
+    /// callback counted.
+    /// </summary>
     [Fact]
     public void Callback_source_counters_remain_separate()
     {
@@ -78,7 +97,6 @@ public sealed class TradeStreamProbeTests
             Cum(TradeCallbackSource.OnUpdateCumulativeTrade, 4, 13, DateTimeKind.Unspecified, 1m, 1m, 1m, 0, 1),
             true, DataSourceMode.Live, DataSourceModeProvenance.OperatorDeclared, "GCZ5"));
 
-        WaitProcessed(probe, 4);
         var c = probe.Counters.Snapshot();
         Assert.Equal(1, c.CallbackInvocationsOnNewTrade);
         Assert.Equal(1, c.CallbackInvocationsOnNewTradesBatch);

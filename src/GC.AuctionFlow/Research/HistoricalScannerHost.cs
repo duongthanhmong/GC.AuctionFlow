@@ -60,7 +60,14 @@ public sealed class HistoricalScannerHost
         _policy = policy;
         if (!_policy.Enabled)
         {
-            Reset();
+            // Disabling PAUSES collection. It does not erase the corpus.
+            //
+            // The published snapshot goes to Disabled, which is the module's public
+            // statement about what it is doing now. The rows, the dedup set and the counts
+            // stay: they describe what was observed, and a toggle is not an observation.
+            // Clearing them meant a flag flipped twice mid-session silently reset the sample
+            // any later calibration decision would rest on — and the host object surviving
+            // is no comfort at all if its state does not.
             _published = DisabledSnapshot(DateTime.UtcNow);
         }
     }
@@ -199,18 +206,6 @@ public sealed class HistoricalScannerHost
             _rows.RemoveAt(0);
             _rowsDropped++;
         }
-    }
-
-    private void Reset()
-    {
-        _rows.Clear();
-        _foldedEpisodeIds.Clear();
-        _byReferenceType.Clear();
-        _byAdmissibility.Clear();
-        _datasetStartedAtUtc = default;
-        _rowsCollected = 0;
-        _admissibleRows = 0;
-        _rowsDropped = 0;
     }
 
     private static HistoricalScannerSnapshot DisabledSnapshot(DateTime now) =>
