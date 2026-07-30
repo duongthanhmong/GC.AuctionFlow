@@ -37,18 +37,21 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     private static EffortResultResearchCollector Collector(EpisodeDatasetStore store) =>
         new(new EffortResultResearchPolicyConfig(enabled: true), store);
 
-    private async Task<IReadOnlyList<EffortResultResearchRecord>> Settle(
-        EpisodeDatasetStore store, int expected = 1)
-    {
-        for (var i = 0; i < 500; i++)
-        {
-            var rows = await store.LoadEffortResultResearchAsync();
-            if (rows.Count >= expected) return rows;
-            await Task.Delay(20);
-        }
-
-        return await store.LoadEffortResultResearchAsync();
-    }
+    /// <summary>
+    /// The write barrier. Not a poll.
+    ///
+    /// Appends and loads share one queue, one lock and one worker, and a drained burst writes
+    /// before it answers loads. So a load queued after an append on <b>the same store</b>
+    /// completes only once that append is on disk — there is nothing to wait for and no budget
+    /// to exhaust. The proof is in `docs/review/kdk_v4/wp_l1_02/01_BARRIER_PROOF.md`.
+    ///
+    /// <paramref name="owner"/> must be the instance that took the append. A load on a second
+    /// store pointing at the same file is a different queue answered by a different worker and
+    /// orders after nothing; waiting on one is what made these tests depend on a 4-second
+    /// budget and fail under full-suite load.
+    /// </summary>
+    private static Task<IReadOnlyList<EffortResultResearchRecord>> Written(
+        EpisodeDatasetStore owner) => owner.LoadEffortResultResearchAsync();
 
     // ========== A: admission ==========
 
@@ -149,7 +152,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
 
-        var row = Assert.Single(await Settle(store));
+        var row = Assert.Single(await Written(store));
 
         Assert.Null(row.Effort.AskVolume);
         Assert.Null(row.Effort.ClassifiedCvdChange);
@@ -166,7 +169,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
 
-        var row = Assert.Single(await Settle(store));
+        var row = Assert.Single(await Written(store));
 
         Assert.Equal(EffortResultResearchPolicyConfig.RecordSchemaVersion, row.Schema);
         Assert.Equal("EFF-1", row.SnapshotId);
@@ -200,7 +203,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
 
-        var row = Assert.Single(await Settle(store));
+        var row = Assert.Single(await Written(store));
 
         Assert.Equal(new DateTime(2026, 7, 27, 8, 20, 0, DateTimeKind.Utc), row.ObservationStartedAtUtc);
         Assert.Equal(new DateTime(2026, 7, 27, 8, 25, 0, DateTimeKind.Utc), row.FirstInputAtUtc);
@@ -216,7 +219,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
 
-        var row = Assert.Single(await Settle(store));
+        var row = Assert.Single(await Written(store));
 
         Assert.True(row.ResearchOnly);
         Assert.False(row.Authoritative);
@@ -233,7 +236,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
 
-        var row = Assert.Single(await Settle(store));
+        var row = Assert.Single(await Written(store));
 
         Assert.Equal(1234.5m, row.Effort.TotalExecutedVolume);
         Assert.Equal(77L, row.Effort.TradeCount);
@@ -282,29 +285,144 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     /// asynchronous load, so the file has to be what refuses the duplicate.
     /// </summary>
     [Fact]
-    public async Task C03_A_restart_does_not_re_append_recovered_observations()
+    public async Task C03A_The_store_refuses_an_observation_that_is_already_in_the_file()
+    {
+        var records = new[]
+        {
+            EffortResultResearchProjection.TryProject(Evidence("EFF-1", "EP-1"), At, out _)!,
+            EffortResultResearchProjection.TryProject(Evidence("EFF-2", "EP-2"), At, out _)!,
+        };
+
+        var writer = Store();
+        writer.AppendEffortResultResearch(records);
+        Assert.Equal(2, (await Written(writer)).Count);
+        Assert.Equal(2, writer.ResearchRowsWritten);
+        Assert.Equal(0, writer.ResearchDuplicatesRejected);
+
+        // Offered again to the same instance: refused from the keys it already holds.
+        writer.AppendEffortResultResearch(records);
+        Assert.Equal(2, (await Written(writer)).Count);
+        Assert.Equal(2, writer.ResearchRowsWritten);
+        Assert.Equal(2, writer.ResearchDuplicatesRejected);
+
+        // A new process holds no keys, so here the refusal has to come from the file itself.
+        var reopened = Store();
+        reopened.AppendEffortResultResearch(records);
+        Assert.Equal(2, (await Written(reopened)).Count);
+        Assert.Equal(0, reopened.ResearchRowsWritten);
+        Assert.Equal(2, reopened.ResearchDuplicatesRejected);
+    }
+
+    /// <summary>
+    /// `C03B` — the restart invariant, asserted so it holds on **both** orderings.
+    ///
+    /// If recovery merges first the fold is suppressed and nothing is offered; if the fold runs
+    /// first both rows are offered and the file refuses them. Neither branch may write a row
+    /// and neither may leave a duplicate. `ResearchDuplicatesRejected` is deliberately not
+    /// asserted here — it is 2 on one branch and 0 on the other, and asserting it is what
+    /// turned this test into a race. `C03A` covers it directly.
+    /// </summary>
+    [Fact]
+    public async Task C03B_A_restart_never_duplicates_a_recovered_observation()
     {
         var set = Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2"));
 
         var first = Store();
         for (var i = 0; i < 10; i++) Collector(first).Rebuild(set, At);
-        await Settle(first, expected: 2);
+        Assert.Equal(2, (await Written(first)).Count);
 
-        Assert.Equal(2, (await Store().LoadEffortResultResearchAsync()).Count);
-
-        // A new process seeing the very same rolling window, folding before its recovery
-        // lands — the exact sequence that produced the duplicates.
+        // A new process seeing the very same rolling window.
         var reopened = Store();
         var restarted = Collector(reopened);
-        for (var i = 0; i < 200 && reopened.ResearchDuplicatesRejected < 2; i++)
-        {
-            restarted.Rebuild(set, At);
-            await Task.Delay(20);
-        }
+        for (var i = 0; i < 10; i++) restarted.Rebuild(set, At);
+
+        var rows = await Written(reopened);
+
+        Assert.Equal(0, reopened.ResearchRowsWritten);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal(2, rows.Select(r => r.ObservationId).Distinct(StringComparer.Ordinal).Count());
+    }
+
+    /// <summary>
+    /// `C03C` — the ordering the old test tried to reach by luck, reached deterministically.
+    ///
+    /// The collector's recovery load is queued on `reopened` before the test's, and one worker
+    /// answers them in order, so completing the test's load proves the collector's completed.
+    /// Recovery is then guaranteed to merge before anything is folded, and nothing may be
+    /// offered to the store at all.
+    /// </summary>
+    [Fact]
+    public async Task C03C_When_recovery_lands_first_nothing_is_offered_to_the_store()
+    {
+        var set = Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2"));
+
+        var first = Store();
+        Collector(first).Rebuild(set, At);
+        Assert.Equal(2, (await Written(first)).Count);
+
+        var reopened = Store();
+        var restarted = Collector(reopened);
+
+        restarted.Rebuild(null, At);                        // dispatches the recovery load
+        await reopened.LoadEffortResultResearchAsync();     // orders after it
+        restarted.Rebuild(set, At);                         // merges it, then finds nothing new
+
+        Assert.Equal(2, restarted.RecoveredObservations);
+        Assert.Equal(0, reopened.ResearchRowsAppended);
+        Assert.Equal(0, reopened.ResearchDuplicatesRejected);
+        Assert.Equal(2, (await Written(reopened)).Count);
+    }
+
+    /// <summary>
+    /// `C03D` — the other ordering, and the one that actually produced the duplicates: folding
+    /// runs while recovery is still in flight.
+    ///
+    /// `C03B` proves the outcome is the same on either branch, but an outcome that holds both
+    /// ways does not prove both ways ran. This forces the fold-first branch and asserts what only
+    /// that branch can produce: observations really were offered to the store, and the **file** is
+    /// what refused them.
+    ///
+    /// The ordering is constructed, not waited for — <see cref="RecoveryGate"/> holds the recovery
+    /// load incomplete, and the test asserts it is still incomplete on both sides of the fold. No
+    /// delay, no poll, no scheduler.
+    /// </summary>
+    [Fact]
+    public async Task C03D_When_folding_runs_before_recovery_the_file_refuses_the_duplicates()
+    {
+        var set = Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2"));
+
+        var first = Store();
+        Collector(first).Rebuild(set, At);
+        Assert.Equal(2, (await Written(first)).Count);
+
+        var reopened = Store();
+        var restarted = Collector(reopened);
+        var recovery = RecoveryGate.Install<IReadOnlyList<EffortResultResearchRecord>>(restarted);
+
+        Assert.False(recovery.Task.IsCompleted);
+        restarted.Rebuild(set, At);
+        Assert.False(recovery.Task.IsCompleted);
+        Assert.Equal(0, restarted.RecoveredObservations);
+
+        // Only the fold-first branch reaches the store at all.
+        Assert.Equal(2, reopened.ResearchRowsAppended);
+
+        var rows = await Written(reopened);
 
         Assert.Equal(2, reopened.ResearchDuplicatesRejected);
         Assert.Equal(0, reopened.ResearchRowsWritten);
-        Assert.Equal(2, (await Store().LoadEffortResultResearchAsync()).Count);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal(2, rows.Select(r => r.ObservationId).Distinct(StringComparer.Ordinal).Count());
+
+        // Recovery landing afterwards must not count the same observations a second time.
+        recovery.SetResult(rows);
+        restarted.Rebuild(set, At);
+
+        Assert.Equal(0, restarted.RecoveredObservations);
+        Assert.Equal(2, restarted.ObservationsCollected);
+        Assert.Equal(2, reopened.ResearchRowsAppended);
+        Assert.Equal(0, reopened.ResearchRowsWritten);
+        Assert.Equal(2, (await Written(reopened)).Count);
     }
 
     /// <summary>A restart recovers the sample and says how much of it was restored.</summary>
@@ -312,15 +430,17 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     public async Task C04_A_restarted_collector_recovers_the_sample()
     {
         var set = Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2"));
-        Collector(Store()).Rebuild(set, At);
-        await Settle(Store(), expected: 2);
 
-        var restarted = Collector(Store());
-        for (var i = 0; i < 100 && restarted.RecoveredObservations == 0; i++)
-        {
-            restarted.Rebuild(null, At);
-            await Task.Delay(20);
-        }
+        var first = Store();
+        Collector(first).Rebuild(set, At);
+        Assert.Equal(2, (await Written(first)).Count);
+
+        var reopened = Store();
+        var restarted = Collector(reopened);
+
+        restarted.Rebuild(null, At);                        // dispatches the recovery load
+        await reopened.LoadEffortResultResearchAsync();     // orders after it
+        restarted.Rebuild(null, At);                        // merges it
 
         Assert.Equal(2, restarted.RecoveredObservations);
     }
@@ -347,9 +467,8 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
             store.AppendEffortResultResearch(new[] { record! });
         }
 
-        for (var i = 0; i < 400 && store.ResearchRowsWritten < rows; i++)
-            await Task.Delay(20);
-
+        // The barrier, not a budget: this load is queued behind all 2,000 appends.
+        Assert.Equal(rows, (await Written(store)).Count);
         Assert.Equal(rows, store.ResearchRowsWritten);
         Assert.Equal(0, store.WriteFailures);
         Assert.True(
@@ -364,7 +483,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     {
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
-        await Settle(store);
+        await Written(store);
 
         Assert.False(store.WroteOnThreadPoolThread);
         Assert.Equal(1, store.ResearchWriteBatches);
@@ -387,7 +506,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     {
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2")), At);
-        await Settle(store, expected: 2);
+        await Written(store);
 
         var text = File.ReadAllText(store.EffortResultResearchFilePath);
         File.WriteAllText(store.EffortResultResearchFilePath, text[..(text.Length - 30)]);
@@ -426,14 +545,12 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         });
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-9")), At);
 
-        for (var i = 0; i < 500 && (store.RowsWritten < 1 || store.ResearchRowsWritten < 1); i++)
-            await Task.Delay(20);
-
-        // Each product is complete in its own file, and neither counter borrows the other's.
-        Assert.Equal(1, store.RowsWritten);
-        Assert.Equal(1, store.ResearchRowsWritten);
+        // One queue carries both products, so either load orders after both appends. Each
+        // product is complete in its own file, and neither counter borrows the other's.
         Assert.Single(await store.LoadAsync());
         Assert.Single(await store.LoadEffortResultResearchAsync());
+        Assert.Equal(1, store.RowsWritten);
+        Assert.Equal(1, store.ResearchRowsWritten);
 
         var episodeLine = File.ReadAllText(store.FilePath);
         Assert.Contains("\"EpisodeId\":\"EP-1\"", episodeLine, StringComparison.Ordinal);
@@ -457,7 +574,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     {
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
-        await Settle(store);
+        await Written(store);
 
         // Both products, and the episode load too - the contract belongs to the class, not
         // to the new product.
@@ -494,7 +611,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         var set = Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2"));
 
         collector.Rebuild(set, At);
-        await Settle(store, expected: 2);
+        await Written(store);
 
         var collected = collector.ObservationsCollected;
         var started = collector.StartedAtUtc;
@@ -527,15 +644,17 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     public async Task G04_Disabling_does_not_forget_recovered_rows()
     {
         var set = Set(Evidence("EFF-1", "EP-1"), Evidence("EFF-2", "EP-2"));
-        Collector(Store()).Rebuild(set, At);
-        await Settle(Store(), expected: 2);
 
-        var restarted = Collector(Store());
-        for (var i = 0; i < 100 && restarted.RecoveredObservations == 0; i++)
-        {
-            restarted.Rebuild(null, At);
-            await Task.Delay(20);
-        }
+        var first = Store();
+        Collector(first).Rebuild(set, At);
+        Assert.Equal(2, (await Written(first)).Count);
+
+        var reopened = Store();
+        var restarted = Collector(reopened);
+
+        restarted.Rebuild(null, At);                        // dispatches the recovery load
+        await reopened.LoadEffortResultResearchAsync();     // orders after it
+        restarted.Rebuild(null, At);                        // merges it
 
         Assert.Equal(2, restarted.RecoveredObservations);
 
@@ -560,7 +679,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
     {
         var store = Store();
         Collector(store).Rebuild(Set(Evidence("EFF-1", "EP-1")), At);
-        await Settle(store);
+        await Written(store);
 
         var path = store.EffortResultResearchFilePath;
         File.AppendAllText(path, FutureRow("ERRO|future") + "\n");
@@ -595,7 +714,7 @@ public sealed class EffortResultResearchBridgeTests : IDisposable
         File.WriteAllText(store.EffortResultResearchFilePath, FutureRow(observationId) + "\n");
 
         Collector(store).Rebuild(Set(evidence), At);
-        var rows = await Settle(store);
+        var rows = await Written(store);
 
         // The current-schema row was still written, and it is the one the reader returns.
         var row = Assert.Single(rows);
