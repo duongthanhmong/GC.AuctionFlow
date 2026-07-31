@@ -1,0 +1,137 @@
+###### FIN/RITHMIC LIVE READ-ONLY ACQUISITION PROBE ######
+session id  : probe_20260731T102133Z
+utc start   : 2026-07-31T10:21:33+00:00
+local start : 2026-07-31T17:21:33+07:00
+quarantine  : <quarantine>\probe_20260731T102133Z
+window      : 25s per streaming group
+scope       : market data + reference data only; no order/account/PnL request
+P0  connecting (TICKER_PLANT only)
+P0  AUTHENTICATED
+
+P1  exchange + entitlement enumeration -> list_exchanges()
+     exchanges: 4
+       {'exchange': 'COMEX', 'level_1_market_data': 'enabled', 'level_2_market_data': 'enabled', 'entitlement_flag': 1}
+       {'exchange': 'NYMEX', 'level_1_market_data': 'enabled', 'level_2_market_data': 'enabled', 'entitlement_flag': 1}
+       {'exchange': 'CBOT', 'level_1_market_data': 'enabled', 'level_2_market_data': 'enabled', 'entitlement_flag': 1}
+       {'exchange': 'CME', 'level_1_market_data': 'enabled', 'level_2_market_data': 'enabled', 'entitlement_flag': 1}
+     capture P1_exchange_permissions.json  835 bytes  sha256=2f30f8e346d90699
+
+P2  front-month GC contract -> get_front_month_contract()
+     GC front month = GCZ6
+     capture P2_front_month.json  43 bytes  sha256=69c2b0be354de823
+
+P3  reference data for GCZ6
+     reference-data non-null fields: 19
+       clear_bits                     16384
+       currency                       USD
+       exchange                       COMEX
+       exchange_symbol                GCZ6
+       expiration_date                20261229
+       ftoq_price                     0.1
+       instrument_type                Future
+       is_underlying_for_binary_contrats yes
+       min_fprice_change              1.0
+       min_qprice_change              0.1
+       presence_bits                  8420975
+       product_code                   GC
+       qtof_price                     10.0
+       rp_code                        ['0']
+       single_point_value             100.0
+       symbol                         GCZ6
+       symbol_name                    COMEX Gold Futures
+       template_id                    15
+       user_msg                       ['366d3e0c-f4d6-4c25-b26c-156d1f84cef3']
+     capture P3_reference_data.json  501 bytes  sha256=da2fa2b8159e38c6
+
+P4  L1 trades + BBO, 25s
+     ticks: 104   bid=4110.0 ask=4110.2
+     capture P4_l1_trades_bbo.json  53705 bytes  sha256=7764c3382210b036
+
+P5  14 unrequested UpdateBits surfaces, 25s
+     session-stat ticks: 34
+       symbol                         34
+       exchange                       34
+       presence_bits                  34
+       ssboe                          34
+       usecs                          34
+       datetime                       34
+       data_type                      34
+       lean_price                     24
+       bid_price                      13
+       bid_size                       13
+       bid_orders                     13
+       ask_price                      11
+       ask_size                       11
+       source_ssboe                   10
+       source_usecs                   10
+       source_nsecs                   10
+       jop_ssboe                      10
+       jop_nsecs                      10
+       ask_implicit_size              8
+       ask_orders                     7
+       trade_price                    5
+       net_change                     5
+       percent_change                 5
+       trade_size                     5
+       vwap                           5
+       exchange_order_id              5
+       volume                         5
+       aggressor                      4
+       aggressor_exchange_order_id    4
+     capture P5_session_stats.json  18965 bytes  sha256=05d1c2761183c61a
+
+P6a  aggregated ORDER_BOOK, 25s
+     aggregated order-book events: 762
+     fields: ask_orders, ask_price, ask_size, bid_orders, bid_price, bid_size, exchange, impl_ask_size, impl_bid_size, presence_bits, symbol, template_id, update_type
+       update_type 7                        365
+       update_type 4                        198
+       update_type 6                        198
+       update_type 3                        1
+     capture P6a_order_book.json  71650 bytes  sha256=669f09d8dc26c25a
+
+P6b  DepthByOrder / MBO at representative price levels, 25s
+     depth-by-order events: 51   sequence_number present: 51
+     fields: depth_order_priority, depth_price, depth_size, exchange, exchange_order_id, jop_nsecs, jop_ssboe, prev_depth_price, prev_depth_price_flag, sequence_number, source_nsecs, source_ssboe, source_usecs, ssboe, symbol, template_id, transaction_type, update_type, usecs
+       update_type [2]                      30
+       update_type [1]                      11
+       update_type [3]                      10
+     capture P6b_depth_by_order.json  28100 bytes  sha256=50dfc72138e29260
+
+P7  option chain discovery + reference data
+     option symbols found: 87649
+       {'symbol': '1OTG7-1OTJ7', 'product_code': '1OT', 'instrument_type': 'Future Strategy', 'expiration_date': '20270127'}
+       {'symbol': '1OTG7-1OTM7', 'product_code': '1OT', 'instrument_type': 'Future Strategy', 'expiration_date': '20270127'}
+       {'symbol': '1OTG7', 'product_code': '1OT', 'instrument_type': 'Future', 'expiration_date': '20270127'}
+       {'symbol': '1OTJ7-1OTM7', 'product_code': '1OT', 'instrument_type': 'Future Strategy', 'expiration_date': '20270329'}
+       {'symbol': '1OTJ7', 'product_code': '1OT', 'instrument_type': 'Future', 'expiration_date': '20270329'}
+       {'symbol': '1OTM7', 'product_code': '1OT', 'instrument_type': 'Future', 'expiration_date': '20270526'}
+     capture P7_option_search.json  55057 bytes  sha256=ea07c7e0bd3ea043
+       ref 1OTG7-1OTJ7 underlying=None expiry=20270127 strike=None pc=None pointval=1.0
+       ref 1OTG7-1OTM7 underlying=None expiry=20270127 strike=None pc=None pointval=1.0
+       ref 1OTG7 underlying=None expiry=20270127 strike=None pc=None pointval=1.0
+       ref 1OTJ7-1OTM7 underlying=None expiry=20270329 strike=None pc=None pointval=1.0
+       ref 1OTJ7 underlying=None expiry=20270329 strike=None pc=None pointval=1.0
+       ref 1OTM7 underlying=None expiry=20270526 strike=None pc=None pointval=1.0
+     capture P7_option_reference_data.json  2921 bytes  sha256=ecd6454196163684
+
+P8  option market data: trades, BBO, OI, settlement, 25s
+     option ticks: 8   template-158 frames: 1
+       symbol                         8
+       exchange                       8
+       is_snapshot                    8
+       presence_bits                  8
+       ssboe                          8
+       clear_bits                     8
+       datetime                       8
+       data_type                      8
+     capture P8_option_market_data.json  3740 bytes  sha256=84abf73e5089b87a
+
+disconnecting ticker plant
+     disconnected cleanly
+
+P10  historical bars - separate connection so a denial cannot kill the ticker run
+P10  history plant AUTHENTICATED
+     historical 1-min bars returned: 10
+     capture P10_historical_time_bars.json  6760 bytes  sha256=23044e8b180b4419
+
+elapsed 160.0s
