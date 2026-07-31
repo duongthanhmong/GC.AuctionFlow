@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcae.local/kdk/stage2/common.defs.schema.json",
+  "title": "KDK Stage 2 shared definitions",
+  "description": "Canonical enums, units and version fields. Every other schema in this package references these rather than redeclaring them, so an enum exists in exactly one place. Vocabulary is taken from MRBS v1.1 and is NOT extended without a note saying so.",
+  "$defs": {
+    "utcTimestamp": {
+      "type": "string",
+      "description": "RFC3339 timestamp that MUST carry an explicit UTC offset. Naive timestamps are rejected: async_rithmic base.py:567-577 localises a naive datetime to the SYSTEM timezone, which silently shifted a historical window by 7 hours (25201 s) during the readiness work. See ADR-006.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "priceTicks": {
+      "type": "integer",
+      "description": "Price as an INTEGER number of ticks (MRBS 2.1: 'MUST luu moi gia noi bo bang integer ticks'). A float price is a schema violation, not a rounding concern. Convert with tickSize at the display boundary only."
+    },
+    "tickSize": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Vendor min_fprice_change, READ from reference data. Measured 1.0 for GCZ6. Never assumed."
+    },
+    "dataQuality": {
+      "type": "string",
+      "description": "MRBS v1.1 section 18, verbatim. No values added.",
+      "enum": ["Ready", "Degraded", "Invalid"]
+    },
+    "capabilityState": {
+      "type": "string",
+      "description": "MRBS v1.1 section 18 vocabulary, plus two declared extensions. CLIENT_BLOCKED means the vendor delivers the surface and this client library discards it - MRBS has no term for that and 'Unavailable' would misstate it (the data is entitled and present). NOT_EVIDENCED means no resolvable EvidenceId, and is never upgraded silently.",
+      "enum": [
+        "Unavailable", "HistoricalOnly", "LiveOnly", "ReplayCompatible", "Ready", "Degraded",
+        "CLIENT_BLOCKED", "NOT_EVIDENCED"
+      ]
+    },
+    "optionsState": {
+      "type": "string",
+      "description": "MRBS v1.1 section 21, verbatim.",
+      "enum": ["Unavailable", "Invalid", "ContextOnly", "Ready"]
+    },
+    "rollState": {
+      "type": "string",
+      "description": "MRBS v1.1 section 20, verbatim.",
+      "enum": ["FrontDominant", "Transition", "NextDominant", "InvalidMapping"]
+    },
+    "aggressorSide": {
+      "type": "string",
+      "description": "Vendor-supplied on template 150. 'Unknown' is only valid when the vendor field was absent; it MUST NOT be used to hide a locally inferred value. See ADR-001.",
+      "enum": ["Buy", "Sell", "Unknown"]
+    },
+    "aggressorProvenance": {
+      "type": "string",
+      "description": "Which producer set aggressorSide. ADR-001 forbids local inference while the vendor field is present; this field makes a violation visible in the data rather than only in the code.",
+      "enum": ["vendor_field", "locally_inferred", "absent"]
+    },
+    "dataSourceId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifies the acquisition path. Historical and live are DIFFERENT sources and are never merged without recording this per record (MRBS DQ-004, ADR-006).",
+      "examples": ["rithmic.ticker_plant.live", "rithmic.history_plant.replay", "atas.recorder"]
+    },
+    "reasonCode": {
+      "type": "string",
+      "description": "MRBS v1.1 section 23.2. LOG-001 forbids free text alone for any Block or Restricted outcome. Only the codes relevant to acquisition and data quality are listed here; the engine-side codes live with the engine.",
+      "enum": [
+        "DATA_INVALID", "OF_DATA_DEGRADED", "OPTIONS_UNUSABLE",
+        "CONTRACT_MAPPING_INVALID", "PROFILE_PROVENANCE_MISSING", "CONFIG_VERSION_MISSING",
+        "SPEC_CONFLICT_REVIEW_REQUIRED"
+      ]
+    },
+    "semVer": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:[-+][0-9A-Za-z.\\-]+)?$"
+    },
+    "versionBlock": {
+      "type": "object",
+      "description": "MRBS VER-001: AlgorithmVersion, ConfigVersion and DataSchemaVersion are THREE INDEPENDENT fields. A record missing any of them is invalid - not defaulted.",
+      "properties": {
+        "algorithmVersion": { "$ref": "#/$defs/semVer" },
+        "configVersion": { "$ref": "#/$defs/semVer" },
+        "dataSchemaVersion": { "$ref": "#/$defs/semVer" }
+      },
+      "required": ["algorithmVersion", "configVersion", "dataSchemaVersion"],
+      "additionalProperties": false
+    },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^EV-[A-Z0-9\\-]+$",
+      "description": "MUST resolve to a row in EVIDENCE_INDEX.csv whose artifact exists and hashes. The test suite re-resolves every one; a dangling id fails the build."
+    },
+    "parameterRef": {
+      "type": "object",
+      "description": "ADR-005: a threshold is REFERENCED, never inlined. 'boundValue' is absent until the registry marks the parameter Approved; a consumer that needs an unbound parameter fails closed.",
+      "properties": {
+        "canonicalId": { "type": "string", "minLength": 1 },
+        "approvalStatus": {
+          "type": "string",
+          "enum": ["Proposed", "UnderReview", "Deferred", "Approved"]
+        },
+        "boundValue": {
+          "description": "Present ONLY when approvalStatus is Approved.",
+          "type": ["number", "string", "null"]
+        }
+      },
+      "required": ["canonicalId", "approvalStatus"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "approvalStatus": { "not": { "const": "Approved" } } } },
+          "then": {
+            "description": "Unapproved parameters MUST NOT carry a value.",
+            "properties": { "boundValue": { "type": "null" } }
+          }
+        }
+      ]
+    }
+  }
+}

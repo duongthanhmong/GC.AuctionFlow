@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcae.local/kdk/stage2/raw_frame.schema.json",
+  "title": "RawFrameRecord - a vendor frame this client cannot parse",
+  "description": "ADR-007. async_rithmic 1.6.3 ships message classes for five streaming templates (150, 151, 156, 160, 161) and destroys everything else. This record preserves those bytes verbatim so the archive can be re-decoded when a schema arrives, without another live session.",
+  "type": "object",
+  "properties": {
+    "templateId": {
+      "type": "integer",
+      "description": "Read from the Base message, which parses even when the concrete type does not.",
+      "minimum": 1
+    },
+    "vendorNameHypothesis": {
+      "type": ["string", "null"],
+      "description": "A NAME GUESS from vendor protocol numbering. Explicitly a hypothesis - it must never be read as a decoded field name."
+    },
+    "capturedUtc": { "$ref": "common.defs.schema.json#/$defs/utcTimestamp" },
+    "segmentId": { "type": "string", "minLength": 1 },
+    "framedBytes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Including the 4-byte big-endian length prefix."
+    },
+    "payloadBase64": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+      "description": "THE record. Everything else is derived and may be recomputed from this."
+    },
+    "decodeMethod": {
+      "type": "string",
+      "enum": ["none", "generic_wireformat", "vendor_proto"]
+    },
+    "semanticStatus": {
+      "type": "string",
+      "enum": ["UNINTERPRETED", "FIELD_NUMBERS_ONLY", "SCHEMA_BOUND"],
+      "description": "Only SCHEMA_BOUND may be consumed by an analytic. FIELD_NUMBERS_ONLY is archival."
+    },
+    "decodedFields": {
+      "type": ["object", "null"],
+      "description": "Generic wire-format walk keyed by FIELD NUMBER as a string. Field numbers and wire types are facts read off the bytes; names and meanings are not present and must not be added at this level.",
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "wire": { "type": "string", "enum": ["varint", "64bit", "bytes", "32bit"] },
+              "value": { "type": ["integer", "null"] },
+              "double": { "type": ["number", "null"] },
+              "int64": { "type": ["integer", "null"] },
+              "float": { "type": ["number", "null"] },
+              "int32": { "type": ["integer", "null"] },
+              "utf8": { "type": ["string", "null"] },
+              "hex": { "type": ["string", "null"] },
+              "len": { "type": ["integer", "null"] }
+            },
+            "required": ["wire"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "versions": { "$ref": "common.defs.schema.json#/$defs/versionBlock" }
+  },
+  "required": ["templateId", "capturedUtc", "segmentId", "framedBytes", "payloadBase64", "decodeMethod", "semanticStatus", "versions"],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "decodeMethod": { "const": "none" } }, "required": ["decodeMethod"] },
+      "then": {
+        "properties": {
+          "decodedFields": { "type": "null" },
+          "semanticStatus": { "const": "UNINTERPRETED" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "decodeMethod": { "const": "generic_wireformat" } },
+        "required": ["decodeMethod"]
+      },
+      "then": {
+        "description": "A generic walk can never produce a schema-bound frame. This is the rule that stops 'we decoded field 100064 = 174' from being promoted into 'open interest = 174' without a vendor schema.",
+        "properties": { "semanticStatus": { "const": "FIELD_NUMBERS_ONLY" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "semanticStatus": { "const": "SCHEMA_BOUND" } },
+        "required": ["semanticStatus"]
+      },
+      "then": { "properties": { "decodeMethod": { "const": "vendor_proto" } } }
+    }
+  ]
+}

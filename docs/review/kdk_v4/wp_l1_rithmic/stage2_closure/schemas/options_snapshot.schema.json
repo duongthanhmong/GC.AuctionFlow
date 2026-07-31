@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcae.local/kdk/stage2/options_snapshot.schema.json",
+  "title": "OptionsSnapshot - point-in-time option context",
+  "description": "MRBS OPT-002 made executable: a snapshot without timestamp, model version or a per-series underlying is Unusable, and the schema refuses to represent one as Ready. Encodes the two hard facts from ADR-004 - identity is vendor-verified, open interest is client-blocked.",
+  "type": "object",
+  "properties": {
+    "snapshotId": { "type": "string", "minLength": 1 },
+    "snapshotTimeUtc": {
+      "$ref": "common.defs.schema.json#/$defs/utcTimestamp",
+      "description": "OPT-002: point-in-time is mandatory. A snapshot with no time is Unusable, never merely stale."
+    },
+    "optionsState": { "$ref": "common.defs.schema.json#/$defs/optionsState" },
+    "rollState": { "$ref": "common.defs.schema.json#/$defs/rollState" },
+    "capabilitySnapshotId": { "type": "string", "minLength": 1 },
+    "modelVersion": {
+      "$ref": "common.defs.schema.json#/$defs/semVer",
+      "description": "OPT-002 requires the model version alongside the data."
+    },
+    "futuresContextSymbol": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The futures contract the ANALYSIS is anchored on, e.g. GCZ6."
+    },
+    "contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "symbol": { "type": "string", "minLength": 1 },
+          "exchange": { "type": "string", "minLength": 1 },
+          "productCode": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Load-bearing. Product ECG10 ('Event Contracts on Gold Futures') passes instrument-type, underlying, strike, put/call and expiry checks and is still the wrong instrument family - point value 1.0 against 100.0 and strikes on a 10x scale. Only productCode and point value separate them."
+          },
+          "underlyingSymbol": {
+            "type": "string",
+            "minLength": 1,
+            "description": "READ from vendor reference data, per series. Measured: OGU6 -> GCV6 while the futures front month is GCZ6. Never inferred, never assumed to be the front month (MRBS ROLL-004)."
+          },
+          "expirationDate": { "type": "string", "pattern": "^\\d{8}$" },
+          "strikeTicks": { "$ref": "common.defs.schema.json#/$defs/priceTicks" },
+          "tickSize": { "$ref": "common.defs.schema.json#/$defs/tickSize" },
+          "putCall": { "type": "string", "enum": ["Call", "Put"] },
+          "singlePointValue": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Measured 100.0 for standard GC options; 1.0 identifies an event contract."
+          },
+          "identitySource": {
+            "type": "string",
+            "enum": ["vendor_reference_data"],
+            "description": "Constrained to one value on purpose: parsing identity out of the symbol string is not permitted, so the schema cannot express it."
+          },
+          "bidTicks": { "$ref": "common.defs.schema.json#/$defs/priceTicks" },
+          "askTicks": { "$ref": "common.defs.schema.json#/$defs/priceTicks" },
+          "bidSize": { "type": "integer", "minimum": 0 },
+          "askSize": { "type": "integer", "minimum": 0 },
+          "openInterest": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Null while template 158 is client-blocked. Present only when openInterestStatus is SCHEMA_BOUND."
+          },
+          "openInterestStatus": {
+            "type": "string",
+            "enum": ["CLIENT_BLOCKED", "FIELD_NUMBERS_ONLY", "SCHEMA_BOUND", "NOT_REQUESTED"],
+            "description": "Vendor sends OI on template 158 - decoded off the wire as OGU6 C4120 = 174, C4035 = 42 - but async_rithmic 1.6.3 has no message class and discards it (ADR-004, ADR-007)."
+          },
+          "settlementTicks": { "type": ["integer", "null"] },
+          "settlementStatus": {
+            "type": "string",
+            "enum": ["CLIENT_BLOCKED", "FIELD_NUMBERS_ONLY", "SCHEMA_BOUND", "NOT_REQUESTED"]
+          }
+        },
+        "required": ["symbol", "exchange", "productCode", "underlyingSymbol", "expirationDate", "strikeTicks", "putCall", "singlePointValue", "identitySource", "openInterestStatus"],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": { "openInterestStatus": { "not": { "const": "SCHEMA_BOUND" } } },
+              "required": ["openInterestStatus"]
+            },
+            "then": {
+              "description": "An OI value may only exist when its frame is schema-bound. A field-number-only decode is archival, not a value (ADR-007).",
+              "properties": { "openInterest": { "type": "null" } }
+            }
+          },
+          {
+            "if": {
+              "properties": { "settlementStatus": { "not": { "const": "SCHEMA_BOUND" } } },
+              "required": ["settlementStatus"]
+            },
+            "then": { "properties": { "settlementTicks": { "type": "null" } } }
+          }
+        ]
+      }
+    },
+    "derivedExposure": {
+      "type": ["object", "null"],
+      "description": "GEX and dealer positioning. Null is the correct value today: OPT-004 requires formula, sign and assumption to be recorded, and OI is blocked, so no honest exposure figure exists. KDK section 50 stands regardless - GEX is a module inside the Options pillar and never a necessary condition.",
+      "properties": {
+        "formula": { "type": "string", "minLength": 1 },
+        "signConvention": { "type": "string", "minLength": 1 },
+        "dealerAssumption": { "type": "string", "minLength": 1 },
+        "scenarioLabel": { "type": "string", "minLength": 1 }
+      },
+      "required": ["formula", "signConvention", "dealerAssumption", "scenarioLabel"],
+      "additionalProperties": false
+    },
+    "reasonCodes": {
+      "type": "array",
+      "items": { "$ref": "common.defs.schema.json#/$defs/reasonCode" },
+      "uniqueItems": true
+    },
+    "versions": { "$ref": "common.defs.schema.json#/$defs/versionBlock" },
+    "evidenceIds": {
+      "type": "array",
+      "items": { "$ref": "common.defs.schema.json#/$defs/evidenceId" }
+    }
+  },
+  "required": ["snapshotId", "snapshotTimeUtc", "optionsState", "capabilitySnapshotId", "modelVersion", "futuresContextSymbol", "contracts", "versions"],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "optionsState": { "const": "Ready" } }, "required": ["optionsState"] },
+      "then": {
+        "description": "Ready requires every contract to carry a schema-bound open interest. With template 158 blocked this branch is currently unsatisfiable - which is the intended outcome, not an oversight: it makes 'Options Ready' impossible to assert while the client discards OI.",
+        "properties": {
+          "contracts": {
+            "items": { "properties": { "openInterestStatus": { "const": "SCHEMA_BOUND" } } }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "rollState": { "const": "InvalidMapping" } }, "required": ["rollState"] },
+      "then": {
+        "description": "MRBS ROLL-004: wrong underlying mapping forces Options Invalid and the CONTRACT_MAPPING_INVALID reason code.",
+        "properties": {
+          "optionsState": { "const": "Invalid" },
+          "reasonCodes": { "contains": { "const": "CONTRACT_MAPPING_INVALID" } }
+        },
+        "required": ["reasonCodes"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "derivedExposure": { "type": "object" } },
+        "required": ["derivedExposure"]
+      },
+      "then": {
+        "description": "If exposure is present at all, optionsState must not claim Ready without bound OI, and OPT-004's four fields are already required by the sub-schema.",
+        "properties": { "optionsState": { "enum": ["ContextOnly", "Ready"] } }
+      }
+    }
+  ]
+}

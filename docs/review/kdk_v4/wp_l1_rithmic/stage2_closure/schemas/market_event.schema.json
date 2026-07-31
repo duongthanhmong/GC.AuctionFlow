@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcae.local/kdk/stage2/market_event.schema.json",
+  "title": "MarketEvent - authoritative core record",
+  "description": "One executed trade or quote from the authoritative core (ADR-001). Shape follows MRBS v1.1 section 2.1 record MarketEvent, made executable: integer ticks, three distinct clock domains, mandatory sequence, mandatory DataSourceId and version block.",
+  "type": "object",
+  "properties": {
+    "instrumentId": { "type": "string", "minLength": 1 },
+    "exchange": { "type": "string", "minLength": 1 },
+    "eventType": {
+      "type": "string",
+      "description": "Only core types. MBO events do NOT use this schema - see mbo_event.schema.json (ADR-002).",
+      "enum": ["Trade", "BestBidOffer", "AggregatedBookLevel"]
+    },
+    "eventTimeUtc": {
+      "$ref": "common.defs.schema.json#/$defs/utcTimestamp",
+      "description": "Exchange time. Rithmic source_ssboe/source_usecs/source_nsecs."
+    },
+    "receiveTimeUtc": {
+      "$ref": "common.defs.schema.json#/$defs/utcTimestamp",
+      "description": "Client receive time. Rithmic ssboe/usecs."
+    },
+    "processingTimeUtc": {
+      "$ref": "common.defs.schema.json#/$defs/utcTimestamp",
+      "description": "When the recorder handled it. MRBS 2.1 requires all three to be distinguishable; equality is allowed, conflation is not."
+    },
+    "exchangeLocalTime": {
+      "type": "string",
+      "description": "MRBS 2.1 requires an exchange-local timestamp alongside UTC.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Vendor sequence where the surface carries one, otherwise a recorder-assigned monotonic counter. sequenceProvenance says which."
+    },
+    "sequenceProvenance": {
+      "type": "string",
+      "enum": ["vendor", "recorder_assigned"],
+      "description": "Templates 150/151 carry no native sequence; MBO does. Recording which is which prevents a recorder counter being read later as an exchange sequence."
+    },
+    "priceTicks": { "$ref": "common.defs.schema.json#/$defs/priceTicks" },
+    "tickSize": { "$ref": "common.defs.schema.json#/$defs/tickSize" },
+    "quantity": { "type": "integer", "minimum": 0 },
+    "aggressorSide": { "$ref": "common.defs.schema.json#/$defs/aggressorSide" },
+    "aggressorProvenance": { "$ref": "common.defs.schema.json#/$defs/aggressorProvenance" },
+    "bidPriceTicks": { "$ref": "common.defs.schema.json#/$defs/priceTicks" },
+    "askPriceTicks": { "$ref": "common.defs.schema.json#/$defs/priceTicks" },
+    "bidSize": { "type": "integer", "minimum": 0 },
+    "askSize": { "type": "integer", "minimum": 0 },
+    "bidOrders": { "type": "integer", "minimum": 0 },
+    "askOrders": { "type": "integer", "minimum": 0 },
+    "dataSourceId": { "$ref": "common.defs.schema.json#/$defs/dataSourceId" },
+    "capabilitySnapshotId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "MRBS DQ-003: every signal carries a CapabilitySnapshotId; missing means reject. Applied here at the record level so a downstream signal can always resolve the acquisition conditions it was built under."
+    },
+    "segmentId": { "type": "string", "minLength": 1 },
+    "vendorTemplateId": {
+      "type": "integer",
+      "description": "Rithmic template the record came from. 150 trade, 151 BBO, 156 aggregated book."
+    },
+    "versions": { "$ref": "common.defs.schema.json#/$defs/versionBlock" }
+  },
+  "required": [
+    "instrumentId", "exchange", "eventType",
+    "eventTimeUtc", "receiveTimeUtc", "processingTimeUtc",
+    "sequence", "sequenceProvenance",
+    "dataSourceId", "capabilitySnapshotId", "segmentId", "versions"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "eventType": { "const": "Trade" } }, "required": ["eventType"] },
+      "then": {
+        "description": "A trade must carry price, quantity and an aggressor with stated provenance.",
+        "required": ["priceTicks", "tickSize", "quantity", "aggressorSide", "aggressorProvenance"]
+      }
+    },
+    {
+      "if": { "properties": { "eventType": { "const": "BestBidOffer" } }, "required": ["eventType"] },
+      "then": { "required": ["tickSize"] }
+    },
+    {
+      "if": {
+        "properties": { "aggressorProvenance": { "const": "absent" } },
+        "required": ["aggressorProvenance"]
+      },
+      "then": {
+        "description": "If provenance is 'absent' the side MUST be Unknown - it cannot be quietly filled.",
+        "properties": { "aggressorSide": { "const": "Unknown" } }
+      }
+    }
+  ]
+}
