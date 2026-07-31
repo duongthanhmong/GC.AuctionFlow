@@ -1,0 +1,38 @@
+==============================================================================
+CURATED SAMPLES — 3 sealed segments
+==============================================================================
+  segments decoded      : 3
+  container errors      : 0
+  CRC failures          : 0
+  decode errors         : 0
+
+  frames by type:
+      RawEvent               1078
+      SegmentHeader          3
+      SegmentFooter          3
+
+  RawEvent payload kinds:
+      CallbackInvocationResult             539
+      CumulativeTradeUpdate                323
+      NewTrade                             125
+      CumulativeTradeNew                   91
+
+  stream kinds:
+      Trade                  539
+      Integrity              539
+
+  MBO payload field shapes observed: 0
+      (none — no Mbo payload decoded in this set)
+
+  header of 264e5b9e712e4967821fd787db2d5882.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "737a0896-1394-470b-83f6-070b684cf383", "recorderProcessInstanceId": "39883cc3-53a6-4832-8738-fac789d22812", "segmentId": "264e5b9e-712e-4967-821f-d787db2d5882", "segmentOrdinal": 1, "contractEpoch": 1, "startedUtc": "2026-07-22T11:25:43.0851687Z", "startedStopwatchTimestamp": 147888696153, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared", 
+  footer of 264e5b9e712e4967821fd787db2d5882.seg:
+     {"segmentId": "264e5b9e-712e-4967-821f-d787db2d5882", "segmentOrdinal": 1, "endedUtc": "2026-07-22T11:29:17.4635335Z", "endedStopwatchTimestamp": 150032479791, "rawEventRecordCount": 508, "marketEventRecordCount": 254, "invocationResultRecordCount": 254, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 1, "lastWriterSequence": 508, "bytesBeforeFooter": 795411, "completedNormally": true, "categoryCountsClaimed": true}
+  header of 95389e066b594a80ac60783086504742.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "94ad02d3-63aa-41a4-8014-c2dccaa3b929", "recorderProcessInstanceId": "d3717e22-bb12-4a4a-8921-f7c2f53779bf", "segmentId": "95389e06-6b59-4a80-ac60-783086504742", "segmentOrdinal": 1, "contractEpoch": 1, "startedUtc": "2026-07-22T10:50:51.2225356Z", "startedStopwatchTimestamp": 126970069809, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared", 
+  footer of 95389e066b594a80ac60783086504742.seg:
+     {"segmentId": "95389e06-6b59-4a80-ac60-783086504742", "segmentOrdinal": 1, "endedUtc": "2026-07-22T10:55:55.2070522Z", "endedStopwatchTimestamp": 130009914987, "rawEventRecordCount": 510, "marketEventRecordCount": 255, "invocationResultRecordCount": 255, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 1, "lastWriterSequence": 510, "bytesBeforeFooter": 798212, "completedNormally": true, "categoryCountsClaimed": true}
+  header of d10679ad4da9450990c0c1c7cebb4b64.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "94ad02d3-63aa-41a4-8014-c2dccaa3b929", "recorderProcessInstanceId": "d3717e22-bb12-4a4a-8921-f7c2f53779bf", "segmentId": "d10679ad-4da9-4509-90c0-c1c7cebb4b64", "segmentOrdinal": 2, "contractEpoch": 1, "startedUtc": "2026-07-22T10:55:55.3684616Z", "startedStopwatchTimestamp": 130011529077, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared", 
+  footer of d10679ad4da9450990c0c1c7cebb4b64.seg:
+     {"segmentId": "d10679ad-4da9-4509-90c0-c1c7cebb4b64", "segmentOrdinal": 2, "endedUtc": "2026-07-22T10:56:48.2413021Z", "endedStopwatchTimestamp": 130540257484, "rawEventRecordCount": 60, "marketEventRecordCount": 30, "invocationResultRecordCount": 30, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 511, "lastWriterSequence": 570, "bytesBeforeFooter": 94676, "completedNormally": true, "categoryCountsClaimed": true}

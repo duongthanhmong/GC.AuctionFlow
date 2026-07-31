@@ -84,6 +84,7 @@ root: C:\Users\LOQ\.gcae
       -> IDENTICAL — manifest and every segment hash match
 
 === 4. totals, de-duplicated ===
+   (safe to collapse: every repeated sessionId was proved byte-identical above)
    UNIQUE SESSIONS (canonical): 54 manifests
       segments                     : 290
       records                      : 8594041

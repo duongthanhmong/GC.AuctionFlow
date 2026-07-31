@@ -118,7 +118,25 @@ def main():
             identical.append(sid)
         print()
 
+    # FAIL CLOSED. A sessionId that appears more than once is only safe to collapse if every
+    # copy is byte-identical. If they diverge, one of them is a different recording wearing the
+    # same id, and silently electing a canonical copy would discard real data and publish a
+    # total that is wrong in an invisible way. Stop instead.
+    divergent = [sid for sid in dupes if sid not in identical]
+    if divergent:
+        print("=== FATAL: duplicate sessionId with NON-IDENTICAL content ===")
+        for sid in divergent:
+            print("   %s" % sid)
+            for e in by_sid[sid]:
+                print("      %s" % os.path.relpath(e["path"], root).replace("\\", "/"))
+        print()
+        print("   Refusing to elect a canonical copy. These are not duplicates: they are")
+        print("   distinct recordings sharing an id, and collapsing them would silently drop")
+        print("   data. Resolve the collision before any total is quoted.")
+        raise SystemExit(2)
+
     print("=== 4. totals, de-duplicated ===")
+    print("   (safe to collapse: every repeated sessionId was proved byte-identical above)")
     canonical = []
     curated = []
     for sid, group in by_sid.items():

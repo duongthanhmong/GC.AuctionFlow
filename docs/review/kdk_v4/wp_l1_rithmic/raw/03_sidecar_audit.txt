@@ -1,7 +1,8 @@
 ###### .gcae SIDECAR HASH AUDIT ######
   sidecars found        : 489
   verified OK           : 489
-  match only after LF   : 0   <-- autocrlf rewrote the bytes on checkout
+  match only after LF   : 0
+      -> zero: no file required LF-normalisation, so autocrlf did not rewrite any hashed byte
   genuine MISMATCH      : 0
   target file missing   : 0
   sidecar unparseable   : 0

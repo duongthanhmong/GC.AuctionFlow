@@ -1,5 +1,18 @@
 # WP-L1-RITHMIC-DATA-SURFACE-DISCOVERY — Stage 1 (corrigendum 1)
 
+> **STAGE 2 UPDATE.** Stage 1 was independently accepted at `5074f13`. Stage 2 decoded the recorder
+> container and traced the producer, and **two conclusions in this document are now superseded** — see
+> `01_TASK_B_LINEAGE.md`:
+>
+> * **MBO is `PRESENT_AND_SUBSTANTIAL / COMPLETENESS_UNPROVEN`**, not `UNVERIFIED`. 24,413 `Mbo` records
+>   with `exchangeOrderId` and `priority` were decoded, CRC-verified, 0 errors.
+> * **The `enabledStreams` / `disabledStreams` conflict is RESOLVED, and it was never a data
+>   inconsistency.** `disabledStreams` is hard-coded to emit `Mbo` unconditionally on every session
+>   (`RawEventRecorderSession.cs:728`); `enabledStreams` is built from runtime flags. `enabledStreams` is
+>   authoritative.
+>
+> Everything else below stands as accepted.
+
 **Status: `STAGE_1_DISCOVERY / CORRIGENDUM_1`. Not accepted, not closed — I do not declare either.**
 Stage 2 not started. Task B, Task D, `.seg` payload decoding and the direct-Rithmic lineage are **not**
 begun, by instruction.
@@ -182,7 +195,7 @@ checkout is CRLF (2,927,958 B, sha `79b97b03…`) and the blob is LF (2,922,815 
 audit tool now prints both hashes so the comparison cannot be botched again. No current test writes to the
 default store with folding enabled.
 
-## 5. MBO — reclassified
+## 5. MBO — reclassified in Stage 1, SUPERSEDED by Stage 2 (see `01_TASK_B_LINEAGE.md`)
 
 **`UNVERIFIED / NOT_ADMISSIBLE_FOR_USE`.**
 

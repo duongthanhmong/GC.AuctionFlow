@@ -50,7 +50,14 @@ def main():
     print("###### .gcae SIDECAR HASH AUDIT ######")
     print("  sidecars found        : %d" % len(sidecars))
     print("  verified OK           : %d" % ok)
-    print("  match only after LF   : %d   <-- autocrlf rewrote the bytes on checkout" % lf_ok)
+    print("  match only after LF   : %d" % lf_ok)
+    # Conditional on purpose. A zero here means no file needed LF-normalisation to verify,
+    # i.e. autocrlf did NOT rewrite any hashed byte. The old unconditional note read as though
+    # it had, which is the opposite of what a zero shows.
+    print("      %s" % ("-> autocrlf rewrote the bytes of these files on checkout; the hash was "
+                        "taken before that happened" if lf_ok else
+                        "-> zero: no file required LF-normalisation, so autocrlf did not rewrite "
+                        "any hashed byte"))
     print("  genuine MISMATCH      : %d" % mismatch)
     print("  target file missing   : %d" % missing)
     print("  sidecar unparseable   : %d" % unreadable)

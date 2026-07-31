@@ -1,0 +1,53 @@
+==============================================================================
+SELECTED SESSIONS — 4 sealed segments from 4 sessions
+==============================================================================
+  segments decoded      : 4
+  CRC-32C verified      : 4 of 4 segments
+  container errors      : 0
+  CRC failures          : 0
+  decode errors         : 0
+
+  frames by type:
+      RawEvent               75904
+      SegmentHeader          4
+      SegmentFooter          4
+
+  RawEvent payload kinds:
+      Depth                                35025
+      Mbo                                  24413
+      BestBidAsk                           9862
+      CallbackInvocationResult             3301
+      CumulativeTradeUpdate                1986
+      NewTrade                             854
+      CumulativeTradeNew                   463
+
+  stream kinds:
+      Dom                    44887
+      Mbo                    24413
+      Trade                  3303
+      Integrity              3301
+
+  Depth UpdateAction:
+      Unknown                35025
+
+  MBO payload field shapes observed: 12
+      derivedSide, exchangeOrderId, interpretedLifecycleAction, kind, payloadKind, price, priority, rawSideName, rawSideNumeric, rawTypeIsKnownEnumMember, rawTypeName, rawTypeNumeric, snapshotCompletionKnown, volume
+      derivedSide, exchangeOrderId, interpretedLifecycleAction, kind, payloadKind, price, priority, rawSideName, rawSideNumeric, rawTypeIsKnownEnumMember, rawTypeName, rawTypeNumeric, snapshotCompletionKnown, volume
+      derivedSide, exchangeOrderId, interpretedLifecycleAction, kind, payloadKind, price, priority, rawSideName, rawSideNumeric, rawTypeIsKnownEnumMember, rawTypeName, rawTypeNumeric, snapshotCompletionKnown, volume
+
+  header of dc3380b061664ed1860278da40ad9b5c.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "27ca68e6-5377-4083-8ab0-0eb825c185ef", "recorderProcessInstanceId": "ae773c34-693a-4b1d-a512-4a32cc507620", "segmentId": "dc3380b0-6166-4ed1-8602-78da40ad9b5c", "segmentOrdinal": 1, "contractEpoch": 1, "startedUtc": "2026-07-27T17:14:13.4756596Z", "startedStopwatchTimestamp": 3648137537235, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared",
+  footer of dc3380b061664ed1860278da40ad9b5c.seg:
+     {"segmentId": "dc3380b0-6166-4ed1-8602-78da40ad9b5c", "segmentOrdinal": 1, "endedUtc": "2026-07-27T17:17:49.311519Z", "endedStopwatchTimestamp": 3650295895828, "rawEventRecordCount": 48031, "marketEventRecordCount": 45547, "invocationResultRecordCount": 2484, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 1, "lastWriterSequence": 48031, "bytesBeforeFooter": 67099615, "completedNormally": true, "categoryCountsClaimed": true}
+  header of 5d9af5e783df4e05a5bcb65250ff14ee.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "4b0078a7-7576-4849-acf4-4fc47f30fd68", "recorderProcessInstanceId": "a4f91b89-4b8e-40c3-9563-668b8ed839ba", "segmentId": "5d9af5e7-83df-4e05-a5bc-b65250ff14ee", "segmentOrdinal": 1, "contractEpoch": 1, "startedUtc": "2026-07-27T17:21:50.742084Z", "startedStopwatchTimestamp": 3652710201474, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared", 
+  footer of 5d9af5e783df4e05a5bcb65250ff14ee.seg:
+     {"segmentId": "5d9af5e7-83df-4e05-a5bc-b65250ff14ee", "segmentOrdinal": 1, "endedUtc": "2026-07-27T17:23:54.3718732Z", "endedStopwatchTimestamp": 3653946499367, "rawEventRecordCount": 10995, "marketEventRecordCount": 10661, "invocationResultRecordCount": 334, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 1, "lastWriterSequence": 10995, "bytesBeforeFooter": 15192837, "completedNormally": true, "categoryCountsClaimed": true}
+  header of 180fd8853a194f5d8b68c2390052fe38.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "7cc5b655-1f79-4a60-94ae-e403ec20a408", "recorderProcessInstanceId": "ce3f0573-8a7c-42a3-8cbd-52f527d067b6", "segmentId": "180fd885-3a19-4f5d-8b68-c2390052fe38", "segmentOrdinal": 1, "contractEpoch": 1, "startedUtc": "2026-07-27T17:21:18.3603457Z", "startedStopwatchTimestamp": 3652386384096, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared",
+  footer of 180fd8853a194f5d8b68c2390052fe38.seg:
+     {"segmentId": "180fd885-3a19-4f5d-8b68-c2390052fe38", "segmentOrdinal": 1, "endedUtc": "2026-07-27T17:21:49.5910607Z", "endedStopwatchTimestamp": 3652698691241, "rawEventRecordCount": 2544, "marketEventRecordCount": 2476, "invocationResultRecordCount": 68, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 1, "lastWriterSequence": 2544, "bytesBeforeFooter": 3512339, "completedNormally": true, "categoryCountsClaimed": true}
+  header of a16c003b7e1241b888ef345d00d6af52.seg:
+     {"recorderSchemaVersion": "1.2.0", "containerVersion": 1, "sessionId": "b46a5c0d-0f64-43ea-a231-d59f9fb9fa33", "recorderProcessInstanceId": "410448d1-3d61-4ab2-88d0-73c40a3e89a1", "segmentId": "a16c003b-7e12-41b8-88ef-345d00d6af52", "segmentOrdinal": 1, "contractEpoch": 1, "startedUtc": "2026-07-28T09:09:32.3203313Z", "startedStopwatchTimestamp": 4221348211862, "instrument": {"securityCode": "GCQ6", "securityId": "GCQ6@COMEX", "exchange": "COMEX", "contractExpiration": "2026-08-27", "tickSize": 0.1, "identityKey": "GCQ6"}, "declaredDataSourceMode": "Live", "modeProvenance": "OperatorDeclared",
+  footer of a16c003b7e1241b888ef345d00d6af52.seg:
+     {"segmentId": "a16c003b-7e12-41b8-88ef-345d00d6af52", "segmentOrdinal": 1, "endedUtc": "2026-07-28T09:14:32.4169854Z", "endedStopwatchTimestamp": 4224349178405, "rawEventRecordCount": 14334, "marketEventRecordCount": 13919, "invocationResultRecordCount": 415, "lifecycleIntegrityRecordCount": 0, "firstWriterSequence": 1, "lastWriterSequence": 14334, "bytesBeforeFooter": 19861407, "completedNormally": true, "categoryCountsClaimed": true}
