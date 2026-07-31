@@ -1,0 +1,20 @@
+###### segment_decoder self-tests ######
+
+  CRC-32C('123456789') == 0xE3069283                         PASS  got 0xE3069283
+  CRC-32C(b'') == 0x00000000                                 PASS
+  well-formed container: no container error                  PASS
+  well-formed container: no decode errors                    PASS  []
+  well-formed container: 0 CRC failures                      PASS
+  well-formed container: header+event+footer counted         PASS  {'SegmentHeader': 1, 'RawEvent': 1, 'SegmentFooter': 1}
+  bad container magic -> InvalidContainerMagic               PASS  InvalidContainerMagic
+  container version 99 -> UnsupportedContainerVersion        PASS  UnsupportedContainerVersion(99)
+  frame version 7 -> UnsupportedFrameVersion                 PASS  ['UnsupportedFrameVersion(7) at 8']
+  truncated final frame -> NeedMoreData reported             PASS  ['NeedMoreData at 491 (want 483, have 474)']
+  truncated final frame -> earlier frame still decoded       PASS  {'RawEvent': 1}
+  CRC mismatch -> counted as a CRC failure                   PASS
+  CRC mismatch -> frame not counted as decoded               PASS
+  CRC mismatch with verify_crc=False -> passes (scope matters) PASS
+  invalid JSON payload -> PayloadNotJson reported            PASS  ['PayloadNotJson at 8: Expecting value: line 1 column 1 (char 0)']
+  empty file -> ShortContainerHeader                         PASS
+
+RESULT: PASS - all self-tests green

@@ -1,4 +1,4 @@
-# WP-L1-RITHMIC-DATA-SURFACE-DISCOVERY — Stage 1 (corrigendum 1)
+# WP-L1-RITHMIC-DATA-SURFACE-DISCOVERY — Stage 1 (corrigendum 1) · HISTORICAL
 
 > **STAGE 2 UPDATE.** Stage 1 was independently accepted at `5074f13`. Stage 2 decoded the recorder
 > container and traced the producer, and **two conclusions in this document are now superseded** — see
@@ -13,9 +13,12 @@
 >
 > Everything else below stands as accepted.
 
-**Status: `STAGE_1_DISCOVERY / CORRIGENDUM_1`. Not accepted, not closed — I do not declare either.**
-Stage 2 not started. Task B, Task D, `.seg` payload decoding and the direct-Rithmic lineage are **not**
-begun, by instruction.
+**HISTORICAL STAGE 1 RECORD.** The status line below was true when this document was written and was
+accepted at `5074f13`. It is **not** the current status. Current status: `04_STAGE2_CORRIGENDUM.md`.
+
+> *Status as of Stage 1:* `STAGE_1_DISCOVERY / CORRIGENDUM_1`. Not accepted, not closed. Stage 2 not
+> started. Task B, Task D, `.seg` payload decoding and the direct-Rithmic lineage not begun, by
+> instruction.
 
 | | |
 |---|---|

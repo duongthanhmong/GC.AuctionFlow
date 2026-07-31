@@ -1,0 +1,368 @@
+==============================================================================
+7cc5b6551f794a6094aee403ec20a408  (1 sealed segment(s))
+==============================================================================
+   records decoded                    : 2544
+   payload kinds:
+      Depth                                        1208
+      Mbo                                          825
+      BestBidAsk                                   375
+      CallbackInvocationResult                     68
+      CumulativeTradeUpdate                        40
+      NewTrade                                     16
+      CumulativeTradeNew                           12
+
+   -- envelope ordering and integrity --
+   RecorderGlobalLocalSequence gaps   : 0
+   RecorderGlobalLocalSequence back   : 0
+   CallbackInvocationSequence back    : 1208
+   StreamLocalCaptureSequence gaps by stream:
+      Integrity                                    67
+   NativeSequenceAvailable:
+      False                                        2544
+   IntegrityFlags:
+      NativeSequenceAbsent, SourceTimeKindUnspecified 1651
+      SourceTimeKindUnspecified, ProviderSnapshotCompletionUnknown 825
+      None                                         68
+   Depth UpdateAction:
+      Unknown                                      1208
+
+   -- MBO, FULL POPULATION (n=825) --
+   1. SCHEMA / KEY PRESENCE
+      exchangeOrderId                key present in 825/825
+      priority                       key present in 825/825
+      price                          key present in 825/825
+      volume                         key present in 825/825
+      rawTypeName                    key present in 825/825
+      interpretedLifecycleAction     key present in 825/825
+      snapshotCompletionKnown        key present in 825/825
+
+   2. NON-NULL VALUE PRESENCE
+      exchangeOrderId                non-null in   825/825
+      priority                       non-null in   825/825
+      price                          non-null in   825/825
+      volume                         non-null in   825/825
+
+   3. USABLE ORDER-LEVEL IDENTITY
+      distinct exchangeOrderId values : 314
+      exchangeOrderId == 0            : 0
+      exchangeOrderId  < 0            : 0
+      priority > 0                    : 825
+      priority == 0                   : 0
+      priority  < 0                   : 0
+      price null / zero               : 0 / 0
+      volume null / zero              : 0 / 0
+
+   4. LIFECYCLE COMPLETENESS
+   rawTypeName:
+      Change                                       276
+      New                                          275
+      Delete                                       274
+   rawTypeNumeric:
+      2                                            276
+      1                                            275
+      3                                            274
+   rawTypeIsKnownEnumMember:
+      True                                         825
+   interpretedLifecycleAction:
+      Unknown                                      825
+   snapshotCompletionKnown:
+      False                                        825
+   derivedSide:
+      Ask                                          492
+      Bid                                          333
+
+==============================================================================
+4b0078a775764849acf44fc47f30fd68  (1 sealed segment(s))
+==============================================================================
+   records decoded                    : 10995
+   payload kinds:
+      Depth                                        5390
+      Mbo                                          3405
+      BestBidAsk                                   1532
+      CallbackInvocationResult                     334
+      CumulativeTradeUpdate                        198
+      NewTrade                                     87
+      CumulativeTradeNew                           49
+
+   -- envelope ordering and integrity --
+   RecorderGlobalLocalSequence gaps   : 0
+   RecorderGlobalLocalSequence back   : 0
+   CallbackInvocationSequence back    : 4995
+   StreamLocalCaptureSequence gaps by stream:
+      Integrity                                    333
+   NativeSequenceAvailable:
+      False                                        10995
+   IntegrityFlags:
+      NativeSequenceAbsent, SourceTimeKindUnspecified 7256
+      SourceTimeKindUnspecified, ProviderSnapshotCompletionUnknown 3405
+      None                                         334
+   Depth UpdateAction:
+      Unknown                                      5390
+
+   -- MBO, FULL POPULATION (n=3405) --
+   1. SCHEMA / KEY PRESENCE
+      exchangeOrderId                key present in 3405/3405
+      priority                       key present in 3405/3405
+      price                          key present in 3405/3405
+      volume                         key present in 3405/3405
+      rawTypeName                    key present in 3405/3405
+      interpretedLifecycleAction     key present in 3405/3405
+      snapshotCompletionKnown        key present in 3405/3405
+
+   2. NON-NULL VALUE PRESENCE
+      exchangeOrderId                non-null in   3405/3405
+      priority                       non-null in   3405/3405
+      price                          non-null in   3405/3405
+      volume                         non-null in   3405/3405
+
+   3. USABLE ORDER-LEVEL IDENTITY
+      distinct exchangeOrderId values : 1157
+      exchangeOrderId == 0            : 0
+      exchangeOrderId  < 0            : 0
+      priority > 0                    : 3405
+      priority == 0                   : 0
+      priority  < 0                   : 0
+      price null / zero               : 0 / 0
+      volume null / zero              : 0 / 0
+
+   4. LIFECYCLE COMPLETENESS
+   rawTypeName:
+      Change                                       1342
+      Delete                                       1032
+      New                                          1031
+   rawTypeNumeric:
+      2                                            1342
+      3                                            1032
+      1                                            1031
+   rawTypeIsKnownEnumMember:
+      True                                         3405
+   interpretedLifecycleAction:
+      Unknown                                      3405
+   snapshotCompletionKnown:
+      False                                        3405
+   derivedSide:
+      Ask                                          1919
+      Bid                                          1486
+
+==============================================================================
+b46a5c0d0f6443eaa231d59f9fb9fa33  (1 sealed segment(s))
+==============================================================================
+   records decoded                    : 14334
+   payload kinds:
+      Depth                                        6632
+      Mbo                                          4813
+      BestBidAsk                                   2058
+      CallbackInvocationResult                     415
+      CumulativeTradeUpdate                        245
+      NewTrade                                     109
+      CumulativeTradeNew                           62
+
+   -- envelope ordering and integrity --
+   RecorderGlobalLocalSequence gaps   : 0
+   RecorderGlobalLocalSequence back   : 0
+   CallbackInvocationSequence back    : 6935
+   StreamLocalCaptureSequence gaps by stream:
+      Integrity                                    414
+   NativeSequenceAvailable:
+      False                                        14334
+   IntegrityFlags:
+      NativeSequenceAbsent, SourceTimeKindUnspecified 9106
+      SourceTimeKindUnspecified, ProviderSnapshotCompletionUnknown 4813
+      None                                         415
+   Depth UpdateAction:
+      Unknown                                      6632
+
+   -- MBO, FULL POPULATION (n=4813) --
+   1. SCHEMA / KEY PRESENCE
+      exchangeOrderId                key present in 4813/4813
+      priority                       key present in 4813/4813
+      price                          key present in 4813/4813
+      volume                         key present in 4813/4813
+      rawTypeName                    key present in 4813/4813
+      interpretedLifecycleAction     key present in 4813/4813
+      snapshotCompletionKnown        key present in 4813/4813
+
+   2. NON-NULL VALUE PRESENCE
+      exchangeOrderId                non-null in   4813/4813
+      priority                       non-null in   4813/4813
+      price                          non-null in   4813/4813
+      volume                         non-null in   4813/4813
+
+   3. USABLE ORDER-LEVEL IDENTITY
+      distinct exchangeOrderId values : 1845
+      exchangeOrderId == 0            : 0
+      exchangeOrderId  < 0            : 0
+      priority > 0                    : 4813
+      priority == 0                   : 0
+      priority  < 0                   : 0
+      price null / zero               : 0 / 0
+      volume null / zero              : 0 / 0
+
+   4. LIFECYCLE COMPLETENESS
+   rawTypeName:
+      New                                          1737
+      Delete                                       1737
+      Change                                       1339
+   rawTypeNumeric:
+      1                                            1737
+      3                                            1737
+      2                                            1339
+   rawTypeIsKnownEnumMember:
+      True                                         4813
+   interpretedLifecycleAction:
+      Unknown                                      4813
+   snapshotCompletionKnown:
+      False                                        4813
+   derivedSide:
+      Bid                                          2878
+      Ask                                          1935
+
+==============================================================================
+27ca68e6537740838ab00eb825c185ef  (1 sealed segment(s))
+==============================================================================
+   records decoded                    : 48031
+   payload kinds:
+      Depth                                        21795
+      Mbo                                          15370
+      BestBidAsk                                   5897
+      CallbackInvocationResult                     2484
+      CumulativeTradeUpdate                        1503
+      NewTrade                                     642
+      CumulativeTradeNew                           340
+
+   -- envelope ordering and integrity --
+   RecorderGlobalLocalSequence gaps   : 0
+   RecorderGlobalLocalSequence back   : 0
+   CallbackInvocationSequence back    : 21721
+   StreamLocalCaptureSequence gaps by stream:
+      Integrity                                    2483
+   NativeSequenceAvailable:
+      False                                        48031
+   IntegrityFlags:
+      NativeSequenceAbsent, SourceTimeKindUnspecified 30177
+      SourceTimeKindUnspecified, ProviderSnapshotCompletionUnknown 15370
+      None                                         2484
+   Depth UpdateAction:
+      Unknown                                      21795
+
+   -- MBO, FULL POPULATION (n=15370) --
+   1. SCHEMA / KEY PRESENCE
+      exchangeOrderId                key present in 15370/15370
+      priority                       key present in 15370/15370
+      price                          key present in 15370/15370
+      volume                         key present in 15370/15370
+      rawTypeName                    key present in 15370/15370
+      interpretedLifecycleAction     key present in 15370/15370
+      snapshotCompletionKnown        key present in 15370/15370
+
+   2. NON-NULL VALUE PRESENCE
+      exchangeOrderId                non-null in   15370/15370
+      priority                       non-null in   15370/15370
+      price                          non-null in   15370/15370
+      volume                         non-null in   15370/15370
+
+   3. USABLE ORDER-LEVEL IDENTITY
+      distinct exchangeOrderId values : 5465
+      exchangeOrderId == 0            : 0
+      exchangeOrderId  < 0            : 0
+      priority > 0                    : 15370
+      priority == 0                   : 0
+      priority  < 0                   : 0
+      price null / zero               : 0 / 0
+      volume null / zero              : 0 / 0
+
+   4. LIFECYCLE COMPLETENESS
+   rawTypeName:
+      New                                          5196
+      Delete                                       5177
+      Change                                       4997
+   rawTypeNumeric:
+      1                                            5196
+      3                                            5177
+      2                                            4997
+   rawTypeIsKnownEnumMember:
+      True                                         15370
+   interpretedLifecycleAction:
+      Unknown                                      15370
+   snapshotCompletionKnown:
+      False                                        15370
+   derivedSide:
+      Bid                                          8200
+      Ask                                          7170
+
+==============================================================================
+AGGREGATE ACROSS ALL SELECTED SESSIONS
+==============================================================================
+   records decoded                    : 75904
+   payload kinds:
+      Depth                                        35025
+      Mbo                                          24413
+      BestBidAsk                                   9862
+      CallbackInvocationResult                     3301
+      CumulativeTradeUpdate                        1986
+      NewTrade                                     854
+      CumulativeTradeNew                           463
+
+   -- envelope ordering and integrity --
+   RecorderGlobalLocalSequence gaps   : 0
+   RecorderGlobalLocalSequence back   : 3
+   CallbackInvocationSequence back    : 34862
+   StreamLocalCaptureSequence gaps by stream:
+      Integrity                                    3300
+      Mbo                                          3
+      Dom                                          3
+      Trade                                        3
+   NativeSequenceAvailable:
+      False                                        75904
+   IntegrityFlags:
+      NativeSequenceAbsent, SourceTimeKindUnspecified 48190
+      SourceTimeKindUnspecified, ProviderSnapshotCompletionUnknown 24413
+      None                                         3301
+   Depth UpdateAction:
+      Unknown                                      35025
+
+   -- MBO, FULL POPULATION (n=24413) --
+   1. SCHEMA / KEY PRESENCE
+      exchangeOrderId                key present in 24413/24413
+      priority                       key present in 24413/24413
+      price                          key present in 24413/24413
+      volume                         key present in 24413/24413
+      rawTypeName                    key present in 24413/24413
+      interpretedLifecycleAction     key present in 24413/24413
+      snapshotCompletionKnown        key present in 24413/24413
+
+   2. NON-NULL VALUE PRESENCE
+      exchangeOrderId                non-null in   24413/24413
+      priority                       non-null in   24413/24413
+      price                          non-null in   24413/24413
+      volume                         non-null in   24413/24413
+
+   3. USABLE ORDER-LEVEL IDENTITY
+      distinct exchangeOrderId values : 8740
+      exchangeOrderId == 0            : 0
+      exchangeOrderId  < 0            : 0
+      priority > 0                    : 24413
+      priority == 0                   : 0
+      priority  < 0                   : 0
+      price null / zero               : 0 / 0
+      volume null / zero              : 0 / 0
+
+   4. LIFECYCLE COMPLETENESS
+   rawTypeName:
+      New                                          8239
+      Delete                                       8220
+      Change                                       7954
+   rawTypeNumeric:
+      1                                            8239
+      3                                            8220
+      2                                            7954
+   rawTypeIsKnownEnumMember:
+      True                                         24413
+   interpretedLifecycleAction:
+      Unknown                                      24413
+   snapshotCompletionKnown:
+      False                                        24413
+   derivedSide:
+      Bid                                          12897
+      Ask                                          11516
+

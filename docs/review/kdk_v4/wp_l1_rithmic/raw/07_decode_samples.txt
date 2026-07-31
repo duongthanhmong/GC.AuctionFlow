@@ -2,6 +2,7 @@
 CURATED SAMPLES — 3 sealed segments
 ==============================================================================
   segments decoded      : 3
+  CRC-32C verified      : 3 of 3 segments
   container errors      : 0
   CRC failures          : 0
   decode errors         : 0

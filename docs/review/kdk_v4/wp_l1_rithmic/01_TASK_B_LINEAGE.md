@@ -1,5 +1,12 @@
 # Stage 2 · Task B — end-to-end data lineage
 
+> **SUPERSEDED IN PART by `04_STAGE2_CORRIGENDUM.md`.** Three statements below are
+> withdrawn there: `interpretedLifecycleAction` and `snapshotCompletionKnown` are hard-coded
+> constants and carry no information; `lifecycleIntegrityRecordCount` counts the recorder's own
+> category and is not an MBO transition count; and the 24,413-record claim was made from three
+> sampled field shapes and is now measured over the full population. The direct-Rithmic
+> "not yet traced" list is also completed there.
+
 Two independent branches. They share no code today, and the report keeps them separate because they have
 different plants, different identities and different integrity models.
 
