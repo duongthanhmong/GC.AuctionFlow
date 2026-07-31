@@ -1,0 +1,11 @@
+CMD: dotnet build src/GC.AuctionFlow/GC.AuctionFlow.csproj -c Release --nologo
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  GC.AuctionFlow -> C:\Users\LOQ\Downloads\New folder (2)\GC.AuctionFlow\src\GC.AuctionFlow\bin\Release\net10.0-windows\GC.AuctionFlow.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.40
+EXIT_CODE=0
