@@ -5,6 +5,14 @@ in and returned real market data across every surface attempted.
 
 **This is the first capture in the work package containing genuinely new FIN/Rithmic data.**
 
+> **CORRECTED 2026-07-31.** Two headline numbers below are mislabelled and are corrected
+> here rather than edited away. **`88,624` is not 88,624 market events** — 87,649 of them
+> are symbol-catalog rows from `P7`; actual futures streaming was **951 events**, plus 10
+> bars and 8 ticks from mis-selected instruments. **`187,220` is the size of the evidence
+> JSON, not wire bytes** — the probe set `payload_bytes = len(serialized_json)`.
+> `subscription_accepted` was a flag this probe set itself, **not** a server ACK.
+> See `12_EXPLOITATION_PROBE_RESULTS.md` §1 for the measured replacements.
+
 | | |
 |---|---|
 | session | `probe_20260731T102133Z` |
@@ -84,6 +92,16 @@ subscribed only 3 price levels, so it sees a sparse slice of a book-wide sequenc
 meaningful over a full-book subscription, which this was not.
 
 ## 4. Fields the ATAS path loses, now observed on the wire
+
+> **CORRECTED 2026-07-31 by `12_EXPLOITATION_PROBE_RESULTS.md` §5.** This section attributed
+> the fields below to the **session-stat bits**. That attribution was **wrong**. `P5`'s 34
+> records are `data_type` 1 and 2 — `LAST_TRADE` and `BBO` — collected from a tick sink
+> shared with `P4`, which had not been unsubscribed. Per-bit testing later showed that
+> **none of the 14 session-stat bits produces a tick at all**; each returns a template
+> `async_rithmic` 1.6.3 cannot parse and discards.
+>
+> **The fields are real and `aggressor` is genuinely a vendor field — it arrives on
+> `LAST_TRADE` (template 150).** Only the attribution to `P5` was incorrect.
 
 From `P5` (session-stat bits) and `P4`:
 
