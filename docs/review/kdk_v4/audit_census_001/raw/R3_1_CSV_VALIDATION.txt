@@ -1,0 +1,8 @@
+rows                    : 25
+unique IDs MOD-01..25   : True
+truncated cited_symbols : 0
+malformed (no @)        : 0
+unmatched path vs source: 0
+state counts            : {'CODE_PRESENT_PARTIAL': 23, 'CODE_CANDIDATE_FOUND': 2}
+MOD-03 align/reason      : CONFLICT / R3E=CONFLICT (single 24h session window,
+RESULT                  : PASS - 0 malformed, 0 truncated, 0 unmatched
