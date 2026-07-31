@@ -1,0 +1,47 @@
+KDK-CENSUS-001-R1 — raw command ledger (all read-only, HEAD 323e36a)
+
+$ git rev-parse --abbrev-ref HEAD ; git rev-parse HEAD
+wp-l1-rithmic-data-surface-discovery
+323e36a6b04cb5937f889910a3f564e972bb676d
+$ git cat-file -t 323e36a ; git cat-file -t 43d458f   => commit ; commit
+$ git status --porcelain | wc -l   => 131 (all untracked); tracked-modified 0; stash 0
+
+--- Defect 2 (WBS) ---
+$ git ls-tree -r --name-only 43d458f | grep -iE 'TIEN_DO|BAN_THAO'
+docs/BAN_THAO.md   docs/TIEN_DO.md          (both tracked at 43d458f)
+$ git show 43d458f:docs/BAN_THAO.md | grep -oiE 'Chặng [0-9]' | sort -u   => Chặng 0..5
+$ grep -roE 'WP-[01][0-9]|WP-0[0-9]' docs/ --include=*.md   => only in audit_census_001/10_*
+
+--- Defect 3 (brief) ---
+$ grep -rln '26ad6e23' docs/ --include=*.md | grep -v audit_census_001   => (none)
+  => no repo progress doc claims RECEIVED. SOURCE_AVAILABILITY_CONFLICT.
+
+--- Defect 4 (manifest self-hash) ---
+  self-recorded: 2412557a.../1395   actual: 4dbc8bc3.../1838   => confirmed, fixed via SHA256SUMS
+
+--- Defect 1 (02B) ---
+$ python: 02B NOT_IMPLEMENTED=591, of which source_files populated=0, source_symbols populated=0
+  => UNMAPPED_IN_02B, not code-absence.
+$ R3E alignment: 25 modules -> PARTIAL 22, CONFLICT 1, NOT_IMPLEMENTED 2  (23/25 have cited symbols)
+
+--- Defect 6 (NotCalibrated) ---
+$ grep -rn 'NotCalibrated|NOT_CALIBRATED' src/GC.AuctionFlow --include=*.cs | wc -l   => 383
+$ grep -rl ... | wc -l   => 68 files
+$ grep -E '(enum|const|= )[^;]*NotCalibrated'   => 84 declarations
+$ grep -E 'return .*NotCalibrated|= .*NotCalibrated'   => 10 control-flow
+$ grep -E '^\s*//.*NotCalibrated'   => 45 comments
+$ classifier-folder double thresholds (excl 0.0/1.0/version)   => 0
+$ ctor-default numeric literals   => 0
+
+--- Defect 7 (§41 vs GcaeRuntimeSnapshot) ---
+$ MRBS §41: StructuralAnalysisSnapshot = REVIEW-REQUIRED proposed contract (line 1587)
+$ src grep 'StructuralAnalysisSnapshot' => 0 files; impl type = GcaeRuntimeSnapshot (Runtime/GcaeRuntimeSnapshot.cs:28)
+  => not a rename; same domains, different shape/purpose.
+
+--- Defect 8 (ADR status) ---
+$ grep '^\*\*Status:\*\*' stage2_closure/adr/*.md | sort | uniq -c   => 7 AWAITING_OWNER_APPROVAL
+$ STAGE2_CHECKLIST adr rows   => AWAITING_OWNER_APPROVAL (already matches; contradiction does not reproduce)
+
+--- Evidence + acceptance (re-confirmed) ---
+$ 15 EvidenceIds re-hash   => 15 match, 0 drift
+$ signed owner acceptance record search   => none found

@@ -1,28 +1,25 @@
 # 13 — Audit Bundle Manifest
 
 Audited commit: 43d458fab164c35055bd5378c78c8be7c14cd369 (43d458f)
-Every artifact hashed at generation. sha256  size(bytes)  path
+R1 correction HEAD: 323e36a → this commit.
+
+**Integrity design (corrected, R1 defect D4):** a manifest cannot safely embed its own hash — the
+census `13_MANIFEST.md` recorded `2412557a…`/1395B for itself while the delivered file was
+`4dbc8bc3…`/1838B, an unavoidable self-reference error. Integrity is now carried by a **detached
+`SHA256SUMS.txt`** that hashes ALL bundle files — including this manifest — after finalization.
+
+## Verify
 
 ```
-fab41b03a5a23f76086967a90cacad76e562921cd12befe4d7aa3479eb0eb012      5533  01_EXECUTIVE_TRUTH_REPORT.md
-159a94ec3105cafa8a5c7b4c5a692b183c6c5d333e4bde4ab4ce8e864b3e7c02      1767  02_REPOSITORY_INVENTORY.md
-150638baaf3c2b202e0820183a04713db29f7f42c0dec5adbe7477bb5273b37e      3212  03_CODE_TO_REQUIREMENT.md
-fbe9707085bd7acd01b1e96b92348e26addbd8f69f173a85b2f5872a6dac460b      4401  04_RUNTIME_WIRING_MAP.md
-95069f4fcfc0c636ebde53069ebc4802aee9cbfac5b292b76c36c024c5adc067      2584  05_BUILD_TEST_REALITY.md
-642b4be1a6626146af40d70123f9d1a1626f0ef6e1ffd3486b26d566f86efe03      1977  06_PARAMETER_HARDCODE_AUDIT.md
-c6e47d26460c72825104aec8313a8abea4b27659bec1394b9cc1686a52dd6c15      2947  07_DATA_EVIDENCE_INVENTORY.md
-957dd9c5217644ce76ccd2f900e472dac15461ad06f661510d182bd4e0aa3e05      3120  08_CONTRADICTION_REGISTER.md
-fbf3641f4f53e52e37a7410f4b77bf1806b4a4c428def86b923878b8f29ab8bf      3014  09_GAPS_RISKS_REGISTER.md
-192e827e11ce977be4e273d22b86d1fbaacf8a52f94107902691cb164110bcdd      3033  10_WP_PROGRESS_PROPOSAL.md
-7809dc00e61c3badfe6e0328cf0bef243864b338ac3bf9577b2d8ced95e4dccd      3057  11_RECOVERY_PLAN.md
-a274e97f7a71b4efb5667a3ed70ba13e9e07ffa168c54af8ddbabd9029cb92fe      2819  12_RAW_TRANSCRIPT.md
-2412557a61d268636a00f6063156e19e0f832ccbbdb0246109831b289459ffb7      1395  13_MANIFEST.md
-c2d232624e59d2d06198a90f5b2629e87834ecccad6815ab0c13193a6f8bee2b       395  raw/BUILD.txt
-798e378ae3efeb4019edc82b5c8fbb0243e2c048c0e52f1f5ade2fb025b2489f       847  raw/TEST.txt
+cd docs/review/kdk_v4/audit_census_001
+sha256sum -c SHA256SUMS.txt
 ```
 
-## Reproduce
-```
-cat raw/BUILD.txt raw/TEST.txt        # exact build/test output + exit codes
-python - # re-count 02B / registry from the CSVs named in artifact 03
-```
+This file lists WHAT is in the bundle; `SHA256SUMS.txt` lists the hashes. This file does NOT
+contain its own hash by design.
+
+## Bundle contents (census + R1)
+
+Census artifacts 01–13, `raw/` transcripts, and the R1 correction set:
+`KDK_CENSUS_001_R1_REVIEW.md`, `r1/{01,03,04,06,10}_*_R1.md`,
+`KDK_UNBLOCK_001_OWNER_DECISION_PACK.md`, `KDK_D2_CONTRACT_FIT_001.md`, `SHA256SUMS.txt`.
