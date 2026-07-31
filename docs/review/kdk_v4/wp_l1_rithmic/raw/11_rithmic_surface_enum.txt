@@ -1,297 +1,797 @@
-###### async_rithmic SURFACE ENUMERATION (offline) ######
+###### async_rithmic SURFACE ENUMERATION (offline, no credentials) ######
   installed version : 1.6.3
-  location          : C:\Users\LOQ\AppData\Local\Programs\Python\Python311\Lib\site-packages\async_rithmic
-  repo pin          : research/optionflow/requirements.txt says 'async_rithmic>=1.0'
-                      -> the version is NOT pinned; 1.6.3 is what happens to be installed
-  NOTE: everything below is API EXPOSURE ONLY. It is not server support, not
-        account entitlement, and not evidence that any callback ever fires.
+  location          : <site-packages>/async_rithmic
+  repo requirement  : research/optionflow/requirements.txt -> 'async_rithmic>=1.0'
+                      NOT PINNED. Everything below is true of 1.6.3 only.
+  scope             : API EXPOSURE ONLY.
 
 ==============================================================================
-1. top-level public names
+1. enums and their value semantics
 ==============================================================================
-   BestBidOfferPresenceBits           EnumTypeWrapper
-   DataType                           EnumType
-   ExchangeOrderBracketType           EnumTypeWrapper
-   ExchangeOrderNotificationType      EnumTypeWrapper
-   HistoricalDataRequestInProgressError type
-   InstrumentType                     EnumTypeWrapper
-   InvalidRequestError                type
-   LastTradePresenceBits              EnumTypeWrapper
-   OrderBookPresenceBits              EnumTypeWrapper
-   OrderDuration                      EnumTypeWrapper
-   OrderPlacement                     EnumTypeWrapper
-   OrderType                          EnumTypeWrapper
-   ReconnectionSettings               type
-   RetrySettings                      type
-   RithmicClient                      type
-   RithmicErrorResponse               type
-   SearchPattern                      EnumTypeWrapper
-   SysInfraType                       EnumTypeWrapper
-   TimeBarType                        EnumTypeWrapper
-   TransactionType                    EnumTypeWrapper
-   client                             module
-   enum                               module
-   enums                              module
-   exceptions                         module
-   helpers                            module
-   logger                             VerboseLogger
-   objects                            module
-   pb                                 module
-   plants                             module
-   protocol_buffers                   module
-
-==============================================================================
-2. enums that describe plants, data types and update bits
-==============================================================================
-   DataType:
-      BBO                                      = <DataType.BBO: 2>
-      LAST_TRADE                               = <DataType.LAST_TRADE: 1>
-      ORDER_BOOK                               = <DataType.ORDER_BOOK: 4>
-
-==============================================================================
-3. client methods relevant to market/reference data
-==============================================================================
-   RithmicClient:
-
-==============================================================================
-4. event/callback handles exposed by the client
-==============================================================================
-
-==============================================================================
-5. protocol buffer modules (request/response templates)
-==============================================================================
-   104 generated modules
-
-   -- REQUEST templates (43) --
-      request_account_list_pb2
-      request_account_rms_info_pb2
-      request_bracket_order_pb2
-      request_cancel_all_orders_pb2
-      request_cancel_order_pb2
-      request_depth_by_order_snapshot_pb2  <-- market/reference data
-      request_depth_by_order_updates_pb2  <-- market/reference data
-      request_exit_position_pb2
-      request_front_month_contract_pb2  <-- market/reference data
-      request_heartbeat_pb2
-      request_list_accepted_agreements_pb2
-      request_list_exchange_permissions_pb2
-      request_list_unaccepted_agreements_pb2
-      request_login_info_pb2
-      request_login_pb2
-      request_logout_pb2
-      request_market_data_update_pb2  <-- market/reference data
-      request_modify_order_pb2
-      request_new_order_pb2
-      request_pnl_position_snapshot_pb2  <-- market/reference data
-      request_pnl_position_updates_pb2
-      request_product_rms_info_pb2
-      request_reference_data_pb2  <-- market/reference data
-      request_replay_executions_pb2
-      request_rithmic_system_info_pb2
-      request_search_symbols_pb2  <-- market/reference data
-      request_show_agreement_pb2
-      request_show_bracket_stops_pb2
-      request_show_brackets_pb2
-      request_show_fill_history_pb2
-      request_show_order_history_dates_pb2
-      request_show_order_history_detail_pb2
-      request_show_order_history_summary_pb2
-      request_show_orders_pb2
-      request_subscribe_for_order_updates_pb2
-      request_subscribe_to_bracket_updates_pb2
-      request_tick_bar_replay_pb2  <-- market/reference data
-      request_tick_bar_update_pb2  <-- market/reference data
-      request_time_bar_replay_pb2  <-- market/reference data
-      request_time_bar_update_pb2  <-- market/reference data
-      request_trade_routes_pb2  <-- market/reference data
-      request_update_stop_bracket_level_pb2
-      request_update_target_bracket_level_pb2
-
-   -- RESPONSE templates (43) --
-      response_account_list_pb2
-      response_account_rms_info_pb2
-      response_bracket_order_pb2
-      response_cancel_all_orders_pb2
-      response_cancel_order_pb2
-      response_depth_by_order_snapshot_pb2  <-- market/reference data
-      response_depth_by_order_updates_pb2  <-- market/reference data
-      response_exit_position_pb2
-      response_front_month_contract_pb2  <-- market/reference data
-      response_heartbeat_pb2
-      response_list_accepted_agreements_pb2
-      response_list_exchange_permissions_pb2
-      response_list_unaccepted_agreements_pb2
-      response_login_info_pb2
-      response_login_pb2
-      response_logout_pb2
-      response_market_data_update_pb2  <-- market/reference data
-      response_modify_order_pb2
-      response_new_order_pb2
-      response_pnl_position_snapshot_pb2  <-- market/reference data
-      response_pnl_position_updates_pb2
-      response_product_rms_info_pb2
-      response_reference_data_pb2  <-- market/reference data
-      response_replay_executions_pb2
-      response_rithmic_system_info_pb2
-      response_search_symbols_pb2  <-- market/reference data
-      response_show_agreement_pb2
-      response_show_bracket_stops_pb2
-      response_show_brackets_pb2
-      response_show_fill_history_pb2
-      response_show_order_history_dates_pb2
-      response_show_order_history_detail_pb2
-      response_show_order_history_summary_pb2
-      response_show_orders_pb2
-      response_subscribe_for_order_updates_pb2
-      response_subscribe_to_bracket_updates_pb2
-      response_tick_bar_replay_pb2  <-- market/reference data
-      response_tick_bar_update_pb2  <-- market/reference data
-      response_time_bar_replay_pb2  <-- market/reference data
-      response_time_bar_update_pb2  <-- market/reference data
-      response_trade_routes_pb2  <-- market/reference data
-      response_update_stop_bracket_level_pb2
-      response_update_target_bracket_level_pb2
-
-   -- other (18) --
-      account_pnl_position_update_pb2
-      account_rms_updates_pb2
-      base_pb2
-      best_bid_offer_pb2  <-- market/reference data
-      bracket_updates_pb2
-      depth_by_order_end_event_pb2  <-- market/reference data
-      depth_by_order_pb2  <-- market/reference data
-      exchange_order_notification_pb2
-      forced_logout_pb2
-      instrument_pnl_position_update_pb2  <-- market/reference data
-      last_trade_pb2  <-- market/reference data
-      order_book_pb2  <-- market/reference data
-      reject_pb2
-      rithmic_order_notification_pb2
-      tick_bar_pb2  <-- market/reference data
-      time_bar_pb2  <-- market/reference data
-      trade_route_pb2  <-- market/reference data
-      user_account_update_pb2
+   BestBidOfferPresenceBits  (4 members, 3 non-zero)
+      PRESENCEBITS_UNSPECIFIED             = 0   <- zero/unspecified
+      BID                                  = 1
+      ASK                                  = 2
+      LEAN_PRICE                           = 4
+   DataType  (3 members, 3 non-zero)
+      BBO                                  = 2
+      LAST_TRADE                           = 1
+      ORDER_BOOK                           = 4
+   ExchangeOrderBracketType  (7 members, 6 non-zero)
+      BRACKETTYPE_UNSPECIFIED              = 0   <- zero/unspecified
+      STOP_ONLY                            = 1
+      TARGET_ONLY                          = 2
+      TARGET_AND_STOP                      = 3
+      STOP_ONLY_STATIC                     = 4
+      TARGET_ONLY_STATIC                   = 5
+      TARGET_AND_STOP_STATIC               = 6
+   ExchangeOrderNotificationType  (10 members, 9 non-zero)
+      NOTIFYTYPE_UNSPECIFIED               = 0   <- zero/unspecified
+      STATUS                               = 1
+      MODIFY                               = 2
+      CANCEL                               = 3
+      TRIGGER                              = 4
+      FILL                                 = 5
+      REJECT                               = 6
+      NOT_MODIFIED                         = 7
+      NOT_CANCELLED                        = 8
+      GENERIC                              = 9
+   InstrumentType  (11 members, 10 non-zero)
+      INSTRUMENTTYPE_UNSPECIFIED           = 0   <- zero/unspecified
+      FUTURE                               = 1
+      FUTURE_OPTION                        = 2
+      FUTURE_STRATEGY                      = 3
+      EQUITY                               = 4
+      EQUITY_OPTION                        = 5
+      EQUITY_STRATEGY                      = 6
+      INDEX                                = 7
+      INDEX_OPTION                         = 8
+      SPREAD                               = 9
+      SYNTHETIC                            = 10
+   LastTradePresenceBits  (6 members, 5 non-zero)
+      PRESENCEBITS_UNSPECIFIED             = 0   <- zero/unspecified
+      LAST_TRADE                           = 1
+      NET_CHANGE                           = 2
+      PRECENT_CHANGE                       = 4
+      VOLUME                               = 8
+      VWAP                                 = 16
+   OrderBookPresenceBits  (3 members, 2 non-zero)
+      PRESENCEBITS_UNSPECIFIED             = 0   <- zero/unspecified
+      BID                                  = 1
+      ASK                                  = 2
+   OrderDuration  (5 members, 4 non-zero)
+      DURATION_UNSPECIFIED                 = 0   <- zero/unspecified
+      DAY                                  = 1
+      GTC                                  = 2
+      IOC                                  = 3
+      FOK                                  = 4
+   OrderPlacement  (3 members, 2 non-zero)
+      ORDERPLACEMENT_UNSPECIFIED           = 0   <- zero/unspecified
+      MANUAL                               = 1
+      AUTO                                 = 2
+   OrderType  (7 members, 6 non-zero)
+      PRICETYPE_UNSPECIFIED                = 0   <- zero/unspecified
+      LIMIT                                = 1
+      MARKET                               = 2
+      STOP_LIMIT                           = 3
+      STOP_MARKET                          = 4
+      MARKET_IF_TOUCHED                    = 5
+      LIMIT_IF_TOUCHED                     = 6
+   SearchPattern  (3 members, 2 non-zero)
+      PATTERN_UNSPECIFIED                  = 0   <- zero/unspecified
+      EQUALS                               = 1
+      CONTAINS                             = 2
+   SysInfraType  (6 members, 5 non-zero)
+      SYSINFRATYPE_UNSPECIFIED             = 0   <- zero/unspecified
+      TICKER_PLANT                         = 1
+      ORDER_PLANT                          = 2
+      HISTORY_PLANT                        = 3
+      PNL_PLANT                            = 4
+      REPOSITORY_PLANT                     = 5
+   TimeBarType  (5 members, 4 non-zero)
+      BARTYPE_UNSPECIFIED                  = 0   <- zero/unspecified
+      SECOND_BAR                           = 1
+      MINUTE_BAR                           = 2
+      DAILY_BAR                            = 3
+      WEEKLY_BAR                           = 4
+   TransactionType  (3 members, 2 non-zero)
+      TRANSACTIONTYPE_UNSPECIFIED          = 0   <- zero/unspecified
+      BUY                                  = 1
+      SELL                                 = 2
 
 ==============================================================================
-6. fields on the market-data update request (what can be asked for)
-==============================================================================
-   RequestMarketDataUpdate fields:
-      template_id                        5
-      user_msg                           9
-      symbol                             9
-      exchange                           9
-      request                            14
-      update_bits                        13
-
-   UpdateBits enum members (the subscribable surfaces):
-      UPDATEBITS_UNSPECIFIED             = 0
-      LAST_TRADE                         = 1
-      BBO                                = 2
-      ORDER_BOOK                         = 4
-      OPEN                               = 8
-      OPENING_INDICATOR                  = 16
-      HIGH_LOW                           = 32
-      HIGH_BID_LOW_ASK                   = 64
-      CLOSE                              = 128
-      CLOSING_INDICATOR                  = 256
-      SETTLEMENT                         = 512
-      MARKET_MODE                        = 1024
-      OPEN_INTEREST                      = 2048
-      MARGIN_RATE                        = 4096
-      HIGH_PRICE_LIMIT                   = 8192
-      LOW_PRICE_LIMIT                    = 16384
-      PROJECTED_SETTLEMENT               = 32768
-      ADJUSTED_CLOSE                     = 65536
-
-==============================================================================
-7. last-trade / BBO / depth response fields
+2. classes: RithmicClient and every plant
 ==============================================================================
 
-   response_market_data_update_pb2.ResponseMarketDataUpdate
-      template_id
-      user_msg
-      rp_code
+   -- RithmicClient --
+      property accounts
+      def connect(self, **kwargs)
+      def disconnect(self, timeout=5.0)
+      property fcm_id
+      property ib_id
+      property user_type
 
-   last_trade_pb2.LastTrade
-      template_id
-      symbol
-      exchange
-      presence_bits
-      clear_bits
-      is_snapshot
-      trade_price
-      trade_size
-      aggressor
-      exchange_order_id
-      aggressor_exchange_order_id
-      net_change
-      percent_change
-      volume
-      vwap
-      trade_time
-      ssboe
-      usecs
-      source_ssboe
-      source_usecs
-      source_nsecs
-      jop_ssboe
-      jop_nsecs
+   -- HistoryPlant --
+      property credentials
+      def get_historical_tick_data(self, symbol: str, exchange: str, start_time: datetime.datetime, end_time: datetime.datetime, wait: bool = True, idle_timeout: float = 5.0, max_pages: int = 1000)
+      def get_historical_time_bars(self, symbol: str, exchange: str, start_time: datetime.datetime, end_time: datetime.datetime, bar_type: <google.protobuf.internal.enum_type_wrapper.EnumTypeWrapper object at 0x0000024D33842550>, bar_type_periods: int, wait: bool = True, idle_timeout: float = 5.0, max_pages: int = 1000)
+      def get_reference_data(self, symbol: str, exchange: str)
+      def get_system_info(self)
+      def get_template_id(self, name: str)
+      property is_connected
+      property plant_type
+      property ssl_context
+      def subscribe_to_time_bar_data(self, symbol: str, exchange: str, bar_type: <google.protobuf.internal.enum_type_wrapper.EnumTypeWrapper object at 0x0000024D33842550>, bar_type_periods: int)
+      def unsubscribe_from_time_bar_data(self, symbol: str, exchange: str, bar_type: <google.protobuf.internal.enum_type_wrapper.EnumTypeWrapper object at 0x0000024D33842550>, bar_type_periods: int)
 
-   best_bid_offer_pb2.BestBidOffer
-      template_id
-      symbol
-      exchange
-      presence_bits
-      clear_bits
-      is_snapshot
-      bid_price
-      bid_size
-      bid_orders
-      bid_implicit_size
-      bid_time
-      ask_price
-      ask_size
-      ask_orders
-      ask_implicit_size
-      ask_time
-      lean_price
-      ssboe
-      usecs
+   -- OrderPlant --
+      def cancel_all_orders(self, **kwargs)
+      def cancel_order(self, **kwargs)
+      property credentials
+      def exit_position(self, **kwargs)
+      def get_account_rms(self)
+      def get_fill_history(self, start_time: datetime.datetime, end_time: datetime.datetime, **kwargs)
+      def get_order(self, **kwargs)
+      def get_product_rms(self, **kwargs)
+      def get_reference_data(self, symbol: str, exchange: str)
+      def get_stop_and_target(self, basket_id, **kwargs)
+      def get_system_info(self)
+      def get_template_id(self, name: str)
+      property is_connected
+      def list_accounts(self) -> list
+      def list_bracket_stops(self, **kwargs)
+      def list_brackets(self, **kwargs)
+      def list_orders(self, **kwargs)
+      def modify_order(self, **kwargs)
+      property plant_type
+      def replay_executions(self, start_time: datetime.datetime, end_time: datetime.datetime, **kwargs)
+      def show_order_history_dates(self)
+      def show_order_history_summary(self, date: str, **kwargs)
+      property ssl_context
+      def submit_order(self, order_id: str, symbol: str, exchange: str, qty: int, transaction_type: <google.protobuf.internal.enum_type_wrapper.EnumTypeWrapper object at 0x0000024D337A1410>, order_type: <google.protobuf.internal.enum_type_wrapper.EnumTypeWrapper object at 0x0000024D339D6E50>, **kwargs)
 
-   order_book_pb2.OrderBook
-      template_id
-      symbol
-      exchange
-      presence_bits
-      update_type
-      bid_price
-      bid_size
-      bid_orders
-      impl_bid_size
-      ask_price
-      ask_size
-      ask_orders
-      impl_ask_size
-      ssboe
-      usecs
+   -- PnlPlant --
+      property credentials
+      def get_reference_data(self, symbol: str, exchange: str)
+      def get_system_info(self)
+      def get_template_id(self, name: str)
+      property is_connected
+      def list_account_summary(self, **kwargs)
+      def list_positions(self, **kwargs)
+      property plant_type
+      property ssl_context
+      def subscribe_to_pnl_updates(self)
+      def unsubscribe_from_pnl_updates(self)
 
-   depth_by_order_pb2.DepthByOrder
-      template_id
-      symbol
-      exchange
-      sequence_number
-      update_type
-      transaction_type
-      depth_price
-      prev_depth_price
-      prev_depth_price_flag
-      depth_size
-      depth_order_priority
-      exchange_order_id
-      ssboe
-      usecs
-      source_ssboe
-      source_usecs
-      source_nsecs
-      jop_ssboe
-      jop_nsecs
+   -- RepositoryPlant --
+      property credentials
+      def get_agreement(self, agreement_id: str)
+      def get_reference_data(self, symbol: str, exchange: str)
+      def get_system_info(self)
+      def get_template_id(self, name: str)
+      property is_connected
+      def list_accepted_agreements(self) -> List
+      def list_unaccepted_agreements(self) -> List
+      property plant_type
+      property ssl_context
+
+   -- TickerPlant --
+      property credentials
+      def get_front_month_contract(self, symbol: str, exchange: str) -> str
+      def get_reference_data(self, symbol: str, exchange: str)
+      def get_system_info(self)
+      def get_template_id(self, name: str)
+      property is_connected
+      def list_exchanges(self)
+      property plant_type
+      def request_market_depth(self, symbol: str, exchange: str, depth_price: float)
+      def search_symbols(self, search_text, **kwargs)
+      property ssl_context
+      def subscribe_to_market_data(self, symbol: str, exchange: str, data_type: async_rithmic.enums.DataType | int)
+      def subscribe_to_market_depth(self, symbol: str, exchange: str, depth_price: float)
+      def unsubscribe_from_market_data(self, symbol: str, exchange: str, data_type: async_rithmic.enums.DataType | int)
+      def unsubscribe_from_market_depth(self, symbol: str, exchange: str, depth_price: float)
+
+   -- BackgroundTaskMixin --
+      (no public class-level members)
+
+   -- BasePlant --
+      property credentials
+      def get_reference_data(self, symbol: str, exchange: str)
+      def get_system_info(self)
+      def get_template_id(self, name: str)
+      property is_connected
+      property plant_type
+      property ssl_context
+
+   -- ConnectionClosedError --
+      def add_note(...)
+      property code
+      property reason
+      def with_traceback(...)
+
+   -- ConnectionClosedOK --
+      def add_note(...)
+      property code
+      property reason
+      def with_traceback(...)
+
+   -- FieldDescriptor --
+      def GetOptions(self)
+      def ProtoTypeToCppProtoType(proto_type)
+      property camelcase_name
+      property has_presence
+      property is_packed
+
+   -- RequestManager --
+      def handle_response(self, response)
+      def has_pending(self, request_id: str)
+      def mark_complete(self, request_id: str)
+      def send_and_collect(self, timeout: float = 30.0, **kwargs)
+      def start(self, request_id: str, request: dict, expected_response: dict)
+
+   -- RithmicErrorResponse --
+      def add_note(...)
+      def with_traceback(...)
+
+   -- datetime --
+      def astimezone(...)
+      def combine(...)
+      def ctime(...)
+      def date(...)
+      def dst(...)
+      def fromisocalendar(...)
+      def fromisoformat(...)
+      def fromordinal(...)
+      def fromtimestamp(...)
+      def isocalendar(...)
+      def isoformat(...)
+      def isoweekday(...)
+      def now(tz=None)
+      def replace(...)
+      def strftime(...)
+      def strptime(...)
+      def time(...)
+      def timestamp(...)
+      def timetuple(...)
+      def timetz(...)
+      def today(...)
+      def toordinal(...)
+      def tzname(...)
+      def utcfromtimestamp(...)
+      def utcnow(...)
+      def utcoffset(...)
+      def utctimetuple(...)
+      def weekday(...)
+
+   -- defaultdict --
+      def clear(...)
+      def copy(...)
+      def fromkeys(iterable, value=None, /)
+      def get(self, key, default=None, /)
+      def items(...)
+      def keys(...)
+      def pop(...)
+      def popitem(self, /)
+      def setdefault(self, key, default=None, /)
+      def update(...)
+      def values(...)
+
+==============================================================================
+3. INSTANCE surface (events and delegated methods)
+==============================================================================
+   Constructed with placeholder credentials. connect() is NEVER called.
+
+   -- event handles (14) --
+      on_account_pnl_update                      Event
+      on_bracket_update                          Event
+      on_connected                               Event
+      on_disconnected                            Event
+      on_exchange_order_notification             Event
+      on_historical_tick                         Event
+      on_historical_time_bar                     Event
+      on_instrument_pnl_update                   Event
+      on_market_depth                            Event
+      on_order_book                              Event
+      on_rithmic_order_notification              Event
+      on_tick                                    Event
+      on_time_bar                                Event
+      on_trade_route_update                      Event
+
+   -- delegated/instance callables (39) --
+      cancel_all_orders                          method
+      cancel_order                               method
+      exit_position                              method
+      get_account_rms                            method
+      get_agreement                              method
+      get_fill_history                           method
+      get_front_month_contract                   method
+      get_historical_tick_data                   method
+      get_historical_time_bars                   method
+      get_order                                  method
+      get_product_rms                            method
+      get_reference_data                         method
+      get_stop_and_target                        method
+      get_system_info                            method
+      get_template_id                            method
+      list_accepted_agreements                   method
+      list_account_summary                       method
+      list_accounts                              method
+      list_bracket_stops                         method
+      list_brackets                              method
+      list_exchanges                             method
+      list_orders                                method
+      list_positions                             method
+      list_unaccepted_agreements                 method
+      modify_order                               method
+      replay_executions                          method
+      request_market_depth                       method
+      search_symbols                             method
+      show_order_history_dates                   method
+      show_order_history_summary                 method
+      submit_order                               method
+      subscribe_to_market_data                   method
+      subscribe_to_market_depth                  method
+      subscribe_to_pnl_updates                   method
+      subscribe_to_time_bar_data                 method
+      unsubscribe_from_market_data               method
+      unsubscribe_from_market_depth              method
+      unsubscribe_from_pnl_updates               method
+      unsubscribe_from_time_bar_data             method
+
+   -- other instance attributes (6) --
+      credentials                                dict
+      manual_or_auto                             int
+      plants                                     dict
+      reconnection_settings                      ReconnectionSettings
+      retry_settings                             RetrySettings
+      ssl_context                                SSLContext
+
+   -- reconnection / retry defaults constructed WITHOUT caller input --
+      reconnection_settings      ReconnectionSettings(max_retries=None, backoff_type='linear', interval=10, max_delay=120, jitter_range=(0.5, 2.5))
+      retry_settings             RetrySettings(max_retries=3, timeout=30.0, jitter_range=(0.5, 2.0))
+
+   -- plants instantiated --
+      ticker         TickerPlant
+           tracks subscriptions: []
+      order          OrderPlant
+           tracks subscriptions: []
+      pnl            PnlPlant
+           tracks subscriptions: []
+      history        HistoryPlant
+           tracks subscriptions: []
+      repository     RepositoryPlant
+           tracks subscriptions: []
+
+==============================================================================
+4. ALL protobuf modules: every message and every field
+==============================================================================
+
+   account_pnl_position_update_pb2
+      AccountPnLPositionUpdate (42 fields)
+         template_id, is_snapshot, fcm_id, ib_id, account_id, fill_buy_qty, fill_sell_qty, order_buy_qty, order_sell_qty, buy_qty, sell_qty, open_long_options_value, open_short_options_value, closed_options_value, option_cash_reserved, rms_account_commission, open_position_pnl, open_position_quantity, closed_position_pnl, closed_position_quantity, net_quantity, excess_buy_margin, margin_balance, min_margin_balance, min_account_balance, account_balance, cash_on_hand, option_closed_pnl, percent_maximum_allowable_loss, option_open_pnl, mtm_account, available_buying_power, used_buying_power, reserved_buying_power, excess_sell_margin, day_open_pnl, day_closed_pnl, day_pnl, day_open_pnl_offset, day_closed_pnl_offset, ssboe, usecs
+
+   account_rms_updates_pb2
+      AccountRmsUpdates (8 fields)
+         template_id, update_bits, fcm_id, ib_id, account_id, auto_liq_threshold_current_value, auto_liq_peak_account_balance, auto_liq_peak_account_balance_ssboe
+
+   base_pb2
+      Base (1 fields)
+         template_id
+
+   best_bid_offer_pb2
+      BestBidOffer (19 fields)
+         template_id, symbol, exchange, presence_bits, clear_bits, is_snapshot, bid_price, bid_size, bid_orders, bid_implicit_size, bid_time, ask_price, ask_size, ask_orders, ask_implicit_size, ask_time, lean_price, ssboe, usecs
+
+   bracket_updates_pb2
+      BracketUpdates (11 fields)
+         template_id, fcm_id, ib_id, account_id, basket_id, stop_ticks, stop_quantity, stop_quantity_released, target_ticks, target_quantity, target_quantity_released
+
+   depth_by_order_end_event_pb2
+      DepthByOrderEndEvent (6 fields)
+         template_id, symbol, exchange, sequence_number, ssboe, usecs
+
+   depth_by_order_pb2
+      DepthByOrder (19 fields)
+         template_id, symbol, exchange, sequence_number, update_type, transaction_type, depth_price, prev_depth_price, prev_depth_price_flag, depth_size, depth_order_priority, exchange_order_id, ssboe, usecs, source_ssboe, source_usecs, source_nsecs, jop_ssboe, jop_nsecs
+
+   exchange_order_notification_pb2
+      ExchangeOrderNotification (73 fields)
+         template_id, user_tag, notify_type, is_snapshot, is_rithmic_internal_msg, report_type, status, basket_id, original_basket_id, linked_basket_ids, fcm_id, ib_id, user_id, account_id, symbol, exchange, trade_exchange, trade_route, exchange_order_id, tp_exchange_order_id, instrument_type, quantity, price, trigger_price, transaction_type, duration, price_type, orig_price_type, manual_or_auto, bracket_type, confirmed_size, confirmed_time, confirmed_date, confirmed_id, modified_size, modified_time, modified_date, modify_id, cancelled_size, cancelled_time, cancelled_date, cancelled_id, fill_price, fill_size, fill_time, fill_date, fill_id, avg_fill_price, total_fill_size, total_unfilled_size, trigger_id, trail_by_ticks, trail_by_price_id, sequence_number, orig_sequence_number, cor_sequence_number, currency, country_code, text, report_text, remarks, window_name, originator_window_name, cancel_at_ssboe, cancel_at_usecs, cancel_after_secs, ssboe, usecs, source_ssboe, source_usecs, source_nsecs, exch_receipt_ssboe, exch_receipt_nsecs
+
+   forced_logout_pb2
+      ForcedLogout (1 fields)
+         template_id
+
+   instrument_pnl_position_update_pb2
+      InstrumentPnLPositionUpdate (33 fields)
+         template_id, is_snapshot, fcm_id, ib_id, account_id, symbol, exchange, product_code, instrument_type, fill_buy_qty, fill_sell_qty, order_buy_qty, order_sell_qty, buy_qty, sell_qty, avg_open_fill_price, day_open_pnl, day_closed_pnl, day_pnl, day_open_pnl_offset, day_closed_pnl_offset, mtm_security, open_long_options_value, open_short_options_value, closed_options_value, option_cash_reserved, open_position_pnl, open_position_quantity, closed_position_pnl, closed_position_quantity, net_quantity, ssboe, usecs
+
+   last_trade_pb2
+      LastTrade (23 fields)
+         template_id, symbol, exchange, presence_bits, clear_bits, is_snapshot, trade_price, trade_size, aggressor, exchange_order_id, aggressor_exchange_order_id, net_change, percent_change, volume, vwap, trade_time, ssboe, usecs, source_ssboe, source_usecs, source_nsecs, jop_ssboe, jop_nsecs
+
+   order_book_pb2
+      OrderBook (15 fields)
+         template_id, symbol, exchange, presence_bits, update_type, bid_price, bid_size, bid_orders, impl_bid_size, ask_price, ask_size, ask_orders, impl_ask_size, ssboe, usecs
+
+   reject_pb2
+      Reject (3 fields)
+         template_id, user_msg, rp_code
+
+   request_account_list_pb2
+      RequestAccountList (5 fields)
+         template_id, user_msg, fcm_id, ib_id, user_type
+
+   request_account_rms_info_pb2
+      RequestAccountRmsInfo (5 fields)
+         template_id, user_msg, fcm_id, ib_id, user_type
+
+   request_bracket_order_pb2
+      RequestBracketOrder (45 fields)
+         template_id, user_msg, user_tag, window_name, fcm_id, ib_id, account_id, symbol, exchange, quantity, price, trigger_price, transaction_type, order_operation_type, duration, price_type, trade_route, manual_or_auto, user_type, bracket_type, break_even_ticks, break_even_trigger_ticks, target_quantity, target_ticks, stop_quantity, stop_ticks, trailing_stop_trigger_ticks, trailing_stop_by_last_trade_price, target_market_order_if_touched, stop_market_on_reject, target_market_at_ssboe, target_market_at_usecs, stop_market_at_ssboe, stop_market_at_usecs, target_market_order_after_secs, release_at_ssboe, release_at_usecs, cancel_at_ssboe, cancel_at_usecs, cancel_after_secs, if_touched_symbol, if_touched_exchange, if_touched_condition, if_touched_price_field, if_touched_price
+
+   request_cancel_all_orders_pb2
+      RequestCancelAllOrders (7 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, user_type, manual_or_auto
+
+   request_cancel_order_pb2
+      RequestCancelOrder (8 fields)
+         template_id, user_msg, window_name, fcm_id, ib_id, account_id, basket_id, manual_or_auto
+
+   request_depth_by_order_snapshot_pb2
+      RequestDepthByOrderSnapshot (5 fields)
+         template_id, user_msg, symbol, exchange, depth_price
+
+   request_depth_by_order_updates_pb2
+      RequestDepthByOrderUpdates (6 fields)
+         template_id, user_msg, request, symbol, exchange, depth_price
+
+   request_exit_position_pb2
+      RequestExitPosition (10 fields)
+         template_id, user_msg, window_name, fcm_id, ib_id, account_id, symbol, exchange, trading_algorithm, manual_or_auto
+
+   request_front_month_contract_pb2
+      RequestFrontMonthContract (5 fields)
+         template_id, user_msg, symbol, exchange, need_updates
+
+   request_heartbeat_pb2
+      RequestHeartbeat (4 fields)
+         template_id, user_msg, ssboe, usecs
+
+   request_list_accepted_agreements_pb2
+      RequestListAcceptedAgreements (2 fields)
+         template_id, user_msg
+
+   request_list_exchange_permissions_pb2
+      RequestListExchangePermissions (3 fields)
+         template_id, user_msg, user
+
+   request_list_unaccepted_agreements_pb2
+      RequestListUnacceptedAgreements (2 fields)
+         template_id, user_msg
+
+   request_login_info_pb2
+      RequestLoginInfo (2 fields)
+         template_id, user_msg
+
+   request_login_pb2
+      RequestLogin (13 fields)
+         template_id, template_version, user_msg, user, password, app_name, app_version, system_name, infra_type, mac_addr, os_version, os_platform, aggregated_quotes
+
+   request_logout_pb2
+      RequestLogout (2 fields)
+         template_id, user_msg
+
+   request_market_data_update_pb2
+      RequestMarketDataUpdate (6 fields)
+         template_id, user_msg, symbol, exchange, request, update_bits
+
+   request_modify_order_pb2
+      RequestModifyOrder (21 fields)
+         template_id, user_msg, window_name, fcm_id, ib_id, account_id, basket_id, symbol, exchange, quantity, price, trigger_price, price_type, manual_or_auto, trailing_stop, trail_by_ticks, if_touched_symbol, if_touched_exchange, if_touched_condition, if_touched_price_field, if_touched_price
+
+   request_new_order_pb2
+      RequestNewOrder (30 fields)
+         template_id, user_msg, user_tag, window_name, fcm_id, ib_id, account_id, symbol, exchange, quantity, price, trigger_price, transaction_type, duration, price_type, trade_route, manual_or_auto, trailing_stop, trail_by_ticks, trail_by_price_id, release_at_ssboe, release_at_usecs, cancel_at_ssboe, cancel_at_usecs, cancel_after_secs, if_touched_symbol, if_touched_exchange, if_touched_condition, if_touched_price_field, if_touched_price
+
+   request_pnl_position_snapshot_pb2
+      RequestPnLPositionSnapshot (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_pnl_position_updates_pb2
+      RequestPnLPositionUpdates (7 fields)
+         template_id, user_msg, request, fcm_id, ib_id, account_id, rms_updates_only
+
+   request_product_rms_info_pb2
+      RequestProductRmsInfo (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_reference_data_pb2
+      RequestReferenceData (4 fields)
+         template_id, user_msg, symbol, exchange
+
+   request_replay_executions_pb2
+      RequestReplayExecutions (7 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, start_index, finish_index
+
+   request_rithmic_system_info_pb2
+      RequestRithmicSystemInfo (2 fields)
+         template_id, user_msg
+
+   request_search_symbols_pb2
+      RequestSearchSymbols (7 fields)
+         template_id, user_msg, search_text, exchange, product_code, instrument_type, pattern
+
+   request_show_agreement_pb2
+      RequestShowAgreement (3 fields)
+         template_id, user_msg, agreement_id
+
+   request_show_bracket_stops_pb2
+      RequestShowBracketStops (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_show_brackets_pb2
+      RequestShowBrackets (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_show_fill_history_pb2
+      RequestShowFillHistory (9 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, index_format, start_index, finish_index, max_record_count
+
+   request_show_order_history_dates_pb2
+      RequestShowOrderHistoryDates (2 fields)
+         template_id, user_msg
+
+   request_show_order_history_detail_pb2
+      RequestShowOrderHistoryDetail (7 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, basket_id, date
+
+   request_show_order_history_summary_pb2
+      RequestShowOrderHistorySummary (6 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, date
+
+   request_show_orders_pb2
+      RequestShowOrders (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_subscribe_for_order_updates_pb2
+      RequestSubscribeForOrderUpdates (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_subscribe_to_bracket_updates_pb2
+      RequestSubscribeToBracketUpdates (5 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id
+
+   request_tick_bar_replay_pb2
+      RequestTickBarReplay (15 fields)
+         template_id, user_msg, symbol, exchange, bar_type, bar_sub_type, bar_type_specifier, start_index, finish_index, user_max_count, custom_session_open_ssm, custom_session_close_ssm, direction, time_order, resume_bars
+
+   request_tick_bar_update_pb2
+      RequestTickBarUpdate (10 fields)
+         template_id, user_msg, symbol, exchange, request, bar_type, bar_sub_type, bar_type_specifier, custom_session_open_ssm, custom_session_close_ssm
+
+   request_time_bar_replay_pb2
+      RequestTimeBarReplay (12 fields)
+         template_id, user_msg, symbol, exchange, bar_type, bar_type_period, start_index, finish_index, user_max_count, direction, time_order, resume_bars
+
+   request_time_bar_update_pb2
+      RequestTimeBarUpdate (7 fields)
+         template_id, user_msg, symbol, exchange, request, bar_type, bar_type_period
+
+   request_trade_routes_pb2
+      RequestTradeRoutes (3 fields)
+         template_id, user_msg, subscribe_for_updates
+
+   request_update_stop_bracket_level_pb2
+      RequestUpdateStopBracketLevel (8 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, basket_id, level, stop_ticks
+
+   request_update_target_bracket_level_pb2
+      RequestUpdateTargetBracketLevel (8 fields)
+         template_id, user_msg, fcm_id, ib_id, account_id, basket_id, level, target_ticks
+
+   response_account_list_pb2
+      ResponseAccountList (14 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, fcm_id, ib_id, account_id, account_name, account_currency, loss_limit, account_creation_ssboe, account_creation_usecs, account_auto_liquidate, auto_liq_threshold_current_value
+
+   response_account_rms_info_pb2
+      ResponseAccountRmsInfo (24 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, presence_bits, fcm_id, ib_id, account_id, currency, status, algorithm, auto_liquidate_criteria, auto_liquidate, disable_on_auto_liquidate, auto_liquidate_threshold, auto_liquidate_max_min_account_balance, loss_limit, min_account_balance, min_margin_balance, default_commission, buy_limit, max_order_quantity, sell_limit, check_min_account_balance
+
+   response_bracket_order_pb2
+      ResponseBracketOrder (8 fields)
+         template_id, user_msg, user_tag, rq_handler_rp_code, rp_code, basket_id, ssboe, usecs
+
+   response_cancel_all_orders_pb2
+      ResponseCancelAllOrders (3 fields)
+         template_id, user_msg, rp_code
+
+   response_cancel_order_pb2
+      ResponseCancelOrder (7 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, basket_id, ssboe, usecs
+
+   response_depth_by_order_snapshot_pb2
+      ResponseDepthByOrderSnapshot (12 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, exchange, symbol, sequence_number, depth_side, depth_price, depth_size, depth_order_priority, exchange_order_id
+
+   response_depth_by_order_updates_pb2
+      ResponseDepthByOrderUpdates (3 fields)
+         template_id, user_msg, rp_code
+
+   response_exit_position_pb2
+      ResponseExitPosition (6 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, symbol, exchange
+
+   response_front_month_contract_pb2
+      ResponseFrontMonthContract (9 fields)
+         template_id, user_msg, rp_code, symbol, exchange, is_front_month_symbol, symbol_name, trading_symbol, trading_exchange
+
+   response_heartbeat_pb2
+      ResponseHeartbeat (5 fields)
+         template_id, user_msg, rp_code, ssboe, usecs
+
+   response_list_accepted_agreements_pb2
+      ResponseListAcceptedAgreements (11 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, fcm_id, ib_id, agreement_acceptance_ssboe, agreement_acceptance_status, agreement_acceptance_request, agreement_title, agreement_id
+
+   response_list_exchange_permissions_pb2
+      ResponseListExchangePermissions (8 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, exchange, level_1_market_data, level_2_market_data, entitlement_flag
+
+   response_list_unaccepted_agreements_pb2
+      ResponseListUnacceptedAgreements (9 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, fcm_id, ib_id, agreement_title, agreement_id, agreement_acceptance_request
+
+   response_login_info_pb2
+      ResponseLoginInfo (24 fields)
+         template_id, user_msg, rp_code, fcm_id, ib_id, user, first_name, last_name, email_address, user_type, order_copy_status, country_code, state_code, address_street_1, address_street_2, address_city, address_state, address_country, address_zip, phone_residence, phone_work, phone_mobile, tp_max_session_count, op_max_session_count
+
+   response_login_pb2
+      ResponseLogin (10 fields)
+         template_id, template_version, user_msg, rp_code, fcm_id, ib_id, country_code, state_code, unique_user_id, heartbeat_interval
+
+   response_logout_pb2
+      ResponseLogout (3 fields)
+         template_id, user_msg, rp_code
+
+   response_market_data_update_pb2
+      ResponseMarketDataUpdate (3 fields)
+         template_id, user_msg, rp_code
+
+   response_modify_order_pb2
+      ResponseModifyOrder (7 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, basket_id, ssboe, usecs
+
+   response_new_order_pb2
+      ResponseNewOrder (8 fields)
+         template_id, user_msg, user_tag, rq_handler_rp_code, rp_code, basket_id, ssboe, usecs
+
+   response_pnl_position_snapshot_pb2
+      ResponsePnLPositionSnapshot (3 fields)
+         template_id, user_msg, rp_code
+
+   response_pnl_position_updates_pb2
+      ResponsePnLPositionUpdates (3 fields)
+         template_id, user_msg, rp_code
+
+   response_product_rms_info_pb2
+      ResponseProductRmsInfo (16 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, presence_bits, fcm_id, ib_id, account_id, product_code, loss_limit, commission_fill_rate, buy_margin_rate, sell_margin_rate, buy_limit, max_order_quantity, sell_limit
+
+   response_reference_data_pb2
+      ResponseReferenceData (27 fields)
+         template_id, user_msg, rp_code, presence_bits, clear_bits, symbol, exchange, exchange_symbol, symbol_name, trading_symbol, trading_exchange, product_code, instrument_type, underlying_symbol, expiration_date, currency, put_call_indicator, tick_size_type, price_display_format, is_tradable, is_underlying_for_binary_contrats, strike_price, ftoq_price, qtof_price, min_qprice_change, min_fprice_change, single_point_value
+
+   response_replay_executions_pb2
+      ResponseReplayExecutions (3 fields)
+         template_id, user_msg, rp_code
+
+   response_rithmic_system_info_pb2
+      ResponseRithmicSystemInfo (5 fields)
+         template_id, user_msg, rp_code, system_name, has_aggregated_quotes
+
+   response_search_symbols_pb2
+      ResponseSearchSymbols (10 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, symbol, exchange, symbol_name, product_code, instrument_type, expiration_date
+
+   response_show_agreement_pb2
+      ResponseShowAgreement (11 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, agreement_title, agreement_id, agreement, agreement_html, agreement_mandatory_flag, agreement_status, agreement_acceptance_request
+
+   response_show_bracket_stops_pb2
+      ResponseShowBracketStops (10 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, basket_id, stop_quantity, stop_quantity_released, stop_ticks, bracket_trailing_field_id, trailing_stop_trigger_ticks
+
+   response_show_brackets_pb2
+      ResponseShowBrackets (8 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, basket_id, target_quantity, target_quantity_released, target_ticks
+
+   response_show_fill_history_pb2
+      ResponseShowFillHistory (37 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, basket_id, sequence_number, orig_sequence_number, cor_sequence_number, fcm_id, ib_id, account_id, symbol, exchange, trade_exchange, trade_route, exchange_order_id, instrument_type, transaction_type, duration, price_type, orig_price_type, manual_or_auto, fill_time, fill_date, fill_id, price, trigger_price, fill_price, avg_fill_price, fill_size, total_fill_size, total_unfilled_size, ssboe, usecs, source_ssboe, source_usecs, source_nsecs
+
+   response_show_order_history_dates_pb2
+      ResponseShowOrderHistoryDates (5 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, date
+
+   response_show_order_history_detail_pb2
+      ResponseShowOrderHistoryDetail (3 fields)
+         template_id, user_msg, rp_code
+
+   response_show_order_history_summary_pb2
+      ResponseShowOrderHistorySummary (3 fields)
+         template_id, user_msg, rp_code
+
+   response_show_orders_pb2
+      ResponseShowOrders (3 fields)
+         template_id, user_msg, rp_code
+
+   response_subscribe_for_order_updates_pb2
+      ResponseSubscribeForOrderUpdates (3 fields)
+         template_id, user_msg, rp_code
+
+   response_subscribe_to_bracket_updates_pb2
+      ResponseSubscribeToBracketUpdates (3 fields)
+         template_id, user_msg, rp_code
+
+   response_tick_bar_replay_pb2
+      ResponseTickBarReplay (22 fields)
+         template_id, request_key, user_msg, rq_handler_rp_code, rp_code, symbol, exchange, type, sub_type, type_specifier, data_bar_seq_num, num_trades, volume, bid_volume, ask_volume, open_price, close_price, high_price, low_price, custom_session_open_ssm, data_bar_ssboe, data_bar_usecs
+
+   response_tick_bar_update_pb2
+      ResponseTickBarUpdate (3 fields)
+         template_id, user_msg, rp_code
+
+   response_time_bar_replay_pb2
+      ResponseTimeBarReplay (21 fields)
+         template_id, request_key, user_msg, rq_handler_rp_code, rp_code, symbol, exchange, type, period, marker, num_trades, volume, bid_volume, ask_volume, open_price, close_price, high_price, low_price, settlement_price, has_settlement_price, must_clear_settlement_price
+
+   response_time_bar_update_pb2
+      ResponseTimeBarUpdate (3 fields)
+         template_id, user_msg, rp_code
+
+   response_trade_routes_pb2
+      ResponseTradeRoutes (10 fields)
+         template_id, user_msg, rq_handler_rp_code, rp_code, fcm_id, ib_id, exchange, trade_route, status, is_default
+
+   response_update_stop_bracket_level_pb2
+      ResponseUpdateStopBracketLevel (3 fields)
+         template_id, user_msg, rp_code
+
+   response_update_target_bracket_level_pb2
+      ResponseUpdateTargetBracketLevel (3 fields)
+         template_id, user_msg, rp_code
+
+   rithmic_order_notification_pb2
+      RithmicOrderNotification (47 fields)
+         template_id, user_tag, notify_type, is_snapshot, status, basket_id, original_basket_id, linked_basket_ids, fcm_id, ib_id, user_id, account_id, symbol, exchange, trade_exchange, trade_route, exchange_order_id, instrument_type, completion_reason, quantity, quan_release_pending, price, trigger_price, transaction_type, duration, price_type, orig_price_type, manual_or_auto, bracket_type, avg_fill_price, total_fill_size, total_unfilled_size, sequence_number, orig_sequence_number, cor_sequence_number, currency, country_code, text, report_text, remarks, window_name, originator_window_name, cancel_at_ssboe, cancel_at_usecs, cancel_after_secs, ssboe, usecs
+
+   tick_bar_pb2
+      TickBar (18 fields)
+         template_id, symbol, exchange, type, sub_type, type_specifier, data_bar_seq_num, num_trades, volume, bid_volume, ask_volume, open_price, close_price, high_price, low_price, custom_session_open_ssm, data_bar_ssboe, data_bar_usecs
+
+   time_bar_pb2
+      TimeBar (17 fields)
+         template_id, symbol, exchange, type, period, marker, num_trades, volume, bid_volume, ask_volume, open_price, close_price, high_price, low_price, settlement_price, has_settlement_price, must_clear_settlement_price
+
+   trade_route_pb2
+      TradeRoute (7 fields)
+         template_id, fcm_id, ib_id, exchange, trade_route, status, is_default
+
+   user_account_update_pb2
+      UserAccountUpdate (12 fields)
+         template_id, update_type, access_type, source_user_id, user, fcm_id, ib_id, account_id, account_name, account_status, ssboe, usecs
+
+   modules scanned: 104   messages: 104   fields: 1080
+
+==============================================================================
+5. IV / Greeks scan across EVERY message field (item 8)
+==============================================================================
+   search terms: implied, impl_vol, iv, vol, volatility, delta, gamma, vega, theta, rho, greek, charm, vanna, moneyness
+   false-positive filters: volume, vol_, _vol, total_vol
+   modules scanned: 104   messages: 104   fields compared: 1080
+
+   MATCHES: 0
+   -> no implied-volatility or Greek field exists in any message of this
+      package version. IV and Greeks must be calculated locally.

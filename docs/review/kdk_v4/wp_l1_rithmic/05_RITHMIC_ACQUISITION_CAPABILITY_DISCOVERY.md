@@ -3,7 +3,16 @@
 *(Requested as `04_…`; `04_STAGE2_CORRIGENDUM.md` was already taken by the previous instruction, so this
 is `05_`. Same document, different prefix.)*
 
-**Status: offline enumeration COMPLETE. Live probe NOT RUN — blocked, see §6.**
+> **SUPERSEDED IN PART by `07_ACQUISITION_ADDENDUM_CORRIGENDUM.md`.** Withdrawn there: the
+> "18 surfaces" count (17 non-zero, 14 unrequested); row **G-05** and every claim that aggregated
+> `OrderBook.update_type` repairs the DOM `UpdateAction="Unknown"` defect (that enum is batch state,
+> not per-level New/Change/Delete); the claim that `_on_tick` discards fields (it retains the full
+> tick — the loss is at the persistence boundary); the reconnect classification; the reference-data
+> conclusion (now a hypothesis); the IV/Greeks evidence basis (now a real all-module scan); and the
+> P-6 MBO probe design. The capability matrix is superseded by
+> `08_ACQUISITION_CAPABILITY_MATRIX.csv`, which separates nine layers.
+
+**Status: offline enumeration COMPLETE. Live probe NOT RUN — blocked by `SEC-001`, see §6.**
 Task D not started. No production source or tests changed.
 
 ---
@@ -237,7 +246,9 @@ are excluded by construction.
 1. **"SEC-001 rotation is done"** (or a note that you accept the risk) → I run P-1…P-7 and report.
 2. **"Run P-1 only"** → entitlement enumeration alone; it needs no market-data subscription and is the
    smallest possible exposure.
-3. **"Hold the probe"** → this document stands as the offline deliverable and Stage 2 closes without it.
+3. **"Hold the probe"** → this document stands as the offline deliverable. **Stage 2 then remains
+   `OPEN/BLOCKED`** — it does not close automatically without the probe unless you explicitly change
+   the acceptance scope.
 
 I am not asking you to re-authorise the probe — you already did. I am asking whether the credential-rotation
 gate you set is satisfied, because I cannot verify that from the repository.
