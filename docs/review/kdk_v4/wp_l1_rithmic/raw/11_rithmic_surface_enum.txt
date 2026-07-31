@@ -1,0 +1,297 @@
+###### async_rithmic SURFACE ENUMERATION (offline) ######
+  installed version : 1.6.3
+  location          : C:\Users\LOQ\AppData\Local\Programs\Python\Python311\Lib\site-packages\async_rithmic
+  repo pin          : research/optionflow/requirements.txt says 'async_rithmic>=1.0'
+                      -> the version is NOT pinned; 1.6.3 is what happens to be installed
+  NOTE: everything below is API EXPOSURE ONLY. It is not server support, not
+        account entitlement, and not evidence that any callback ever fires.
+
+==============================================================================
+1. top-level public names
+==============================================================================
+   BestBidOfferPresenceBits           EnumTypeWrapper
+   DataType                           EnumType
+   ExchangeOrderBracketType           EnumTypeWrapper
+   ExchangeOrderNotificationType      EnumTypeWrapper
+   HistoricalDataRequestInProgressError type
+   InstrumentType                     EnumTypeWrapper
+   InvalidRequestError                type
+   LastTradePresenceBits              EnumTypeWrapper
+   OrderBookPresenceBits              EnumTypeWrapper
+   OrderDuration                      EnumTypeWrapper
+   OrderPlacement                     EnumTypeWrapper
+   OrderType                          EnumTypeWrapper
+   ReconnectionSettings               type
+   RetrySettings                      type
+   RithmicClient                      type
+   RithmicErrorResponse               type
+   SearchPattern                      EnumTypeWrapper
+   SysInfraType                       EnumTypeWrapper
+   TimeBarType                        EnumTypeWrapper
+   TransactionType                    EnumTypeWrapper
+   client                             module
+   enum                               module
+   enums                              module
+   exceptions                         module
+   helpers                            module
+   logger                             VerboseLogger
+   objects                            module
+   pb                                 module
+   plants                             module
+   protocol_buffers                   module
+
+==============================================================================
+2. enums that describe plants, data types and update bits
+==============================================================================
+   DataType:
+      BBO                                      = <DataType.BBO: 2>
+      LAST_TRADE                               = <DataType.LAST_TRADE: 1>
+      ORDER_BOOK                               = <DataType.ORDER_BOOK: 4>
+
+==============================================================================
+3. client methods relevant to market/reference data
+==============================================================================
+   RithmicClient:
+
+==============================================================================
+4. event/callback handles exposed by the client
+==============================================================================
+
+==============================================================================
+5. protocol buffer modules (request/response templates)
+==============================================================================
+   104 generated modules
+
+   -- REQUEST templates (43) --
+      request_account_list_pb2
+      request_account_rms_info_pb2
+      request_bracket_order_pb2
+      request_cancel_all_orders_pb2
+      request_cancel_order_pb2
+      request_depth_by_order_snapshot_pb2  <-- market/reference data
+      request_depth_by_order_updates_pb2  <-- market/reference data
+      request_exit_position_pb2
+      request_front_month_contract_pb2  <-- market/reference data
+      request_heartbeat_pb2
+      request_list_accepted_agreements_pb2
+      request_list_exchange_permissions_pb2
+      request_list_unaccepted_agreements_pb2
+      request_login_info_pb2
+      request_login_pb2
+      request_logout_pb2
+      request_market_data_update_pb2  <-- market/reference data
+      request_modify_order_pb2
+      request_new_order_pb2
+      request_pnl_position_snapshot_pb2  <-- market/reference data
+      request_pnl_position_updates_pb2
+      request_product_rms_info_pb2
+      request_reference_data_pb2  <-- market/reference data
+      request_replay_executions_pb2
+      request_rithmic_system_info_pb2
+      request_search_symbols_pb2  <-- market/reference data
+      request_show_agreement_pb2
+      request_show_bracket_stops_pb2
+      request_show_brackets_pb2
+      request_show_fill_history_pb2
+      request_show_order_history_dates_pb2
+      request_show_order_history_detail_pb2
+      request_show_order_history_summary_pb2
+      request_show_orders_pb2
+      request_subscribe_for_order_updates_pb2
+      request_subscribe_to_bracket_updates_pb2
+      request_tick_bar_replay_pb2  <-- market/reference data
+      request_tick_bar_update_pb2  <-- market/reference data
+      request_time_bar_replay_pb2  <-- market/reference data
+      request_time_bar_update_pb2  <-- market/reference data
+      request_trade_routes_pb2  <-- market/reference data
+      request_update_stop_bracket_level_pb2
+      request_update_target_bracket_level_pb2
+
+   -- RESPONSE templates (43) --
+      response_account_list_pb2
+      response_account_rms_info_pb2
+      response_bracket_order_pb2
+      response_cancel_all_orders_pb2
+      response_cancel_order_pb2
+      response_depth_by_order_snapshot_pb2  <-- market/reference data
+      response_depth_by_order_updates_pb2  <-- market/reference data
+      response_exit_position_pb2
+      response_front_month_contract_pb2  <-- market/reference data
+      response_heartbeat_pb2
+      response_list_accepted_agreements_pb2
+      response_list_exchange_permissions_pb2
+      response_list_unaccepted_agreements_pb2
+      response_login_info_pb2
+      response_login_pb2
+      response_logout_pb2
+      response_market_data_update_pb2  <-- market/reference data
+      response_modify_order_pb2
+      response_new_order_pb2
+      response_pnl_position_snapshot_pb2  <-- market/reference data
+      response_pnl_position_updates_pb2
+      response_product_rms_info_pb2
+      response_reference_data_pb2  <-- market/reference data
+      response_replay_executions_pb2
+      response_rithmic_system_info_pb2
+      response_search_symbols_pb2  <-- market/reference data
+      response_show_agreement_pb2
+      response_show_bracket_stops_pb2
+      response_show_brackets_pb2
+      response_show_fill_history_pb2
+      response_show_order_history_dates_pb2
+      response_show_order_history_detail_pb2
+      response_show_order_history_summary_pb2
+      response_show_orders_pb2
+      response_subscribe_for_order_updates_pb2
+      response_subscribe_to_bracket_updates_pb2
+      response_tick_bar_replay_pb2  <-- market/reference data
+      response_tick_bar_update_pb2  <-- market/reference data
+      response_time_bar_replay_pb2  <-- market/reference data
+      response_time_bar_update_pb2  <-- market/reference data
+      response_trade_routes_pb2  <-- market/reference data
+      response_update_stop_bracket_level_pb2
+      response_update_target_bracket_level_pb2
+
+   -- other (18) --
+      account_pnl_position_update_pb2
+      account_rms_updates_pb2
+      base_pb2
+      best_bid_offer_pb2  <-- market/reference data
+      bracket_updates_pb2
+      depth_by_order_end_event_pb2  <-- market/reference data
+      depth_by_order_pb2  <-- market/reference data
+      exchange_order_notification_pb2
+      forced_logout_pb2
+      instrument_pnl_position_update_pb2  <-- market/reference data
+      last_trade_pb2  <-- market/reference data
+      order_book_pb2  <-- market/reference data
+      reject_pb2
+      rithmic_order_notification_pb2
+      tick_bar_pb2  <-- market/reference data
+      time_bar_pb2  <-- market/reference data
+      trade_route_pb2  <-- market/reference data
+      user_account_update_pb2
+
+==============================================================================
+6. fields on the market-data update request (what can be asked for)
+==============================================================================
+   RequestMarketDataUpdate fields:
+      template_id                        5
+      user_msg                           9
+      symbol                             9
+      exchange                           9
+      request                            14
+      update_bits                        13
+
+   UpdateBits enum members (the subscribable surfaces):
+      UPDATEBITS_UNSPECIFIED             = 0
+      LAST_TRADE                         = 1
+      BBO                                = 2
+      ORDER_BOOK                         = 4
+      OPEN                               = 8
+      OPENING_INDICATOR                  = 16
+      HIGH_LOW                           = 32
+      HIGH_BID_LOW_ASK                   = 64
+      CLOSE                              = 128
+      CLOSING_INDICATOR                  = 256
+      SETTLEMENT                         = 512
+      MARKET_MODE                        = 1024
+      OPEN_INTEREST                      = 2048
+      MARGIN_RATE                        = 4096
+      HIGH_PRICE_LIMIT                   = 8192
+      LOW_PRICE_LIMIT                    = 16384
+      PROJECTED_SETTLEMENT               = 32768
+      ADJUSTED_CLOSE                     = 65536
+
+==============================================================================
+7. last-trade / BBO / depth response fields
+==============================================================================
+
+   response_market_data_update_pb2.ResponseMarketDataUpdate
+      template_id
+      user_msg
+      rp_code
+
+   last_trade_pb2.LastTrade
+      template_id
+      symbol
+      exchange
+      presence_bits
+      clear_bits
+      is_snapshot
+      trade_price
+      trade_size
+      aggressor
+      exchange_order_id
+      aggressor_exchange_order_id
+      net_change
+      percent_change
+      volume
+      vwap
+      trade_time
+      ssboe
+      usecs
+      source_ssboe
+      source_usecs
+      source_nsecs
+      jop_ssboe
+      jop_nsecs
+
+   best_bid_offer_pb2.BestBidOffer
+      template_id
+      symbol
+      exchange
+      presence_bits
+      clear_bits
+      is_snapshot
+      bid_price
+      bid_size
+      bid_orders
+      bid_implicit_size
+      bid_time
+      ask_price
+      ask_size
+      ask_orders
+      ask_implicit_size
+      ask_time
+      lean_price
+      ssboe
+      usecs
+
+   order_book_pb2.OrderBook
+      template_id
+      symbol
+      exchange
+      presence_bits
+      update_type
+      bid_price
+      bid_size
+      bid_orders
+      impl_bid_size
+      ask_price
+      ask_size
+      ask_orders
+      impl_ask_size
+      ssboe
+      usecs
+
+   depth_by_order_pb2.DepthByOrder
+      template_id
+      symbol
+      exchange
+      sequence_number
+      update_type
+      transaction_type
+      depth_price
+      prev_depth_price
+      prev_depth_price_flag
+      depth_size
+      depth_order_priority
+      exchange_order_id
+      ssboe
+      usecs
+      source_ssboe
+      source_usecs
+      source_nsecs
+      jop_ssboe
+      jop_nsecs

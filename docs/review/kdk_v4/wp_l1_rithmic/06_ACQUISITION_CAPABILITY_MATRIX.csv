@@ -1,0 +1,35 @@
+surface,exposed_by_pinned_api,request_implemented_in_code,request_accepted_by_server,fin_account_entitled,callback_observed,present_in_gcae,recorder_preserves_required_fields,kdk_usability,evidence
+Executed trades (LastTrade),Yes - last_trade_pb2.LastTrade,Yes - client.py:55-66 LAST_TRADE bit,NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes - 979 NewTrade decoded,Partial - price/volume/direction kept; vendor aggressor/vwap/volume/exchange_order_id/source_* discarded by _on_tick,Core-usable,raw/11 sec7; raw/08; client.py:110-123
+Trade aggressor (vendor field),Yes - LastTrade.aggressor,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No - inferred only,No,Core-usable if acquired,raw/11 sec7 LastTrade fields
+Trade exchange_order_id / aggressor_exchange_order_id,Yes - LastTrade,No (Branch B); Yes in NewTradePayload (Branch A),NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes on Branch A payload,Partial,Optional research,RawEventPayload.cs:68-69; raw/11 sec7
+Best bid/ask (BBO),Yes - best_bid_offer_pb2.BestBidOffer,Yes - BBO bit,NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes - 9862 BestBidAsk decoded,Partial - price/size only; bid_orders ask_orders implicit_size bid_time ask_time lean_price is_snapshot discarded,Core-usable,raw/11 sec7; raw/08
+BBO order counts and implicit size,Yes - bid_orders ask_orders bid_implicit_size ask_implicit_size,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research,raw/11 sec7 BestBidOffer
+Market depth / DOM aggregated,Yes - order_book_pb2.OrderBook,No on Branch B (ORDER_BOOK bit never set for options),NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes via ATAS - 35025 Depth decoded,Partial - UpdateAction is literally Unknown on 35025/35025,Not admissible for New/Change/Delete,raw/09; raw/11 sec7 OrderBook.update_type
+DOM update_type (New/Change/Delete),Yes - OrderBook.update_type,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Not admissible,raw/11 sec7
+Market-by-order (MBO),Yes - depth_by_order_pb2.DepthByOrder + request_depth_by_order_snapshot/_updates,No on Branch B,NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes via ATAS - 24413 Mbo decoded,Partial - identity+priority complete; native sequence lost; lifecycle raw only,Optional research; not admissible for book reconstruction,raw/09; raw/11 sec5+7
+MBO native sequence_number,Yes - DepthByOrder.sequence_number,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No - NativeSequenceAvailable false on 75904/75904,No,Core-usable if acquired via Branch B,raw/09; raw/11 sec7 DepthByOrder
+MBO order identity and priority,Yes - exchange_order_id depth_order_priority,No on Branch B,NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes - orderId non-null 24413/24413 zero 0 distinct 8740; priority>0 24413/24413,Complete for identity,Optional research,raw/09
+MBO snapshot vs incremental,Yes - request_depth_by_order_snapshot + DepthByOrder.update_type + LastTrade.is_snapshot,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No - snapshotCompletionKnown hard-coded false,No,Not admissible,raw/09; raw/11 sec5+7; RawEventPayload.cs:319
+Exchange timestamp (EventTime),Yes - source_ssboe source_usecs source_nsecs on LastTrade and DepthByOrder,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No - receive-time only,No,Core-usable if acquired,raw/11 sec7
+Receive timestamp,Yes - ssboe usecs,Yes - _on_tick keeps ssboe,NOT_PROBED,NOT_PROBED,NOT_PROBED,Yes - CallbackReceiveUtc,Complete,Core-usable,client.py:117; RawEventEnvelope.cs:137
+Trading status / market mode,Yes - UpdateBits.MARKET_MODE 1024,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable if acquired,raw/11 sec6
+Settlement,Yes - UpdateBits.SETTLEMENT 512,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable if acquired,raw/11 sec6
+Projected settlement,Yes - UpdateBits.PROJECTED_SETTLEMENT 32768,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research,raw/11 sec6
+Session OHLC,Yes - UpdateBits OPEN 8 CLOSE 128 HIGH_LOW 32 HIGH_BID_LOW_ASK 64,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research,raw/11 sec6
+Opening / closing indicator,Yes - UpdateBits 16 and 256,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research,raw/11 sec6
+Price limits and margin rate,Yes - UpdateBits 8192 16384 4096,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research,raw/11 sec6
+Adjusted close,Yes - UpdateBits.ADJUSTED_CLOSE 65536,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research,raw/11 sec6
+Open interest,Yes - UpdateBits.OPEN_INTEREST 2048 + template-158 path,Yes - client.py:32-40 resolves bit from generated enum,NOT_PROBED,NOT_PROBED,NOT_PROBED,No - 0/300 populated in surviving artifact,No,Core-usable for Options if acquired,client.py:32-40; patch158.py; prior artifact 0/300
+Instrument / reference metadata,Yes - request_reference_data -> ResponseReferenceData,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable if acquired,raw/11 sec7 ResponseReferenceData
+Option underlying mapping,Yes - ResponseReferenceData.underlying_symbol,No - inferred from instrument master,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable if acquired; resolves KDK Ch82 directly,raw/11 sec7
+Option strike / expiry / put-call,Yes - strike_price expiration_date put_call_indicator,No - taken from instrument master,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable if acquired,raw/11 sec7
+Option point value,Yes - ResponseReferenceData.single_point_value,No - hard-coded table live.py instruments_point_value,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable if acquired,live.py:101-102; raw/11 sec7
+Option chain discovery,Yes - request_search_symbols -> ResponseSearchSymbols,Yes - client.py:184,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable,client.py:184; raw/11 sec7
+Front month contract,Yes - request_front_month_contract,Yes - client.py:181,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable,client.py:181
+Futures roll metadata,Partial - ResponseFrontMonthContract.is_front_month_symbol; no explicit roll field found,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,Partial - manifest contractEpoch only,Partial,Optional research,raw/11 sec7; SessionManifestRecord
+Historical tick/time bar replay,Yes - request_tick_bar_replay request_time_bar_replay request_tick_bar_update request_time_bar_update,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Optional research - no backfill path exists today,raw/11 sec5
+Exchange permissions / entitlement,Yes - request_list_exchange_permissions -> level_1_market_data level_2_market_data entitlement_flag,No,NOT_PROBED,NOT_PROBED,NOT_PROBED,No,No,Core-usable - smallest possible probe,raw/11 sec5+7
+Implied volatility (vendor),No - no IV field in any of 104 generated modules,n/a,n/a,n/a,n/a,No,n/a,Locally calculated only,raw/11 - grep of all pb2 modules
+Greeks (vendor),No - no Greek field in any of 104 generated modules,n/a,n/a,n/a,n/a,No,n/a,Locally calculated only (gex/black76.py),raw/11
+Reconnection,Yes - ReconnectionSettings RetrySettings at top level of 1.6.3,No - neither object is constructed anywhere in our code,NOT_PROBED,n/a,n/a,n/a,n/a,Not admissible until configured,raw/11 sec1
+Order placement and account operations,Yes - request_new_order request_modify_order request_cancel_* request_pnl_* request_account_*,No,EXCLUDED_BY_INSTRUCTION,n/a,n/a,No,n/a,OUT OF SCOPE - never to be exercised,raw/11 sec5
