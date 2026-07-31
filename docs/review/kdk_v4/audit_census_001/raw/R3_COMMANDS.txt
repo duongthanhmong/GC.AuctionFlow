@@ -1,0 +1,28 @@
+KDK-CENSUS-001-R3 — raw command ledger (read-only except owned R3 files; HEAD e373486)
+
+--- baseline (precise) ---
+CURRENT_HEAD=e37348644bd0..  R2_DELIVERABLE_COMMIT=e373486  AUDITED_SOURCE_HEAD=43d458f
+e373486 == origin/wp-l1-rithmic-data-surface-discovery  ;  worktree 131 untracked / 0 modified / 0 stash
+
+--- supplied v1.2 + brief by exact SHA-256 (whole machine) ---
+0e24349b (BAN_THAO(1) v1.2) => NOT FOUND ;  d24ec88b (TIEN_DO(1) v1.2) => NOT FOUND ;  26ad6e23 (brief) => NOT FOUND
+=> supplied to reviewer, hash-verified there; not in this workspace; cannot materialize (no bytes).
+
+--- handover checksum reproduction ---
+at e373486: sha256sum -c SHA256SUMS.txt => 33/33 OK ; 13_MANIFEST.md hash 263fccbc == SHA256SUMS entry
+reviewer's 18/14 + 4dbc8bc3 vs 263fccbc + 2412557a = STALE PARTIAL ATTACHMENT, not the pushed commit
+  263fccbc=current manifest ; 4dbc8bc3=old CRLF manifest ; 2412557a=original obsolete self-hash (narrative only)
+
+--- Q1/Q9 stale ---
+KDK_D2_CONTRACT_FIT_001.md:6,43 had "owner Q9" / "Q1 + Q9" => banner SUPERSEDED(R3) added, body preserved;
+current deliverables (ARTIFACT_FIT_002, Owner Pack R3) use stable IDs only.
+
+--- 25-module state ---
+python scan (R3E source_paths + grep) => 23 CODE_PRESENT_PARTIAL + 2 CODE_CANDIDATE_FOUND ; 0 wired/tested/live/accepted
+
+--- binary integrity (targeted real tests) ---
+dotnet test --filter FullyQualifiedName~Recorder -c Release => Passed! 131/0/0, EXIT=0
+  covers SegmentReaderTests, RecoveryScanner (P007C3Bc/RecorderCloseoutAudit), RecorderCore, TradeRecorderC3Bc
+
+--- schema compat (static) ---
+python r2/contract_compat_harness.py => 27 fields, 12 required, 7 present, 5 ABSENT (STATIC_FIELD_FIT), exit 0

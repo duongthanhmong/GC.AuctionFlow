@@ -1,3 +1,5 @@
+> **SUPERSEDED (R3).** The positional dependency phrases in this file ("owner Q9", "runs ONLY after owner Q1 + Q9") are obsolete. See `KDK_D2_ARTIFACT_FIT_002.md` for the corrected, stable-ID version (`ADR-001`+`ADR-003`+`DEC-ARCH`). This file is retained unedited below as historical R1 material.
+
 # KDK-D2-CONTRACT-FIT-001 — Writer ↔ Schema field-fit (analysis only)
 
 **Why this and not KDK-D2-001:** at HEAD `323e36a` **no signed owner authority exists** — all 7

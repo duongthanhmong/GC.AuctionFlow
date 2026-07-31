@@ -1,0 +1,10 @@
+CMD: dotnet test --filter 'FullyQualifiedName~Recorder' (targeted binary-integrity)
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  GC.AuctionFlow -> C:\Users\LOQ\Downloads\New folder (2)\GC.AuctionFlow\src\GC.AuctionFlow\bin\Release\net10.0-windows\GC.AuctionFlow.dll
+  GC.AuctionFlow.Tests -> C:\Users\LOQ\Downloads\New folder (2)\GC.AuctionFlow\tests\GC.AuctionFlow.Tests\bin\Release\net10.0-windows\GC.AuctionFlow.Tests.dll
+Test run for C:\Users\LOQ\Downloads\New folder %282%29\GC.AuctionFlow\tests\GC.AuctionFlow.Tests\bin\Release\net10.0-windows\GC.AuctionFlow.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   131, Skipped:     0, Total:   131, Duration: 48 s - GC.AuctionFlow.Tests.dll (net10.0)
+EXIT=0

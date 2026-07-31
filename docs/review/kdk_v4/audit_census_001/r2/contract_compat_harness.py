@@ -94,6 +94,30 @@ def main():
     report["failclosed_contract_gap"] = {
         f: ("ABSENT" if f not in mapped_targets else "PRESENT") for f in failclosed}
 
+    # R3: separate binary integrity (proven by existing C# tests) from schema compatibility (static).
+    report["binary_integrity"] = {
+        "verification": "TEST_EVIDENCED (existing C# recorder suite, targeted run)",
+        "command": "dotnet test --filter FullyQualifiedName~Recorder -c Release",
+        "result": "131 passed / 0 failed / 0 skipped, exit 0",
+        "covers": ["SegmentReaderTests (parse header/frames/footer)",
+                   "RecoveryScanner via P007C3BcCloseoutCorrectionTests + RecorderCloseoutAuditTests "
+                   "(truncated/corrupt segment classification)",
+                   "RecorderCoreTests, TradeRecorderC3BcTests (framing/CRC/atomic finalize)"],
+        "note": "REAL fixtures built through the actual writer, not synthetic and not live.",
+        "format_constants": {"ContainerMagic": "0x52414347 (GCAR)",
+                             "FrameMagic": "0x31464347 (GCF1)", "crc": "CRC-32C Castagnoli"},
+    }
+    report["schema_compatibility"] = {
+        "verification": "STATIC_FIELD_FIT (source-field comparison, NOT a live contract validation)",
+        "recorder_metadata_present": len(required) - fails,
+        "recorder_metadata_absent": fails,
+        "no_json_recorder_segment_artifact_produced": True,
+        "note": "The recorder emits a binary .gcae container + a detached sha manifest; it produces "
+                "NO recorder_segment.schema.json metadata object today. Absence of the 5 fail-closed "
+                "fields is EXPECTED and is a contract gap, not a harness failure.",
+    }
+    report["label"] = "STATIC_FIELD_FIT_EXPECTED_FAIL + BINARY_INTEGRITY_TEST_EVIDENCED"
+
     out = os.path.join(HERE, "contract_compat_report.json")
     with open(out, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(report, fh, indent=2)
