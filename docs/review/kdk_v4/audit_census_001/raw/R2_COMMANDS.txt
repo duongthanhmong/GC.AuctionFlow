@@ -1,0 +1,37 @@
+KDK-CENSUS-001-R2 — raw command ledger (read-only, HEAD c94ed8b)
+
+--- baseline ---
+$ git rev-parse HEAD => c94ed8b35c3f0245a38a62ba3a0be9bc5da45ff9 ; worktree 131 untracked / 0 modified
+
+--- 4 supplied files by exact SHA-256 ---
+KDK_CENSUS_001_R1_REVIEW.md         ba404d93... => MATCH (audit_census_001/KDK_CENSUS_001_R1_REVIEW.md)
+KDK_UNBLOCK_001_OWNER_DECISION_PACK 64->19e7e362... => MATCH (audit_census_001/)
+BAN_THAO(1).md v1.2  0e24349b... => NOT FOUND on disk (all .md under Downloads/Desktop/Documents/repo)
+TIEN_DO(1).md  v1.2  d24ec88b... => NOT FOUND on disk
+
+--- R1 handover completeness (Defect 6) ---
+$ git archive c94ed8b docs/.../audit_census_001 | tar -x -C <clean>
+$ cd <clean>/.../audit_census_001 ; sha256sum -c SHA256SUMS.txt => 25/25 OK, 0 FAIL
+  all r1/*, raw/*, SHA256SUMS.txt, KDK_D2_CONTRACT_FIT_001.md present. No omission.
+
+--- code-completeness (Defect 3) per-module highest independently-proven state ---
+  source_paths exists + R3E alignment: 23 CODE_PRESENT_PARTIAL, 2 CODE_CANDIDATE_FOUND
+  RUNTIME_WIRED (per-module semantic): 0 independently proven; TEST_EVIDENCED per-module: not established
+  requirement-level: 591 UNMAPPED_IN_02B, 59 NOT_APPLICABLE, 28 AWAITING_DOMAIN_SPEC, 1 CODE_TESTED
+
+--- composition vs semantic (Defect 4) ---
+  new GcaeRuntimeEngine @ GcAuctionFlowIndicator.cs:1345 ; runtime.Publish() @ :2967  (composed+called)
+  valid domain output: NOT PROVEN (NotCalibrated); Entry emits ObserveOnly
+
+--- hard-code scope (Defect 5) ---
+  inspected: EffortResult/Imbalance/Resolution/Evidence folders; double/decimal + ctor-default literals
+  => 0 hard-coded thresholds IN THAT SCOPE. int caps/TimeSpan/readonly/config-fallback/timeouts across
+     all 248 files NOT inspected => UNKNOWN_REVIEW_REQUIRED. No global claim.
+
+--- contract harness (Phase 3) ---
+$ python r2/contract_compat_harness.py => 27 fields, 12 required, 7 present, 5 ABSENT, exit 0
+  fail-closed gap: dataQuality/containsUnrecoveredGap/capabilitySnapshotId/subscriptionScope/sourceMix = ABSENT
+
+--- 04A authority ---
+$ grep 'Nothing here' docs/review/04A_BINDING_ROADMAP_CANDIDATE.md:3
+  "Candidate ... Nothing here is authorized for implementation" => 04A internal deps are proposals

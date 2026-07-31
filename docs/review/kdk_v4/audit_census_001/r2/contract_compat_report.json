@@ -1,0 +1,134 @@
+{
+  "harness": "contract_compat_harness",
+  "mode": "STATIC_FIELD_FIT",
+  "recorder_source": "src/GC.AuctionFlow/Recorder/SegmentHeaderFooter.cs",
+  "schema": "recorder_segment.schema.json",
+  "recorder_header_footer_fields": [
+    "RecorderSchemaVersion",
+    "ContainerVersion",
+    "SessionId",
+    "RecorderProcessInstanceId",
+    "SegmentId",
+    "SegmentOrdinal",
+    "ContractEpoch",
+    "StartedUtc",
+    "StartedStopwatchTimestamp",
+    "Instrument",
+    "DeclaredDataSourceMode",
+    "ModeProvenance",
+    "DeclaredProvider",
+    "ProviderProvenance",
+    "SegmentId",
+    "SegmentOrdinal",
+    "EndedUtc",
+    "EndedStopwatchTimestamp",
+    "RawEventRecordCount",
+    "MarketEventRecordCount",
+    "InvocationResultRecordCount",
+    "LifecycleIntegrityRecordCount",
+    "FirstWriterSequence",
+    "LastWriterSequence",
+    "BytesBeforeFooter",
+    "CompletedNormally",
+    "CategoryCountsClaimed"
+  ],
+  "schema_required_fields": [
+    "segmentId",
+    "instrumentId",
+    "startUtc",
+    "endUtc",
+    "dataSourceId",
+    "sourceMix",
+    "capabilitySnapshotId",
+    "dataQuality",
+    "subscriptionScope",
+    "sequenceStats",
+    "containsUnrecoveredGap",
+    "versions"
+  ],
+  "results": [
+    {
+      "schema_field": "segmentId",
+      "state": "PRESENT"
+    },
+    {
+      "schema_field": "instrumentId",
+      "state": "PRESENT"
+    },
+    {
+      "schema_field": "startUtc",
+      "state": "PRESENT"
+    },
+    {
+      "schema_field": "endUtc",
+      "state": "PRESENT"
+    },
+    {
+      "schema_field": "dataSourceId",
+      "state": "PRESENT_PARTIAL"
+    },
+    {
+      "schema_field": "sourceMix",
+      "state": "ABSENT"
+    },
+    {
+      "schema_field": "capabilitySnapshotId",
+      "state": "ABSENT"
+    },
+    {
+      "schema_field": "dataQuality",
+      "state": "ABSENT"
+    },
+    {
+      "schema_field": "subscriptionScope",
+      "state": "ABSENT"
+    },
+    {
+      "schema_field": "sequenceStats",
+      "state": "PRESENT_PARTIAL"
+    },
+    {
+      "schema_field": "containsUnrecoveredGap",
+      "state": "ABSENT"
+    },
+    {
+      "schema_field": "versions",
+      "state": "PRESENT_PARTIAL"
+    }
+  ],
+  "expected_failures": [
+    {
+      "schema_field": "sourceMix",
+      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
+      "verdict": "EXPECTED_FAIL"
+    },
+    {
+      "schema_field": "capabilitySnapshotId",
+      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
+      "verdict": "EXPECTED_FAIL"
+    },
+    {
+      "schema_field": "dataQuality",
+      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
+      "verdict": "EXPECTED_FAIL"
+    },
+    {
+      "schema_field": "subscriptionScope",
+      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
+      "verdict": "EXPECTED_FAIL"
+    },
+    {
+      "schema_field": "containsUnrecoveredGap",
+      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
+      "verdict": "EXPECTED_FAIL"
+    }
+  ],
+  "failclosed_contract_gap": {
+    "dataQuality": "ABSENT",
+    "containsUnrecoveredGap": "ABSENT",
+    "sequenceStats": "PRESENT",
+    "capabilitySnapshotId": "ABSENT",
+    "subscriptionScope": "ABSENT",
+    "sourceMix": "ABSENT"
+  }
+}

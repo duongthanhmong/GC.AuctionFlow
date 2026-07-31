@@ -69,3 +69,15 @@ dotnet test  tests/GC.AuctionFlow.Tests/GC.AuctionFlow.Tests.csproj -c Release -
 
 **No production wiring was modified by this document.** `RecoveryScanner` remains un-wired; that is
 a deliberate hold pending authority, not an oversight.
+
+---
+
+## R2 addendum — executable companion
+
+The field-fit above is now **runnable and machine-readable**:
+`r2/contract_compat_harness.py` → `r2/contract_compat_report.json`. Result at HEAD `c94ed8b`:
+27 recorder header/footer fields; 12 schema-required; **7 present/partial, 5 ABSENT**
+(`dataQuality`, `containsUnrecoveredGap`, `capabilitySnapshotId`, `subscriptionScope`, `sourceMix`)
+reported as **EXPECTED_FAIL** — the ADR-003 fail-closed contract the current binary recorder does not
+carry. The harness chooses no architecture and changes no production wiring. Live-output parsing is
+DEFERRED (no `.gcae` segment exists in the repo; producing one needs a live/architecture decision).
