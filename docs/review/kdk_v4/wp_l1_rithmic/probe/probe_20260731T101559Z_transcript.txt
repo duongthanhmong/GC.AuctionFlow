@@ -1,0 +1,11 @@
+###### FIN/RITHMIC LIVE READ-ONLY ACQUISITION PROBE ######
+session id  : probe_20260731T101559Z
+utc start   : 2026-07-31T10:15:59+00:00
+local start : 2026-07-31T17:15:59+07:00
+quarantine  : <quarantine>\probe_20260731T101559Z
+window      : 25s per streaming group
+scope       : market data + reference data only; no order/account/PnL request
+P0  connecting (TICKER_PLANT only)
+P0  AUTH FAILED: AttributeError: 'NoneType' object has no attribute 'heartbeat_interval'
+
+elapsed 3.4s
