@@ -1,6 +1,7 @@
 # ADR-007 — Preserve frames the client cannot parse; preservation is not interpretation
 
-**Status:** ACCEPTED
+**Status:** AWAITING_OWNER_APPROVAL
+**Approval:** none recorded. This ADR states a decision the evidence supports; it is NOT in force until the owner approves it.
 **Date:** 2026-07-31
 **Evidence:** `EV-UNMAPPED-OI-155-157`, `EV-PERBIT-UNMAPPED`, `EV-PERBIT-ATTRIBUTION`
 **MRBS anchor:** §23.1 event sourcing (state rebuildable from the log, not just the final

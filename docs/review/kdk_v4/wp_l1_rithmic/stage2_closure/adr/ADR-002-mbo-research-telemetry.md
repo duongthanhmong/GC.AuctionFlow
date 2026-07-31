@@ -1,6 +1,7 @@
 # ADR-002 — MBO is research telemetry, not a reconstructable book
 
-**Status:** ACCEPTED
+**Status:** AWAITING_OWNER_APPROVAL
+**Approval:** none recorded. This ADR states a decision the evidence supports; it is NOT in force until the owner approves it.
 **Date:** 2026-07-31
 **Evidence:** `EV-REBUILD-DIVERGES`
 **MRBS anchor:** §18 DQ-002 (DOM/MBO not a core dependency), DQ-004

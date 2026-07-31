@@ -19,7 +19,7 @@ registry still has zero approved entries.
 | file | what |
 |---|---|
 | `STAGE2_CHECKLIST.md` | the closure checklist — start here |
-| `adr/ADR-001..007` | seven architecture decisions, each citing its evidence |
+| `adr/ADR-001..007` | seven architecture decisions, each citing its evidence — all `AWAITING_OWNER_APPROVAL`, none in force |
 | `schemas/*.json` | six executable JSON Schemas, draft 2020-12 |
 | `CAPABILITY_EVIDENCE_MANIFEST.csv` | 32 surfaces → capability state → EvidenceIds |
 | `EVIDENCE_INDEX.csv` | 15 EvidenceIds → artifact path → sha256 |
@@ -43,6 +43,11 @@ registry still has zero approved entries.
    `optionsState = Ready` **unsatisfiable** while that holds.
 4. **The option→futures mapping is not the identity.** `OGU6 → GCV6` while the front month is
    `GCZ6`. Read per series, never inferred.
+
+## Approval status
+
+**No ADR is in force.** All seven are `AWAITING_OWNER_APPROVAL`; no owner
+approval has been recorded. They state decisions the evidence supports, not decisions taken.
 
 ## What this package does not do
 

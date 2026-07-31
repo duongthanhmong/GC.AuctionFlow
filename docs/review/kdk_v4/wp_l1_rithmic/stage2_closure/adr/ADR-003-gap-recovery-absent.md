@@ -1,6 +1,7 @@
 # ADR-003 — Gap recovery does not exist; the recorder must fail closed on its own
 
-**Status:** ACCEPTED
+**Status:** AWAITING_OWNER_APPROVAL
+**Approval:** none recorded. This ADR states a decision the evidence supports; it is NOT in force until the owner approves it.
 **Date:** 2026-07-31
 **Evidence:** `EV-RECONNECT-GAP`
 **MRBS anchor:** §18 DQ-001 (gap/duplicate/out-of-order measured; over tolerance → `Invalid`);

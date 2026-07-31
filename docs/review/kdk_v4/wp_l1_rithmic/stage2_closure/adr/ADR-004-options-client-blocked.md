@@ -1,6 +1,7 @@
 # ADR-004 — Options identity is vendor-verified; OI and settlement are client-blocked
 
-**Status:** ACCEPTED
+**Status:** AWAITING_OWNER_APPROVAL
+**Approval:** none recorded. This ADR states a decision the evidence supports; it is NOT in force until the owner approves it.
 **Date:** 2026-07-31
 **Evidence:** `EV-EXPLOIT-OPTION-REFERENCE`, `EV-EXPLOIT-OPTION-QUOTES`,
 `EV-UNMAPPED-OI-155-157`, `EV-PERBIT-ATTRIBUTION`, `EV-PERBIT-UNMAPPED`

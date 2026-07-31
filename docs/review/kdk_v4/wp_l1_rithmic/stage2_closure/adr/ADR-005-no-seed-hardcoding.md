@@ -1,6 +1,7 @@
 # ADR-005 — No seed parameter is hard-coded; the registry stays the single source
 
-**Status:** ACCEPTED
+**Status:** AWAITING_OWNER_APPROVAL
+**Approval:** none recorded. This ADR states a decision the evidence supports; it is NOT in force until the owner approves it.
 **Date:** 2026-07-31
 **Evidence:** `EV-PARAM-REGISTRY`
 **MRBS anchor:** §2.2 VER-001/002/003; §24.3 conditions for keeping a module/threshold

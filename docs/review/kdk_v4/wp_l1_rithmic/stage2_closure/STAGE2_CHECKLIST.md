@@ -27,17 +27,20 @@ Nothing here declares Stage 2 accepted. That is the reviewer's call, and four it
 | A13 | Deterministic book rebuild **not possible** from 116+160 | **PROVEN** | `EV-REBUILD-DIVERGES` |
 | A14 | Historical/live parity 76 of 77 | **PROVEN** | `EV-HIST-PARITY` |
 
-## B. Architecture decisions — recorded
+## B. Architecture decisions — proposed, NOT in force
+
+No owner approval has been recorded for any ADR. Each states a decision the evidence
+supports; none is binding until the owner approves it.
 
 | # | ADR | status |
 |---|---|---|
-| B1 | ADR-001 authoritative core = trades + BBO + aggregated depth | ACCEPTED |
-| B2 | ADR-002 MBO is research telemetry, not a reconstructable book | ACCEPTED |
-| B3 | ADR-003 gap recovery absent; recorder fails closed on its own | ACCEPTED |
-| B4 | ADR-004 options identity verified; OI/settlement client-blocked | ACCEPTED |
-| B5 | ADR-005 no seed hard-coded; registry is the single source | ACCEPTED |
-| B6 | ADR-006 historical and live publish capability separately | ACCEPTED |
-| B7 | ADR-007 preserve unparseable frames; preservation ≠ interpretation | ACCEPTED |
+| B1 | ADR-001 authoritative core = trades + BBO + aggregated depth | AWAITING_OWNER_APPROVAL |
+| B2 | ADR-002 MBO is research telemetry, not a reconstructable book | AWAITING_OWNER_APPROVAL |
+| B3 | ADR-003 gap recovery absent; recorder fails closed on its own | AWAITING_OWNER_APPROVAL |
+| B4 | ADR-004 options identity verified; OI/settlement client-blocked | AWAITING_OWNER_APPROVAL |
+| B5 | ADR-005 no seed hard-coded; registry is the single source | AWAITING_OWNER_APPROVAL |
+| B6 | ADR-006 historical and live publish capability separately | AWAITING_OWNER_APPROVAL |
+| B7 | ADR-007 preserve unparseable frames; preservation ≠ interpretation | AWAITING_OWNER_APPROVAL |
 
 ## C. Executable artifacts — built and tested
 

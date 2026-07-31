@@ -1,0 +1,141 @@
+==============================================================================
+KDK Stage 2 closure - independent verification transcript
+==============================================================================
+
+-- environment --
+  python            : 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+  executable        : C:\Users\LOQ\AppData\Local\Programs\Python\Python311\python.exe
+  platform          : Windows 10
+  machine           : AMD64
+  jsonschema        : 4.26.0
+  referencing       : 0.37.0
+  attrs             : 25.4.0
+  rpds-py           : 0.30.0
+
+-- git state --
+  branch            : wp-l1-rithmic-data-surface-discovery
+  head              : 34f204cc79ba39ed140366e945ac71a2fc923e32
+  head short        : 34f204c docs(kdk): Stage 2 closure package - ADRs, executable schemas, evidence manifest, fail-closed spec
+  package tree      : 10 modified
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/README.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/STAGE2_CHECKLIST.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-001-authoritative-core.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-002-mbo-research-telemetry.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-003-gap-recovery-absent.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-004-options-client-blocked.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-005-no-seed-hardcoding.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-006-historical-live-separate-capability.md
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-007-raw-frame-preservation.md
+      ?? docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/verification/
+
+-- package inventory --
+  artifacts         : 23
+    CAPABILITY_EVIDENCE_MANIFEST.csv                               4824  e5a7277929b01d5f
+    DATASET_CONTRACTS.md                                           5081  411f326e1b14d349
+    EVIDENCE_INDEX.csv                                             3531  5ffcaff850b57617
+    README.md                                                      3438  2a2a9362259bac92
+    RECORDER_FAILCLOSED_SPEC.md                                    6764  d9efd41cc6103c79
+    SPEC_CONFLICT_REGISTER.md                                      3519  ef66db83f67e7cb4
+    STAGE2_CHECKLIST.md                                            6293  a0e4626a3ef4b8b5
+    build_evidence_manifest.py                                    11980  1b9fc0223d942c7c
+    adr/ADR-001-authoritative-core.md                              2606  2b5e529dc8fbe139
+    adr/ADR-002-mbo-research-telemetry.md                          2841  d4a7e88fe9d9fb51
+    adr/ADR-003-gap-recovery-absent.md                             3268  ac661eda7edf792b
+    adr/ADR-004-options-client-blocked.md                          3915  22c215f986328084
+    adr/ADR-005-no-seed-hardcoding.md                              2545  f3f9ac2b6e40848f
+    adr/ADR-006-historical-live-separate-capability.md             2696  427119c14fdf7f36
+    adr/ADR-007-raw-frame-preservation.md                          3292  442e98ec20da027e
+    schemas/capability_snapshot.schema.json                        3652  0d64c7aecbc74d91
+    schemas/common.defs.schema.json                                5893  a19c791c6d80b99e
+    schemas/market_event.schema.json                               4683  fe99ad976bd15a44
+    schemas/options_snapshot.schema.json                           8043  45973aa2e39b91c6
+    schemas/raw_frame.schema.json                                  4101  3a0d2a162f264116
+    schemas/recorder_segment.schema.json                           6725  b22615da8b033dc0
+    tests/test_stage2_closure.py                                  17591  a6f2ea942e70b0ec
+    verification/run_verification.py                               8061  a468315e7313559b
+
+-- recounted from the artifacts (not copied from prose) --
+  ADRs                                            7   expected 7      OK
+  ADRs still marked ACCEPTED (must be 0)          0   expected 0      OK
+  JSON schemas                                    6   expected 6      OK
+  capability surfaces                            32   expected 32     OK
+  EvidenceIds                                    15   expected 15     OK
+  dangling evidence pointers                      0   expected 0      OK
+  evidence hash mismatches                        0   expected 0      OK
+  registry parameters                           134   expected 134    OK
+  registry parameters Approved (must be 0)        0   expected 0      OK
+
+-- test suite --
+  ###### KDK Stage 2 closure tests ######
+  
+  -- schemas are valid JSON Schema and their $refs resolve --
+    capability_snapshot.schema.json is a valid draft-2020-12 schema          PASS
+    common.defs.schema.json is a valid draft-2020-12 schema                  PASS
+    market_event.schema.json is a valid draft-2020-12 schema                 PASS
+    options_snapshot.schema.json is a valid draft-2020-12 schema             PASS
+    raw_frame.schema.json is a valid draft-2020-12 schema                    PASS
+    recorder_segment.schema.json is a valid draft-2020-12 schema             PASS
+    capability_snapshot.schema.json cross-file $refs resolve                 PASS
+    market_event.schema.json cross-file $refs resolve                        PASS
+    options_snapshot.schema.json cross-file $refs resolve                    PASS
+    raw_frame.schema.json cross-file $refs resolve                           PASS
+    recorder_segment.schema.json cross-file $refs resolve                    PASS
+  
+  -- conforming instances validate --
+    a core trade event validates                                             PASS
+    a clean segment validates                                                PASS
+    a ContextOnly options snapshot with blocked OI validates                 PASS
+    an uninterpreted raw frame validates                                     PASS
+    a capability snapshot validates                                          PASS
+  
+  -- fail-closed rules REJECT non-conforming instances --
+    naive timestamp (no UTC offset) is rejected                              PASS  base.py:567-577 trap
+    float price is rejected (integer ticks only, MRBS 2.1)                   PASS
+    missing version block is rejected (VER-001)                              PASS
+    aggressorProvenance=absent with a concrete side is rejected              PASS  ADR-001
+    a Trade with no aggressor fields is rejected                             PASS
+    unrecovered gap + dataQuality Ready is rejected                          PASS  ADR-003
+    unrecovered gap with no discontinuity record is rejected                 PASS
+    unrecovered gap without DATA_INVALID reason code is rejected             PASS
+    a real measured gap segment validates when marked correctly              PASS  the E6 measurement, expressed
+    claiming a recovery mechanism is rejected                                PASS
+    OptionsState=Ready while OI is CLIENT_BLOCKED is rejected                PASS  ADR-004
+    an OI value present while status is not SCHEMA_BOUND is rejected         PASS  ADR-007
+    InvalidMapping without CONTRACT_MAPPING_INVALID is rejected              PASS  ROLL-004
+    identity parsed from the symbol string cannot be expressed               PASS
+    an option with no underlyingSymbol is rejected                           PASS
+    generic wire decode cannot be SCHEMA_BOUND                               PASS  ADR-007: field numbers are not meanings
+    a decoded field carrying a NAME is rejected                              PASS
+    NOT_EVIDENCED surface cannot be AUTHORITATIVE_CORE                       PASS
+    a surface with no EvidenceId is rejected                                 PASS
+    an unapproved parameter carrying a bound value is rejected               PASS  ADR-005
+    an unapproved parameter with no value validates                          PASS
+  
+  -- every EvidenceId resolves and re-hashes --
+    all 15 EvidenceIds resolve to a file                                     PASS  []
+    all EvidenceId hashes still match                                        PASS  []
+    manifest covers 32 surfaces                                              PASS  got 32
+    every manifest EvidenceId exists in the index                            PASS  []
+    no manifest surface is left unresolved                                   PASS
+    every AUTHORITATIVE_CORE surface is Ready                                PASS  7 core surfaces
+    no MBO surface is AUTHORITATIVE_CORE (MRBS DQ-002)                       PASS  5 telemetry surfaces
+  
+  -- no seed is hard-coded (ADR-005) --
+    canonical registry has 134 parameters                                    PASS  got 134
+    zero parameters are Approved                                             PASS  0 approved
+    no schema inlines a default for a registry parameter                     PASS  []
+  
+  RESULT: PASS - 47/47 checks
+  exit code: 0
+
+-- confirmations requested --
+  47/47 tests pass                     CONFIRMED   47 pass / 0 fail / exit 0 / summary ['RESULT: PASS - 47/47 checks']
+  21 negative fail-closed cases        CONFIRMED   counted 21
+  32 capability surfaces               CONFIRMED   32
+  15 EvidenceIds                       CONFIRMED   15
+  0 dangling evidence pointers         CONFIRMED   []
+  evidence hashes match                CONFIRMED   []
+  no ADR claims ACCEPTED               CONFIRMED   []
+  0 registry parameters Approved       CONFIRMED   0
+
+RESULT: ALL CONFIRMED
