@@ -1,0 +1,13 @@
+###### probe credential-redaction self-tests ######
+
+  baseline (no redaction): secret DOES reach the handler           PASS
+  logger created AFTER install: password redacted                  PASS
+  logger created AFTER install: user redacted                      PASS
+  logger created AFTER install: record still emitted               PASS
+  handler added AFTER install: password redacted                   PASS
+  exception traceback containing credential is suppressed          PASS
+  suppression is announced rather than silent                      PASS  failed  [traceback suppressed: contained credential]
+  unrelated record passes through unchanged                        PASS
+  deeply nested child logger: password redacted                    PASS
+
+RESULT: PASS - redaction holds for loggers and handlers created after install

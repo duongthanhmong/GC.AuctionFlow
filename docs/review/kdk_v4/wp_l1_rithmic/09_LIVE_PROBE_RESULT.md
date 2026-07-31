@@ -2,6 +2,10 @@
 
 **Outcome: `AUTHENTICATION_DENIED`. No new market data was acquired.**
 
+> **Corrigendum applied.** Two statements in the first version of this document were wrong and
+> are corrected below: the claim that a re-run would not leak (§3), and the system/gateway
+> hypothesis (§4.1). Both were caught by the reviewer.
+
 Per the instruction — *"If authentication fails, report the sanitized error and stop. Do not describe that
 outcome as completion of the requested acquisition"* — the probe stopped at P0 and I am not presenting this
 as the requested acquisition. **Stage 2 still has no newly acquired FIN/Rithmic data.**
@@ -82,10 +86,23 @@ Containment, verified:
 
 So nothing leaked into git. The exposure was to the local console during this run.
 
-**Fix applied to the probe** (`tools/rithmic_probe.py`, `install_log_redaction`): a `logging.Filter` is
-installed on the root logger and every existing logger **before any client call**, rewriting the credential
-out of any record and dropping tracebacks that contain it. Self-recorded errors are scrubbed the same way.
-Re-running the probe will not reproduce the console leak.
+**Fix applied to the probe — first attempt was WRONG and is corrected.**
+
+My first fix installed a `logging.Filter` on the root logger and on the loggers that existed at install
+time, and I claimed *"re-running the probe will not reproduce the console leak"*. **That claim was false**
+and the reviewer rejected it correctly. Demonstrated in `raw/12_probe_redaction_selftest.txt`:
+
+* `Logger.addFilter` only filters records logged **directly** on that logger; a record emitted on
+  `rithmic.plant.history` propagates to root's **handlers** without passing root's logger-level filters;
+* loggers created after install — exactly when the `HISTORY_PLANT` logger appears — received no filter;
+* the handler line was guarded by `logging.getLogger().handlers and [...]`, so with no handler yet it
+  silently installed nothing.
+
+The replacement redacts at `logging.Handler.handle`, the one choke point every record passes regardless of
+which logger produced it or when that logger was created; patching the class covers handlers that do not
+exist yet. Proven by `tools/test_probe_redaction.py` — 9/9 offline, including a baseline that shows the
+secret leaking without it, a logger created after install, a handler added after install, and a traceback
+carrying the credential.
 
 **This does not fix the library.** Any other process using `async_rithmic` with these credentials — the
 existing `research/optionflow` collector included — will still log the password on a failed login.
@@ -98,18 +115,22 @@ the password has now been rendered to a console, and the account it belongs to i
 I did **not** retry, because the instruction says to stop on authentication failure and because repeated
 failed logins risk account lockout, which it also says to stop on. So the following are untested:
 
-1. **System/gateway pairing.** The configured `RITHMIC_SYSTEM_NAME` is a paper-trading system. The
-   project's own `rithmic/config.py:18` comments that the pairing which *"actually serves GC/ES/NQ option
-   data"* is a different gateway. A paper system may simply not carry COMEX market data.
+1. ~~**System/gateway pairing.**~~ **WITHDRAWN — I misread the source.** `rithmic/config.py:15-23`
+   says the opposite of what I wrote: *"it connects account fin_… on system \"Rithmic Paper Trading\" via
+   the Japan gateway rsc-jp.rithmic.com … That is the gateway/system pairing that actually serves GC/ES/NQ
+   option data."* The configured pairing **is** the documented working one. My suggestion to try a
+   "non-paper" system would have spent a login attempt on a hypothesis the repository already contradicts.
 2. **Entitlement lapse.** The account last produced data on 2026-07-28. A market-data entitlement can
    expire or be withdrawn independently of the login being valid.
 3. **Credential state.** `SEC-001` records the password as exposed and unrotated; if it was rotated
    out-of-band, the stored value is stale. I did not inspect the stored values.
 4. **App identity.** `app_name='GCAE_OptionFlow'` may need registration with the vendor.
 
-Each is a one-line change to `rithmic.env` or one different `system_name`, and each costs one login
-attempt. **Tell me which to try and I will run exactly that one** — I am not going to guess my way through
-a lockout.
+Each costs one login attempt, and with hypothesis 1 withdrawn none of the remaining three is
+something I can settle from the repository. **A second login should only run after the operator or the
+vendor confirms which pairing is valid, or confirms the credential / app-identity state.** Guessing is how
+an account gets locked out, and the reviewer's ruling stands: the gate withdrawal covered the first run,
+and the stop-on-auth-failure condition is now active.
 
 ## 5. What this does and does not change
 

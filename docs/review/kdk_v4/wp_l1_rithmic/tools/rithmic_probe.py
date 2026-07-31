@@ -35,41 +35,62 @@ SECRET_HINT = ("user", "password", "passwd", "secret", "token", "fcm", "ib_id",
 
 
 def install_log_redaction(user, password):
-    """async_rithmic echoes the ENTIRE login request - including the cleartext password -
-    into its ERROR log when the server denies the login. Observed 2026-07-31 at
-    plants/base.py:550 via RithmicErrorResponse. Nothing downstream of that is safe until
-    it is filtered, so every logger gets a filter that rewrites the record before a handler
-    can emit it."""
+    """Redact credentials from EVERY log record, including loggers created later.
+
+    async_rithmic echoes the entire login request - cleartext password included - into its
+    ERROR log when the server denies a login (plants/base.py:550 interpolates `request` into
+    RithmicErrorResponse). Observed on 2026-07-31.
+
+    The first attempt at this filtered the ROOT LOGGER and the loggers that happened to exist
+    at install time. That does not work, and the reviewer was right to reject it:
+
+      * `Logger.addFilter` only filters records logged DIRECTLY on that logger. A record
+        emitted on `rithmic.plant.history` propagates to root's HANDLERS without ever passing
+        root's logger-level filters.
+      * loggers created after install - which is exactly when the HISTORY_PLANT logger
+        appears - got no filter at all.
+      * the handler-filter line was guarded by `logging.getLogger().handlers and [...]`, so if
+        no handler existed yet it silently installed nothing.
+
+    So redaction is applied at the one choke point every record must pass regardless of which
+    logger produced it or when that logger was created: `logging.Handler.handle`. Patching the
+    class covers handlers that do not exist yet.
+    """
     import logging
 
-    secrets = [s for s in (user, password) if s]
+    secrets = sorted({s for s in (user, password) if s}, key=len, reverse=True)
+    if not secrets:
+        return None
 
-    class _Redact(logging.Filter):
-        def filter(self, record):
+    def _scrub(text):
+        for sec in secrets:
+            text = text.replace(sec, "<REDACTED>")
+        return text
+
+    original = logging.Handler.handle
+
+    def handle(self, record):
+        try:
+            msg = record.getMessage()
+        except Exception:
+            msg = ""
+        if any(sec in msg for sec in secrets):
+            record.msg = _scrub(msg)
+            record.args = ()
+        if record.exc_info or record.exc_text:
             try:
-                msg = record.getMessage()
+                txt = record.exc_text or logging.Formatter().formatException(record.exc_info)
             except Exception:
-                return True
-            hit = any(s in msg for s in secrets)
-            if hit:
-                for s in secrets:
-                    msg = msg.replace(s, "<REDACTED>")
-                record.msg = msg
+                txt = ""
+            if any(sec in txt for sec in secrets):
+                record.exc_info = None
+                record.exc_text = None
+                record.msg = str(record.msg) + "  [traceback suppressed: contained credential]"
                 record.args = ()
-            if record.exc_info:
-                # A traceback can carry the same repr; drop it rather than risk emitting it.
-                txt = logging.Formatter().formatException(record.exc_info)
-                if any(s in txt for s in secrets):
-                    record.exc_info = None
-                    record.msg = str(record.msg) + " [traceback suppressed: contained credential]"
-            return True
+        return original(self, record)
 
-    f = _Redact()
-    logging.getLogger().addFilter(f)
-    for name in list(logging.root.manager.loggerDict):
-        logging.getLogger(name).addFilter(f)
-    logging.getLogger().handlers and [h.addFilter(f) for h in logging.getLogger().handlers]
-    return f
+    logging.Handler.handle = handle
+    return original
 
 
 def redact(o, d=0):
