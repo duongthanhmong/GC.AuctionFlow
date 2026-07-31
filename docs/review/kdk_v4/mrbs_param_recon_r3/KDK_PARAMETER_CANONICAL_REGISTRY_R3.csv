@@ -1,0 +1,135 @@
+canonical_id,source_document,source_section,source_line,aliases,module,proposed_value,test_range,unit,source_status,approval_status,current_impl_member,decision_id,conflict_group,phase_owner
+primary_session_template,ParameterRegistry_v1.0,5.1,107,,SessionTradingDate,Theo template GC đã thống nhất,Nhiều template hợp lệ,Session ID,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T03,CG-SESSION-TZ,B1
+session_timezone,ParameterRegistry_v1.0,5.1,108,,SessionTradingDate,Exchange timezone,Exchange / UTC / local-converted,Timezone,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T03,CG-SESSION-TZ,B1
+trading_date_rule,ParameterRegistry_v1.0,5.1,109,,SessionTradingDate,Theo session start,Theo exchange calendar,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T03,CG-SESSION-TZ,B1
+tpo_bracket_minutes,ParameterRegistry_v1.0,5.1,110,,SessionTradingDate,30,"15, 30, 60",Phút,PROPOSED-SEED,Proposed,TpoPeriodMinutes@src/GC.AuctionFlow/Profile/ClassicTpoEngine.cs,DEC-T03,none,B1
+initial_balance_minutes,ParameterRegistry_v1.0,5.1,111,,SessionTradingDate,60,"30, 60, 90",Phút,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T03,none,B1
+warmup_sessions,ParameterRegistry_v1.0,5.1,112,adr20_warmup_sessions,SessionTradingDate,20,"10, 20, 40",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T08,none,B0
+structural_history_sessions,ParameterRegistry_v1.0,5.2,127,,AuctionRegime,20,"10, 20, 40, 60",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T02,none,B1
+recent_value_comparison_sessions,ParameterRegistry_v1.0,5.2,128,,AuctionRegime,5,"3, 5, 7, 10",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T02,none,B1
+weekly_context_weeks,ParameterRegistry_v1.0,5.2,129,,AuctionRegime,4,"2, 4, 8, 12",Tuần,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T02,none,B1
+regime_min_completed_sessions,ParameterRegistry_v1.0,5.2,130,,AuctionRegime,3,"2, 3, 5",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T02,none,B1
+value_overlap_threshold,ParameterRegistry_v1.0,5.2,131,regime_value_overlap,AuctionRegime,Chưa chốt,40%–80%,Phần trăm,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T02,CG-REGIME-OVERLAP,B1
+poc_migration_tolerance_ticks,ParameterRegistry_v1.0,5.2,132,poc_migration,AuctionRegime,Chưa chốt,1–20,Tick,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T02,CG-POC-MIGRATION,B1
+value_area_percent,ParameterRegistry_v1.0,5.3,159,,VolumeProfileTpo,70,"68, 70",Phần trăm,PROPOSED-SEED,Proposed,ValueAreaFraction@src/GC.AuctionFlow/Profile/ValueAreaAndPoc.cs,DEC-T01,none,B1
+profile_price_row_ticks,ParameterRegistry_v1.0,5.3,160,,VolumeProfileTpo,Theo tick/volatility,"1, 2, 4, adaptive",Tick,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,CG-PROFILE-ROW,B1
+poc_tie_break_policy,ParameterRegistry_v1.0,5.3,161,,VolumeProfileTpo,Gần midpoint,Lower / Upper / Mid-nearest,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B1
+developing_profile_update_seconds,ParameterRegistry_v1.0,5.3,162,,VolumeProfileTpo,1,"Tick-driven, 1, 5, 15",Giây,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+episode_profile_enabled,ParameterRegistry_v1.0,5.3,163,,VolumeProfileTpo,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+profile_finalize_delay_seconds,ParameterRegistry_v1.0,5.3,164,,VolumeProfileTpo,2,0–10,Giây,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+composite_min_sessions,ParameterRegistry_v1.0,5.4,180,,CompositeProfile,2,"2, 3, 4",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+composite_max_observation_sessions,ParameterRegistry_v1.0,5.4,181,composite_effective_sessions,CompositeProfile,15,"10, 15, 20, 30",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+composite_value_overlap_threshold,ParameterRegistry_v1.0,5.4,182,composite_value_overlap,CompositeProfile,Chưa chốt,40%–80%,Phần trăm,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,CG-COMPOSITE-OVERLAP,B1
+composite_poc_distance_factor,ParameterRegistry_v1.0,5.4,183,,CompositeProfile,Chưa chốt,"0,25–1,5",Median M1 range,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B1
+composite_separation_confirm_sessions,ParameterRegistry_v1.0,5.4,184,,CompositeProfile,2,"1, 2, 3",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+composite_reentry_grace_sessions,ParameterRegistry_v1.0,5.4,185,,CompositeProfile,1,"0, 1, 2",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B1
+zone_min_half_width_ticks,ParameterRegistry_v1.0,5.5,208,,ReferenceZone,2,1–8,Tick,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,CG-ZONE-WIDTH,B1
+zone_volatility_width_factor,ParameterRegistry_v1.0,5.5,209,,ReferenceZone,"0,25","0,1–1,0",Median M1 range,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,CG-ZONE-WIDTH,B1
+composite_zone_width_factor,ParameterRegistry_v1.0,5.5,210,,ReferenceZone,"0,5","0,25–1,5",Median M1 range,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B1
+zone_merge_distance_ticks,ParameterRegistry_v1.0,5.5,211,,ReferenceZone,Chưa chốt,1–20,Tick,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T04,none,B1
+zone_max_age_sessions,ParameterRegistry_v1.0,5.5,212,,ReferenceZone,Không cố định,5–60,Phiên,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T04,none,B1
+zone_max_tests,ParameterRegistry_v1.0,5.5,213,,ReferenceZone,Không cố định,1–10,Lần,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T04,none,B1
+manual_zone_enabled,ParameterRegistry_v1.0,5.5,214,,ReferenceZone,false,true / false,Boolean,DEFERRED,Deferred,NOT_PRESENT,DEC-T04,none,B1
+approach_min_ticks,ParameterRegistry_v1.0,5.6,235,,AuctionEpisode,4,"2, 4, 6, 8, 12",Tick,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,CG-APPROACH-DIST,B3
+approach_volatility_factor,ParameterRegistry_v1.0,5.6,236,,AuctionEpisode,"0,75","0,25–1,5",Median M1 range,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B3
+episode_start_policy,ParameterRegistry_v1.0,5.6,237,,AuctionEpisode,First touch,First touch / first trade inside,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B3
+episode_max_duration_minutes,ParameterRegistry_v1.0,5.6,238,,AuctionEpisode,60,"15, 30, 60, 120",Phút,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B3
+episode_session_boundary_policy,ParameterRegistry_v1.0,5.6,239,,AuctionEpisode,Expire,Expire / carry,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B3
+episode_max_attempts_tracked,ParameterRegistry_v1.0,5.6,240,,AuctionEpisode,5,2–10,Lần,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B3
+episode_local_profile_enabled,ParameterRegistry_v1.0,5.6,241,,AuctionEpisode,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B3
+rearm_min_bars,ParameterRegistry_v1.0,5.7,266,,AttemptRearm,3,"1, 2, 3, 5, 8",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B3
+rearm_center_cross_required,ParameterRegistry_v1.0,5.7,267,,AttemptRearm,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B3
+rearm_min_reentry_depth_ratio,ParameterRegistry_v1.0,5.7,268,,AttemptRearm,"0,5","0,25–1,0",Zone width,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B3
+rearm_delta_reset_required,ParameterRegistry_v1.0,5.7,269,,AttemptRearm,false,true / false,Boolean,DEFERRED,Deferred,NOT_PRESENT,DEC-T04,none,B3
+rearm_local_profile_reset_required,ParameterRegistry_v1.0,5.7,270,,AttemptRearm,false,true / false,Boolean,DEFERRED,Deferred,NOT_PRESENT,DEC-T04,none,B3
+rearm_required_condition_count,ParameterRegistry_v1.0,5.7,271,,AttemptRearm,2,"1, 2, 3",Điều kiện,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B3
+fast_window_bars,ParameterRegistry_v1.0,5.8,289,,Acceptance,3,"2, 3, 4",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+standard_window_bars,ParameterRegistry_v1.0,5.8,290,,Acceptance,5,"3, 5, 7",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,CG-ACCEPT-WINDOW,B5
+extended_window_bars,ParameterRegistry_v1.0,5.8,291,,Acceptance,10,"7, 10, 15, 20",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+outside_volume_share_threshold,ParameterRegistry_v1.0,5.8,292,,Acceptance,60,"50, 60, 70, 80",Phần trăm,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+outside_trade_count_share_threshold,ParameterRegistry_v1.0,5.8,293,,Acceptance,60,"50, 60, 70, 80",Phần trăm,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+minimum_evidence_groups,ParameterRegistry_v1.0,5.8,294,,Acceptance,3,2–5,Nhóm,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+local_poc_required,ParameterRegistry_v1.0,5.8,295,,Acceptance,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+local_value_required,ParameterRegistry_v1.0,5.8,296,,Acceptance,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+retest_required,ParameterRegistry_v1.0,5.8,297,,Acceptance,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+maximum_reentry_ratio_for_acceptance,ParameterRegistry_v1.0,5.8,298,,Acceptance,Chưa chốt,"0,1–1,0",Zone width,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B5
+acceptance_conflict_timeout_bars,ParameterRegistry_v1.0,5.8,299,,Acceptance,10,"5, 10, 15, 20",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+far_requires_reentry,ParameterRegistry_v1.0,5.9,330,,FAR,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B5
+far_requires_reacceptance,ParameterRegistry_v1.0,5.9,331,,FAR,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B5
+far_local_poc_inside_required,ParameterRegistry_v1.0,5.9,332,,FAR,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+far_failed_retest_required,ParameterRegistry_v1.0,5.9,333,,FAR,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+far_second_attempt_enabled,ParameterRegistry_v1.0,5.9,334,,FAR,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+far_max_confirmation_bars,ParameterRegistry_v1.0,5.9,335,,FAR,10,"5, 10, 15",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+aac_requires_outside_acceptance,ParameterRegistry_v1.0,5.10,362,,AAC,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B5
+aac_local_poc_outside_required,ParameterRegistry_v1.0,5.10,363,,AAC,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+aac_local_value_outside_required,ParameterRegistry_v1.0,5.10,364,,AAC,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+aac_failed_reclaim_required,ParameterRegistry_v1.0,5.10,365,,AAC,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+aac_retest_hold_required,ParameterRegistry_v1.0,5.10,366,,AAC,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+aac_max_confirmation_bars,ParameterRegistry_v1.0,5.10,367,,AAC,10,"5, 10, 15",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B5
+raw_processing_mode,ParameterRegistry_v1.0,5.11,394,,OrderFlowAggregation,Tick-driven,Tick-driven,Mode,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T09,none,B2
+primary_aggregation_seconds,ParameterRegistry_v1.0,5.11,395,,OrderFlowAggregation,60,"15, 30, 60, 120",Giây,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T09,CG-M1-SCOPE,B2
+micro_window_bars,ParameterRegistry_v1.0,5.11,396,,OrderFlowAggregation,3,"1, 3, 5",Bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T09,none,B2
+local_window_bars,ParameterRegistry_v1.0,5.11,397,,OrderFlowAggregation,5,"3, 5, 10",Bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T09,none,B2
+context_window_bars,ParameterRegistry_v1.0,5.11,398,,OrderFlowAggregation,20,"10, 20, 30",Bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T09,none,B2
+completed_bar_only_for_confirmation,ParameterRegistry_v1.0,5.11,399,,OrderFlowAggregation,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T09,none,B2
+intrabar_observation_enabled,ParameterRegistry_v1.0,5.11,400,,OrderFlowAggregation,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T09,none,B2
+aggressor_classification_method,ParameterRegistry_v1.0,5.12,408,,BidAskUnknown,Platform standard,Các method được hỗ trợ,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T09,none,B2
+unknown_volume_policy,ParameterRegistry_v1.0,5.12,409,,BidAskUnknown,Track separately,Exclude / split / separate,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T09,none,B2
+late_trade_tolerance_ms,ParameterRegistry_v1.0,5.12,410,late_event_grace,BidAskUnknown,Chưa chốt,0–2000,ms,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T09,none,B0
+out_of_order_trade_policy,ParameterRegistry_v1.0,5.12,411,,BidAskUnknown,Sequence reorder,Drop / reorder / flag,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T09,none,B0
+delta_normalization_method,ParameterRegistry_v1.0,5.13,419,,DeltaCvd,Robust Z-score,Raw / percentile / Z / robust Z,Method,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B2
+delta_baseline_bars,ParameterRegistry_v1.0,5.13,420,,DeltaCvd,60,"30, 60, 120",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B2
+cvd_reset_policy,ParameterRegistry_v1.0,5.13,421,,DeltaCvd,Session,ETH / primary / episode / rolling,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T01,none,B2
+episode_cvd_enabled,ParameterRegistry_v1.0,5.13,422,,DeltaCvd,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T01,none,B2
+cvd_divergence_enabled,ParameterRegistry_v1.0,5.13,423,,DeltaCvd,false,true / false,Boolean,DEFERRED,Deferred,NOT_PRESENT,DEC-T01,none,B2
+imbalance_comparison_mode,ParameterRegistry_v1.0,5.14,439,,Imbalance,Diagonal,Diagonal / Horizontal,Rule,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+imbalance_ratio,ParameterRegistry_v1.0,5.14,440,,Imbalance,"3,0","2,0; 2,5; 3,0; 4,0; 5,0",Ratio,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,CG-IMBALANCE-RATIO,B2
+stacked_imbalance_levels,ParameterRegistry_v1.0,5.14,441,,Imbalance,3,2–5,Price levels,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+imbalance_min_volume_policy,ParameterRegistry_v1.0,5.14,442,,Imbalance,Percentile,Absolute / percentile,Rule,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+imbalance_min_volume_percentile,ParameterRegistry_v1.0,5.14,443,imbalance_min_volume,Imbalance,60,"40, 50, 60, 70, 80",Percentile,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+zero_denominator_policy,ParameterRegistry_v1.0,5.14,444,,Imbalance,Ignore,Ignore / cap / special,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T06,none,B2
+imbalance_extreme_inclusion,ParameterRegistry_v1.0,5.14,445,,Imbalance,false,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+effort_window_bars,ParameterRegistry_v1.0,5.15,460,,EffortResult,3,"1, 3, 5",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,none,B4
+follow_through_bars,ParameterRegistry_v1.0,5.15,461,,EffortResult,5,"3, 5, 10",M1 bar,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,none,B4
+effort_features,ParameterRegistry_v1.0,5.15,462,,EffortResult,"Volume, Delta, Trade Count",Nhiều tổ hợp,Feature set,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,none,B4
+result_features,ParameterRegistry_v1.0,5.15,463,,EffortResult,"Net progress, excursion, dwell",Nhiều tổ hợp,Feature set,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,none,B4
+effort_normalization,ParameterRegistry_v1.0,5.15,464,,EffortResult,Session-segment robust Z,Percentile / robust Z,Method,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,CG-EFFORT-NORM,B4
+high_effort_threshold,ParameterRegistry_v1.0,5.15,465,,EffortResult,"Z ≥ 1,0","0,5–2,5",Robust Z,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,CG-EFFORT-NORM,B4
+low_result_threshold,ParameterRegistry_v1.0,5.15,466,,EffortResult,Chưa chốt,Theo percentile,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T07,CG-EFFORT-NORM,B4
+large_result_threshold,ParameterRegistry_v1.0,5.15,467,,EffortResult,Chưa chốt,Theo percentile,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T07,none,B4
+opening_classification_window_minutes,ParameterRegistry_v1.0,5.16,486,opening_classification_window,OpeningDayStructure,30,"15, 30, 60",Phút,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T03,none,B1
+overnight_inventory_threshold,ParameterRegistry_v1.0,5.16,487,,OpeningDayStructure,Chưa chốt,Theo range share/close location,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T03,none,B1
+day_type_min_elapsed_minutes,ParameterRegistry_v1.0,5.16,488,,OpeningDayStructure,120,"60, 120, 180",Phút,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T03,none,B1
+day_type_final_only,ParameterRegistry_v1.0,5.16,489,,OpeningDayStructure,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T03,none,B1
+ib_width_normalization_sessions,ParameterRegistry_v1.0,5.16,490,,OpeningDayStructure,20,"10, 20, 40",Phiên,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T03,none,B1
+options_role,ParameterRegistry_v1.0,5.17,498,,OptionsContext,ContextOnly,ContextOnly / DecisionModifier,Enum,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T13,CG-OPTIONS-ROLE,Phase C
+options_snapshot_minutes,ParameterRegistry_v1.0,5.17,499,,OptionsContext,5,"1, 5, 15, 30",Phút,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T13,none,Phase C
+max_quote_age_seconds,ParameterRegistry_v1.0,5.17,500,,OptionsContext,Chưa chốt,1–60,Giây,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T13,none,Phase C
+max_relative_spread,ParameterRegistry_v1.0,5.17,501,,OptionsContext,Chưa chốt,Theo moneyness/expiry,Ratio,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T13,none,Phase C
+oi_availability_policy,ParameterRegistry_v1.0,5.17,502,,OptionsContext,Previous published only,Nhiều policy,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T13,none,Phase C
+expected_move_method,ParameterRegistry_v1.0,5.17,503,,OptionsContext,ATM straddle,Straddle / IV model / surface,Method,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T13,CG-OPTIONS-EM,Phase C
+expiry_bucket_policy,ParameterRegistry_v1.0,5.17,504,,OptionsContext,Horizon-based,Near/event/week/month,Rule,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T13,none,Phase C
+gex_sign_scenario,ParameterRegistry_v1.0,5.17,505,,OptionsContext,Multi-scenario,Single / multi,Rule,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T13,none,Phase C
+options_regime_thresholds,ParameterRegistry_v1.0,5.17,506,,OptionsContext,Chưa chốt,Data-driven,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T13,none,Phase C
+options_data_unavailable_policy,ParameterRegistry_v1.0,5.17,507,,OptionsContext,Continue without Context,Continue / block,Rule,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T13,none,Phase C
+maximum_tick_delay_ms,ParameterRegistry_v1.0,5.18,531,,DataQuality,Chưa chốt,Theo feed,ms,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T08,CG-DATAQUALITY,B0
+missing_tick_policy,ParameterRegistry_v1.0,5.18,532,,DataQuality,Flag,Continue / flag / block,Rule,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T08,none,B0
+incomplete_bar_policy,ParameterRegistry_v1.0,5.18,533,,DataQuality,Candidate only,Ignore / candidate / use,Rule,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T08,CG-DATAQUALITY,B0
+historical_live_equivalence_required,ParameterRegistry_v1.0,5.18,534,,DataQuality,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T10,none,B0
+config_version_required,ParameterRegistry_v1.0,5.18,535,,DataQuality,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T10,none,B0
+state_recovery_enabled,ParameterRegistry_v1.0,5.18,536,,DataQuality,true,true / false,Boolean,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T08,none,B0
+deterministic_replay_required,ParameterRegistry_v1.0,5.18,537,,DataQuality,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T10,none,B0
+contract_mapping_validation,ParameterRegistry_v1.0,5.18,538,,DataQuality,true,true,Boolean,REVIEW-REQUIRED,UnderReview,NOT_PRESENT,DEC-T10,none,B0
+new_value_min_confirmations,MRBS_v1.1,addendum,,,AuctionRegime,2,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T02,CG-REGIME-OVERLAP,B1
+otf_equality_tolerance_ticks,MRBS_v1.1,addendum,,,OneTimeFraming,unset,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B1
+otf_minimum_completed_brackets,MRBS_v1.1,addendum,,,OneTimeFraming,2,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B1
+zone_touch_equality_tolerance_ticks,MRBS_v1.1,addendum,,,ReferenceZone,unset,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T04,none,B1
+setupscore_position_range,MRBS_v1.1,addendum,,,SetupScore,0..10,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T05,none,B5
+setupscore_episode_range,MRBS_v1.1,addendum,,,SetupScore,0..10,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T05,none,B5
+setupscore_orderflow_range,MRBS_v1.1,addendum,,,SetupScore,0..10,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T05,none,B5
+setupscore_structuralmap_range,MRBS_v1.1,addendum,,,SetupScore,0..10,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T05,none,B5
+imbalance_minimum_dominant_volume,MRBS_v1.1,addendum,,,Imbalance,unset,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+imbalance_minimum_compared_volume,MRBS_v1.1,addendum,,,Imbalance,unset,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T06,none,B2
+effort_result_normalization_min_sample,MRBS_v1.1,addendum,,,EffortResult,unset,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T07,CG-EFFORT-NORM,B4
+percentile_minimum_sample_count,MRBS_v1.1,addendum,,,EngineLifecycleWarmup,unset,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T08,none,B0
+balance_value_overlap_min,MRBS_v1.1,addendum,,,AuctionRegime,0.30,seed,,PROPOSED-SEED,Proposed,NOT_PRESENT,DEC-T02,CG-REGIME-OVERLAP,B1
