@@ -14,23 +14,17 @@ KDK Stage 2 closure - independent verification transcript
 
 -- git state --
   branch            : wp-l1-rithmic-data-surface-discovery
-  head              : 8160f2c1cb4a1651c6a10233ac98045de568236b
-  head short        : 8160f2c docs(kdk): downgrade ADRs to AWAITING_OWNER_APPROVAL; add independent verification transcript
-  package tree      : 8 modified
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-001-authoritative-core.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-001-core.md
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-002-mbo-research-telemetry.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-002-mbo.md
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-003-gap-recovery-absent.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-003-gaps.md
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-004-options-client-blocked.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-004-options.md
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-005-no-seed-hardcoding.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-005-params.md
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-006-historical-live-separate-capability.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-006-hist-live.md
-      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-007-raw-frame-preservation.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-007-raw-frames.md
-      ?? docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/verification/build_handover_zip.py
+  head              : 5182af835cd416f8643bd685a053768ecdc4109b
+  head short        : 5182af8 fix(kdk): track the canonical parameter registry - tests could not run from a clone
+  package tree      : 2 modified
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/CAPABILITY_EVIDENCE_MANIFEST.csv
+       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/EVIDENCE_INDEX.csv
 
 -- package inventory --
   artifacts         : 24
-    CAPABILITY_EVIDENCE_MANIFEST.csv                               4824  e5a7277929b01d5f
+    CAPABILITY_EVIDENCE_MANIFEST.csv                               4824  82a5572ced1feaff
     DATASET_CONTRACTS.md                                           5081  411f326e1b14d349
-    EVIDENCE_INDEX.csv                                             3531  5ffcaff850b57617
+    EVIDENCE_INDEX.csv                                             3531  d3405ca18c42be84
     README.md                                                      3438  2a2a9362259bac92
     RECORDER_FAILCLOSED_SPEC.md                                    6764  d9efd41cc6103c79
     SPEC_CONFLICT_REGISTER.md                                      3519  ef66db83f67e7cb4

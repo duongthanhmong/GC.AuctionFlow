@@ -1,8 +1,8 @@
 surface,capability_state,data_quality_role,evidence_ids,evidence_resolved,evidence_sha256,note
 Exchange permissions / entitlement,Ready,core-support,EV-PROBE-ENTITLEMENT,True,a4d097ace9343ddb,L1+L2 on four exchanges
 Front-month contract,Ready,core-support,EV-PROBE-ENTITLEMENT,True,a4d097ace9343ddb,GCZ6
-Symbol search / option chain discovery,Ready,core-support,EV-EXPLOIT-OPTION-CATALOG,True,dcb38ab70ada0862,usable only with server-side product_code + instrument_type filter
-Reference data (instrument metadata),Ready,core-support,EV-EXPLOIT-OPTION-REFERENCE,True,dcb38ab70ada0862,"tick size and point value read, not assumed"
+Symbol search / option chain discovery,Ready,core-support,EV-EXPLOIT-OPTION-CATALOG,True,00d6eefaf9d4ebc7,usable only with server-side product_code + instrument_type filter
+Reference data (instrument metadata),Ready,core-support,EV-EXPLOIT-OPTION-REFERENCE,True,00d6eefaf9d4ebc7,"tick size and point value read, not assumed"
 Level 1 executed trades,Ready,AUTHORITATIVE_CORE,EV-PROBE-L1-TRADES,True,a4d097ace9343ddb,template 150
 Trade aggressor (vendor field),Ready,AUTHORITATIVE_CORE,EV-PROBE-L1-TRADES,True,a4d097ace9343ddb,vendor field on template 150; no inference required
 Trade size / volume / vwap,Ready,AUTHORITATIVE_CORE,EV-PROBE-L1-TRADES,True,a4d097ace9343ddb,template 150
@@ -17,15 +17,15 @@ MBO native sequence_number,Degraded,RESEARCH_TELEMETRY,EV-REBUILD-DIVERGES;EV-RE
 MBO order identity and priority,Degraded,RESEARCH_TELEMETRY,EV-REBUILD-DIVERGES,True,752b07f7f532bdc4,"exchange_order_id, depth_order_priority"
 MBO transaction side,Degraded,RESEARCH_TELEMETRY,EV-REBUILD-DIVERGES,True,752b07f7f532bdc4,"transaction_type on updates, depth_side on snapshot"
 Full-book bootstrap,Unavailable,BLOCKED,EV-REBUILD-DIVERGES,True,752b07f7f532bdc4,template 116 returns exactly 1 order per price; deterministic rebuild impossible
-Option to expiry-specific futures mapping,Ready,OPTIONS_CONTEXT,EV-EXPLOIT-OPTION-REFERENCE,True,dcb38ab70ada0862,vendor underlying_symbol per series; OGU6 -> GCV6 while front month is GCZ6 (ROLL-004)
-Option strike / expiry / put-call,Ready,OPTIONS_CONTEXT,EV-EXPLOIT-OPTION-REFERENCE,True,dcb38ab70ada0862,vendor reference data
-Option quotes,Ready,OPTIONS_CONTEXT,EV-EXPLOIT-OPTION-QUOTES,True,dcb38ab70ada0862,bid/ask/sizes/order counts on option symbols
+Option to expiry-specific futures mapping,Ready,OPTIONS_CONTEXT,EV-EXPLOIT-OPTION-REFERENCE,True,00d6eefaf9d4ebc7,vendor underlying_symbol per series; OGU6 -> GCV6 while front month is GCZ6 (ROLL-004)
+Option strike / expiry / put-call,Ready,OPTIONS_CONTEXT,EV-EXPLOIT-OPTION-REFERENCE,True,00d6eefaf9d4ebc7,vendor reference data
+Option quotes,Ready,OPTIONS_CONTEXT,EV-EXPLOIT-OPTION-QUOTES,True,00d6eefaf9d4ebc7,bid/ask/sizes/order counts on option symbols
 Option open interest (point-in-time),CLIENT_BLOCKED,OPTIONS_CONTEXT,EV-UNMAPPED-OI-155-157;EV-PERBIT-UNMAPPED,True,38cf160cfdcd1200;ec4dcfce5f81b3f8,template 158 on the wire and decoded; async_rithmic 1.6.3 has no message class
 Settlement,CLIENT_BLOCKED,OPTIONS_CONTEXT,EV-UNMAPPED-OI-155-157;EV-PERBIT-UNMAPPED,True,38cf160cfdcd1200;ec4dcfce5f81b3f8,template 155
 Market mode,CLIENT_BLOCKED,core-support,EV-UNMAPPED-OI-155-157;EV-PERBIT-UNMAPPED,True,38cf160cfdcd1200;ec4dcfce5f81b3f8,template 157
-Session OHLC,CLIENT_BLOCKED,core-support,EV-PERBIT-ATTRIBUTION;EV-PERBIT-UNMAPPED,True,b1d4ed01149f34e0;ec4dcfce5f81b3f8,OPEN and HIGH_LOW both return 152
-Opening / closing indicator,CLIENT_BLOCKED,core-support,EV-PERBIT-ATTRIBUTION,True,b1d4ed01149f34e0,OPENING_INDICATOR -> 154; CLOSING_INDICATOR produced no frames in the window
-Price limits / margin rate / adjusted close,CLIENT_BLOCKED,core-support,EV-PERBIT-ATTRIBUTION,True,b1d4ed01149f34e0,"limits -> 163, margin -> 162; ADJUSTED_CLOSE produced no frames"
+Session OHLC,CLIENT_BLOCKED,core-support,EV-PERBIT-ATTRIBUTION;EV-PERBIT-UNMAPPED,True,1f07636dcab79959;ec4dcfce5f81b3f8,OPEN and HIGH_LOW both return 152
+Opening / closing indicator,CLIENT_BLOCKED,core-support,EV-PERBIT-ATTRIBUTION,True,1f07636dcab79959,OPENING_INDICATOR -> 154; CLOSING_INDICATOR produced no frames in the window
+Price limits / margin rate / adjusted close,CLIENT_BLOCKED,core-support,EV-PERBIT-ATTRIBUTION,True,1f07636dcab79959,"limits -> 163, margin -> 162; ADJUSTED_CLOSE produced no frames"
 Historical time bars,ReplayCompatible,core-support,EV-HIST-PARITY,True,ce5b86ef1f9b8f8b,1-minute OHLCV; aware-UTC required
 Historical tick replay,ReplayCompatible,core-support,EV-HIST-PARITY,True,ce5b86ef1f9b8f8b,"template 207 bars, num_trades=1 and O==H==L==C; parity 76 of 77"
 Reconnection and resubscription,Degraded,core-support,EV-RECONNECT-GAP,True,7eb0830fe714a6d2,reconnect and replay work; gap recovery absent and not surfaced to the caller
