@@ -14,22 +14,20 @@ KDK Stage 2 closure - independent verification transcript
 
 -- git state --
   branch            : wp-l1-rithmic-data-surface-discovery
-  head              : 34f204cc79ba39ed140366e945ac71a2fc923e32
-  head short        : 34f204c docs(kdk): Stage 2 closure package - ADRs, executable schemas, evidence manifest, fail-closed spec
-  package tree      : 10 modified
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/README.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/STAGE2_CHECKLIST.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-001-authoritative-core.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-002-mbo-research-telemetry.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-003-gap-recovery-absent.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-004-options-client-blocked.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-005-no-seed-hardcoding.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-006-historical-live-separate-capability.md
-       M docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-007-raw-frame-preservation.md
-      ?? docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/verification/
+  head              : 8160f2c1cb4a1651c6a10233ac98045de568236b
+  head short        : 8160f2c docs(kdk): downgrade ADRs to AWAITING_OWNER_APPROVAL; add independent verification transcript
+  package tree      : 8 modified
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-001-authoritative-core.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-001-core.md
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-002-mbo-research-telemetry.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-002-mbo.md
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-003-gap-recovery-absent.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-003-gaps.md
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-004-options-client-blocked.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-004-options.md
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-005-no-seed-hardcoding.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-005-params.md
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-006-historical-live-separate-capability.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-006-hist-live.md
+      R  docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-007-raw-frame-preservation.md -> docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/adr/ADR-007-raw-frames.md
+      ?? docs/review/kdk_v4/wp_l1_rithmic/stage2_closure/verification/build_handover_zip.py
 
 -- package inventory --
-  artifacts         : 23
+  artifacts         : 24
     CAPABILITY_EVIDENCE_MANIFEST.csv                               4824  e5a7277929b01d5f
     DATASET_CONTRACTS.md                                           5081  411f326e1b14d349
     EVIDENCE_INDEX.csv                                             3531  5ffcaff850b57617
@@ -38,13 +36,13 @@ KDK Stage 2 closure - independent verification transcript
     SPEC_CONFLICT_REGISTER.md                                      3519  ef66db83f67e7cb4
     STAGE2_CHECKLIST.md                                            6293  a0e4626a3ef4b8b5
     build_evidence_manifest.py                                    11980  1b9fc0223d942c7c
-    adr/ADR-001-authoritative-core.md                              2606  2b5e529dc8fbe139
-    adr/ADR-002-mbo-research-telemetry.md                          2841  d4a7e88fe9d9fb51
-    adr/ADR-003-gap-recovery-absent.md                             3268  ac661eda7edf792b
-    adr/ADR-004-options-client-blocked.md                          3915  22c215f986328084
-    adr/ADR-005-no-seed-hardcoding.md                              2545  f3f9ac2b6e40848f
-    adr/ADR-006-historical-live-separate-capability.md             2696  427119c14fdf7f36
-    adr/ADR-007-raw-frame-preservation.md                          3292  442e98ec20da027e
+    adr/ADR-001-core.md                                            2606  2b5e529dc8fbe139
+    adr/ADR-002-mbo.md                                             2841  d4a7e88fe9d9fb51
+    adr/ADR-003-gaps.md                                            3268  ac661eda7edf792b
+    adr/ADR-004-options.md                                         3915  22c215f986328084
+    adr/ADR-005-params.md                                          2545  f3f9ac2b6e40848f
+    adr/ADR-006-hist-live.md                                       2696  427119c14fdf7f36
+    adr/ADR-007-raw-frames.md                                      3292  442e98ec20da027e
     schemas/capability_snapshot.schema.json                        3652  0d64c7aecbc74d91
     schemas/common.defs.schema.json                                5893  a19c791c6d80b99e
     schemas/market_event.schema.json                               4683  fe99ad976bd15a44
@@ -52,6 +50,7 @@ KDK Stage 2 closure - independent verification transcript
     schemas/raw_frame.schema.json                                  4101  3a0d2a162f264116
     schemas/recorder_segment.schema.json                           6725  b22615da8b033dc0
     tests/test_stage2_closure.py                                  17591  a6f2ea942e70b0ec
+    verification/build_handover_zip.py                             6653  67027cd869a603a1
     verification/run_verification.py                               8061  a468315e7313559b
 
 -- recounted from the artifacts (not copied from prose) --
