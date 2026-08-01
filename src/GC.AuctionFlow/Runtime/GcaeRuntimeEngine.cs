@@ -117,7 +117,9 @@ public sealed class GcaeRuntimeEngine
         long preStartReplayTrades = 0,
         long mboFramesRecorded = 0,
         string? marketClockSummary = null,
-        string? fixedProfileParitySummary = null)
+        string? fixedProfileParitySummary = null,
+        GC.AuctionFlow.Foundation.FoundationCapabilitySnapshot? foundation = null,
+        string? foundationHash = null)
     {
         var now = timestampUtc ?? DateTime.UtcNow;
         var contract = ContractSnapshotBuilder.Build(observed, expectedInstrumentCode, _config, now);
@@ -329,7 +331,9 @@ public sealed class GcaeRuntimeEngine
             moduleFaults,
             historicalScanner,
             marketClockSummary,
-            fixedProfileParitySummary);
+            fixedProfileParitySummary,
+            foundation,
+            foundationHash);
 
         RecordTransitions(_previous, snapshot);
         _previous = snapshot;

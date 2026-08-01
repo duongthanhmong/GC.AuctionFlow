@@ -49,6 +49,13 @@ public sealed class GcAuctionFlowIndicator : Indicator
     private MboLifecycleProbe? _mboProbe;
     private TradeRecorderHost? _tradeRecorder;
     private GcaeRuntimeEngine? _runtime;
+
+    // M1 deterministic input foundation (TTS §5, §10). Feeds canonical events, gates readiness, and
+    // carries the deterministic capability/quality snapshot + hash. Enables no analysis module.
+    private GC.AuctionFlow.Foundation.InputFoundationHost? _foundation;
+    private long _foundationCallbackOrder;
+    private static readonly GC.AuctionFlow.Foundation.VersionStamp FoundationVersions =
+        new(AlgorithmVersion: "0.0.6", ConfigVersion: "0.0.0", DataSchemaVersion: "1.0.0");
     private AuctionGpsCardRenderer? _gpsRenderer;
     private PrimaryProfileOverlayRenderer? _overlayRenderer;
     private OptionFlowOverlayRenderer? _optionFlowRenderer;
@@ -793,6 +800,7 @@ public sealed class GcAuctionFlowIndicator : Indicator
             var key = probe.GetObservedInstrument()?.IdentityKey ?? "Unknown";
             var obs = mapper.MapNewTrade(trade, TradeCallbackSource.OnNewTrade, probe.NextSequence(), key);
             probe.TryEnqueueNewTrade(obs, EnableTradeStreamProbe, DeclaredDataSourceMode, DataSourceModeProvenance, ExpectedInstrumentCode);
+            TryIngestFoundationTrade(obs, probe.GetObservedInstrument());
             TryRecordNewTrade(trade, RecorderCallbackSource.OnNewTrade);
             TryProcessEpisodeTrade(obs);
             if (EnableExecutedOrderflow && !EnableAuctionEpisodes)
@@ -1173,6 +1181,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 _domProbe = null;
                 _mboProbe = null;
                 _tradeRecorder = null;
+                try { _foundation?.Stop(); } catch { /* contained */ }
+                _foundation = null;
                 _runtime = null;
                 _gpsRenderer = null;
                 _overlayRenderer = null;
@@ -1347,6 +1357,19 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 nearExpirationCalendarDays: NearExpirationCalendarDays >= 0
                     ? NearExpirationCalendarDays
                     : RuntimeGateConfig.DefaultNearExpirationCalendarDays));
+
+            if (_foundation is null)
+            {
+                // All M1 config parameters ship as PROPOSED_SEED, so AllProductionApproved is false and
+                // the legacy session template is ReviewRequired (CONF-001 unresolved) — the foundation
+                // therefore never self-promotes to AnalysisReady in production. That is the correct,
+                // truthful outcome, not a defect.
+                _foundation = new GC.AuctionFlow.Foundation.InputFoundationHost(
+                    FoundationVersions,
+                    new GC.AuctionFlow.Foundation.FoundationConfig(FoundationVersions.ConfigVersion),
+                    GC.AuctionFlow.Foundation.SessionTemplate.LegacyPrimaryAnchored24h);
+                _foundation.Attach();
+            }
 
             _gpsRenderer ??= new AuctionGpsCardRenderer();
             _gpsRenderer.SetMargins(GpsCardMarginX, GpsCardMarginY);
@@ -2788,6 +2811,65 @@ public sealed class GcAuctionFlowIndicator : Indicator
     /// populated was reported as "unknown" for the life of the project while the answer sat
     /// in the callback arguments unread.
     /// </summary>
+    /// <summary>
+    /// M1: map a normalized trade observation into a canonical foundation event and ingest it. Live
+    /// phase (this callback is live). Aggressor is the native measured side; Unknown is preserved.
+    /// Price is converted to integer ticks once, here at the adapter boundary. Dedup capability is
+    /// declared honestly: a native exchange order id is a stable key, otherwise a documented composite
+    /// key (ATAS trades carry no verified native trade sequence). No analysis module is touched.
+    /// </summary>
+    private void TryIngestFoundationTrade(NewTradeObservation? obs, ObservedInstrumentSnapshot? instrument)
+    {
+        var foundation = _foundation;
+        if (foundation is null || obs is null)
+            return;
+        try
+        {
+            var tickSize = instrument?.TickSize ?? instrument?.InstrumentInfoTickSize ?? 0m;
+            var contractId = instrument?.IdentityKey ?? obs.ObservedInstrumentIdentityKey ?? "Unknown";
+            foundation.SetContract(contractId, tickSize, DeclaredFeedProvider.ToString());
+            foundation.NoteLiveTradeCapability(GC.AuctionFlow.Foundation.CapabilityAvailability.Available);
+            // Historical tick-level parity is NOT proven — profiles are candle-driven. Publish it as
+            // Unproven; never claim historical Bid/Ask/Footprint parity from candle aggregates.
+            foundation.NoteHistoricalTradeCapability(GC.AuctionFlow.Foundation.CapabilityAvailability.Unproven);
+
+            if (!GC.AuctionFlow.Foundation.PriceTickMath.IsValidTickSize(tickSize))
+                return; // tick invalid: SetContract already hard-blocked; do not fabricate ticks
+
+            var aggressor = TradeAggressorSide.Resolve(obs.Direction, obs.IsAsk, obs.IsBid);
+            var eventUtc = obs.SourceDateTimeKind == DateTimeKind.Utc
+                ? new DateTime(obs.SourceTimeTicks, DateTimeKind.Utc)
+                : obs.ReceiveUtc;
+            var timeProvenance = obs.SourceDateTimeKind == DateTimeKind.Utc
+                ? GC.AuctionFlow.Foundation.SourceTimeKind.DeclaredUtc
+                : GC.AuctionFlow.Foundation.SourceTimeKind.AdapterReceiveOnly;
+            var stableKey = obs.ExchangeOrderId?.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var dedup = obs.ExchangeOrderId.HasValue
+                ? GC.AuctionFlow.Foundation.DedupCapability.NativeStableId
+                : GC.AuctionFlow.Foundation.DedupCapability.CompositeKey;
+
+            var ce = new GC.AuctionFlow.Foundation.CanonicalInputEvent(
+                InstrumentId: contractId,
+                ContractId: contractId,
+                PriceTicks: GC.AuctionFlow.Foundation.PriceTickMath.ToTicks(obs.Price, tickSize),
+                TickSize: tickSize,
+                Quantity: (long)decimal.Truncate(obs.Volume),
+                Aggressor: aggressor,
+                Kind: GC.AuctionFlow.Foundation.InputEventKind.Trade,
+                EventTimeUtc: eventUtc,
+                ReceiveTimeUtc: obs.ReceiveUtc,
+                TimeProvenance: timeProvenance,
+                Phase: GC.AuctionFlow.Foundation.DataPhase.Live,
+                SourceId: DeclaredFeedProvider.ToString(),
+                StableKey: stableKey,
+                Dedup: dedup,
+                CallbackLocalOrder: System.Threading.Interlocked.Increment(ref _foundationCallbackOrder),
+                Versions: FoundationVersions);
+            foundation.Ingest(ce);
+        }
+        catch { /* foundation ingestion must never destabilize the callback */ }
+    }
+
     private void NoteAggressorEvidence(MarketDataArg? trade)
     {
         if (trade is null)
@@ -2964,6 +3046,16 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 SettlementProximityClassifier.Classify(DateTime.UtcNow),
                 ThinParticipationClassifier.ClassifyNotCalibrated());
 
+            // M1 foundation: evaluate coherence and publish its deterministic capability/quality
+            // snapshot + hash alongside the runtime snapshot. Null-safe if the host is not built yet.
+            GC.AuctionFlow.Foundation.FoundationCapabilitySnapshot? foundationSnapshot = null;
+            string? foundationHash = null;
+            if (_foundation is not null)
+            {
+                try { (foundationSnapshot, foundationHash) = _foundation.Evaluate(); }
+                catch { /* foundation evaluation must never break publication */ }
+            }
+
             var snapshot = runtime.Publish(
                 observed: probe?.GetObservedInstrument(),
                 expectedInstrumentCode: ExpectedInstrumentCode ?? "",
@@ -3025,6 +3117,8 @@ public sealed class GcAuctionFlowIndicator : Indicator
                 historicalScanner: historicalScanner,
                 marketClockSummary: _marketClock.Describe(),
                 fixedProfileParitySummary: _fixedProfileParity.Describe(),
+                foundation: foundationSnapshot,
+                foundationHash: foundationHash,
                 tradesObserved: Interlocked.Read(ref _tradesObserved),
                 tradesWithAggressorSide: Interlocked.Read(ref _tradesWithAggressorSide),
                 depthCallbacksObserved: Interlocked.Read(ref _depthCallbacksObserved),

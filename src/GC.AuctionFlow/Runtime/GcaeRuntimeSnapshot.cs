@@ -85,10 +85,14 @@ public sealed class GcaeRuntimeSnapshot
         IReadOnlyList<string>? moduleFaults = null,
         HistoricalScannerSnapshot? historicalScanner = null,
         string? marketClockSummary = null,
-        string? fixedProfileParitySummary = null)
+        string? fixedProfileParitySummary = null,
+        GC.AuctionFlow.Foundation.FoundationCapabilitySnapshot? foundation = null,
+        string? foundationHash = null)
     {
         MarketClockSummary = marketClockSummary ?? "";
         FixedProfileParitySummary = fixedProfileParitySummary ?? "";
+        Foundation = foundation;
+        FoundationHash = foundationHash;
         DataGate = dataGate ?? throw new ArgumentNullException(nameof(dataGate));
         Contract = contract ?? throw new ArgumentNullException(nameof(contract));
         Capability = capability ?? throw new ArgumentNullException(nameof(capability));
@@ -213,6 +217,12 @@ public sealed class GcaeRuntimeSnapshot
     /// project ever checking its arithmetic.
     /// </summary>
     public string FixedProfileParitySummary { get; }
+
+    /// <summary>M1 deterministic input-foundation capability/quality snapshot (null until wired/available).</summary>
+    public GC.AuctionFlow.Foundation.FoundationCapabilitySnapshot? Foundation { get; }
+
+    /// <summary>M1 deterministic foundation identity hash (TTS §4.7); null until wired/available.</summary>
+    public string? FoundationHash { get; }
     public DateTime TimestampUtc { get; }
     public long PublicationSequence { get; }
     public string Version => SnapshotVersion;
