@@ -1,6 +1,8 @@
 {
   "harness": "contract_compat_harness",
   "mode": "STATIC_FIELD_FIT",
+  "classification_authority": "KDK_D2_ARTIFACT_FIT_003.md",
+  "supersedes": "the R3 heuristic report that marked sequenceStats/versions PRESENT_PARTIAL",
   "recorder_source": "src/GC.AuctionFlow/Recorder/SegmentHeaderFooter.cs",
   "schema": "recorder_segment.schema.json",
   "recorder_header_footer_fields": [
@@ -49,98 +51,80 @@
   "results": [
     {
       "schema_field": "segmentId",
-      "state": "PRESENT"
+      "classification": "SEMANTICALLY_EQUIVALENT"
     },
     {
       "schema_field": "instrumentId",
-      "state": "PRESENT"
+      "classification": "SEMANTICALLY_EQUIVALENT"
     },
     {
       "schema_field": "startUtc",
-      "state": "PRESENT"
+      "classification": "SEMANTICALLY_EQUIVALENT"
     },
     {
       "schema_field": "endUtc",
-      "state": "PRESENT"
+      "classification": "SEMANTICALLY_EQUIVALENT"
     },
     {
       "schema_field": "dataSourceId",
-      "state": "PRESENT_PARTIAL"
+      "classification": "PARTIAL_DIFFERENT_SEMANTICS"
     },
     {
       "schema_field": "sourceMix",
-      "state": "ABSENT"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     },
     {
       "schema_field": "capabilitySnapshotId",
-      "state": "ABSENT"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     },
     {
       "schema_field": "dataQuality",
-      "state": "ABSENT"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     },
     {
       "schema_field": "subscriptionScope",
-      "state": "ABSENT"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     },
     {
       "schema_field": "sequenceStats",
-      "state": "PRESENT_PARTIAL"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     },
     {
       "schema_field": "containsUnrecoveredGap",
-      "state": "ABSENT"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     },
     {
       "schema_field": "versions",
-      "state": "PRESENT_PARTIAL"
+      "classification": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
     }
   ],
-  "expected_failures": [
-    {
-      "schema_field": "sourceMix",
-      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
-      "verdict": "EXPECTED_FAIL"
-    },
-    {
-      "schema_field": "capabilitySnapshotId",
-      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
-      "verdict": "EXPECTED_FAIL"
-    },
-    {
-      "schema_field": "dataQuality",
-      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
-      "verdict": "EXPECTED_FAIL"
-    },
-    {
-      "schema_field": "subscriptionScope",
-      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
-      "verdict": "EXPECTED_FAIL"
-    },
-    {
-      "schema_field": "containsUnrecoveredGap",
-      "reason": "recorder emits no equivalent; this is the ADR-003 fail-closed contract",
-      "verdict": "EXPECTED_FAIL"
-    }
-  ],
+  "classification_totals": {
+    "EXACTLY_EMITTED": 0,
+    "SEMANTICALLY_EQUIVALENT": 4,
+    "DERIVABLE_AT_FINALIZATION": 0,
+    "PARTIAL_DIFFERENT_SEMANTICS": 1,
+    "ABSENT_REQUIRES_NEW_PRODUCER_STATE": 7,
+    "total": 12
+  },
   "failclosed_contract_gap": {
-    "dataQuality": "ABSENT",
-    "containsUnrecoveredGap": "ABSENT",
-    "sequenceStats": "PRESENT",
-    "capabilitySnapshotId": "ABSENT",
-    "subscriptionScope": "ABSENT",
-    "sourceMix": "ABSENT"
+    "dataQuality": "ABSENT_REQUIRES_NEW_PRODUCER_STATE",
+    "containsUnrecoveredGap": "ABSENT_REQUIRES_NEW_PRODUCER_STATE",
+    "sequenceStats": "ABSENT_REQUIRES_NEW_PRODUCER_STATE",
+    "capabilitySnapshotId": "ABSENT_REQUIRES_NEW_PRODUCER_STATE",
+    "subscriptionScope": "ABSENT_REQUIRES_NEW_PRODUCER_STATE",
+    "sourceMix": "ABSENT_REQUIRES_NEW_PRODUCER_STATE"
   },
   "binary_integrity": {
-    "verification": "TEST_EVIDENCED (existing C# recorder suite, targeted run)",
+    "verification": "TEST_EVIDENCED_WITH_DETERMINISTIC_SYNTHETIC_FIXTURES / NOT_LIVE_EVIDENCED",
     "command": "dotnet test --filter FullyQualifiedName~Recorder -c Release",
     "result": "131 passed / 0 failed / 0 skipped, exit 0",
-    "covers": [
-      "SegmentReaderTests (parse header/frames/footer)",
-      "RecoveryScanner via P007C3BcCloseoutCorrectionTests + RecorderCloseoutAuditTests (truncated/corrupt segment classification)",
-      "RecorderCoreTests, TradeRecorderC3BcTests (framing/CRC/atomic finalize)"
+    "fixture_kinds": [
+      "handcrafted byte fixtures (SegmentReaderTests.BuildSegment)",
+      "artifacts through the real SegmentWriter (RecorderCoreTests, TradeRecorderC3BcTests) - production-code-path, NOT live-market",
+      "RecoveryScanner truncated/corrupt fixtures (P007C3BcCloseoutCorrectionTests, RecorderCloseoutAuditTests)",
+      "optional local-spool tests: 0 skipped in this run"
     ],
-    "note": "REAL fixtures built through the actual writer, not synthetic and not live.",
+    "note": "Deterministic synthetic fixtures. Using the real writer makes them production-code-path evidence, NOT live-market evidence.",
     "format_constants": {
       "ContainerMagic": "0x52414347 (GCAR)",
       "FrameMagic": "0x31464347 (GCF1)",
@@ -149,10 +133,8 @@
   },
   "schema_compatibility": {
     "verification": "STATIC_FIELD_FIT (source-field comparison, NOT a live contract validation)",
-    "recorder_metadata_present": 7,
-    "recorder_metadata_absent": 5,
     "no_json_recorder_segment_artifact_produced": true,
-    "note": "The recorder emits a binary .gcae container + a detached sha manifest; it produces NO recorder_segment.schema.json metadata object today. Absence of the 5 fail-closed fields is EXPECTED and is a contract gap, not a harness failure."
+    "note": "The recorder emits a binary .gcae container + a detached sha manifest; it produces NO recorder_segment.schema.json metadata object today. The 7 ABSENT_REQUIRES_NEW_PRODUCER_STATE fields are the fail-closed contract gap, EXPECTED, not a harness failure."
   },
-  "label": "STATIC_FIELD_FIT_EXPECTED_FAIL + BINARY_INTEGRITY_TEST_EVIDENCED"
+  "label": "STATIC_FIELD_FIT (per KDK_D2_ARTIFACT_FIT_003) + BINARY_INTEGRITY_TEST_EVIDENCED"
 }

@@ -109,8 +109,14 @@ WP-04c — capability/parity manifest and reconciliation
 
 | authority ID | opens | requires |
 |---|---|---|
-| `AUTH-D2-DIRECT-SRC` | direct-Rithmic research writer changes | `ADR-001` + `ADR-003-DIRECT` APPROVED + `DEC-ARCH ∈ {A,C}` + `SEC-001` |
-| `AUTH-D2-ATAS-SRC` | ATAS live-analysis writer changes | `ADR-001` + **an ATAS integrity addendum** + `DEC-ARCH ∈ {B,C}` + `AUTH-ATAS-DEPLOY` |
+| `AUTH-D2-DIRECT-SRC` | direct-Rithmic research writer **source changes** | `ADR-001` + `ADR-003-DIRECT` APPROVED + `DEC-ARCH ∈ {A,C}` |
+| `AUTH-D2-ATAS-SRC` | ATAS live-analysis writer **source changes** | `ADR-001` + **an ATAS integrity addendum** + `DEC-ARCH ∈ {B,C}` |
+| `AUTH-LIVE-SESSION` (direct connect / live run) | opening a direct-Rithmic **connection** | `AUTH-D2-DIRECT-SRC` done + **`SEC-001` resolved** + entitlement |
+
+> **SEC-001 reconciliation (R3.1 correction).** `SEC-001` (credential rotation) gates the direct
+> **connection / live session**, **not** source editing. Writing/reviewing the direct recorder source
+> does not require rotated credentials. `SEC-001` therefore moved off `AUTH-D2-DIRECT-SRC` onto
+> `AUTH-LIVE-SESSION`. `AUTH-ATAS-DEPLOY` likewise gates ATAS deployment, not the ATAS source edit.
 
 **`AUTH-D2-ATAS-SRC` stays `HOLD` until an ATAS integrity contract/addendum exists** — approving
 direct-path ADR-003 does **not** silently authorize ATAS writer changes.

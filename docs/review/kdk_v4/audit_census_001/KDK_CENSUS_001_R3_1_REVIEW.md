@@ -8,7 +8,7 @@
 | `R2_DELIVERABLE_COMMIT` | `e373486` |
 | `R3_START_HEAD` | `e373486` (the R2 deliverable; **not** "R3 HEAD") |
 | `R3_DELIVERABLE_COMMIT` | `e751f6e` |
-| `CURRENT_HEAD` | `e751f6e` at R3.1 start → the R3.1 commit SHA is in the **external receipt** `handover_r3_1/GCAE_CENSUS_R3_1_HANDOVER.zip.sha256` and the post-commit receipt (a committed doc cannot contain its own SHA). |
+| `CURRENT_HEAD` | `e751f6e` at R3.1 start → the R3.1 commit SHA is in **`handover_r3_1/POST_COMMIT_RECEIPT.md`** (the `.zip.sha256` receipt holds only the archive hash, NOT the commit SHA). Corrected by `KDK_CENSUS_001_R3_1_CORRECTION.md`. |
 
 Worktree 131 untracked / 0 tracked-modified preserved. No `.cs` changed.
 
